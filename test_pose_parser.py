@@ -86,12 +86,14 @@ class TestMediaPipeClient(unittest.TestCase):
                 landmarks = list(pose_object.pose_landmarks.landmark)
                 serialized = mpc.serialize_pose_landmarks(landmarks)
                 for joint in mpc.joints:
-                    self.assertIn(serialized[joint], "x")
-                    self.assertIn(serialized[joint], "y")
-                    self.assertIn(serialized[joint], "z")
-                    self.assertIn(serialized[joint], "x_normalized")
-                    self.assertIn(serialized[joint], "y_normalized")
-                    self.assertIn(serialized[joint], "z_normalized")
+                    self.assertIn("x", serialized[joint])
+                    self.assertIn("y", serialized[joint])
+                    self.assertIn("z", serialized[joint])
+                    self.assertIn("x_normalized", serialized[joint])
+                    self.assertIn("y_normalized", serialized[joint])
+                    self.assertIn("z_normalized", serialized[joint])
+        # cleanup
+        shutil.rmtree(mpc.json_output_path)
 
     def test_write_pose_data_to_file(self):
         """
@@ -111,9 +113,9 @@ class TestMediaPipeClient(unittest.TestCase):
         mpc.write_pose_data_to_file()
 
         self.assertEqual(True, os.path.exists(output_path))
-        paths = Path(output_path).glob("**/*.json")
+        paths = list(Path(output_path).glob("**/*.json"))
 
-        self.assertEqual(len(paths))
+        self.assertEqual(len(paths), limit)
 
         for p in paths:
             with open(str(p), "r") as f:

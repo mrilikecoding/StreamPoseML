@@ -218,7 +218,7 @@ class MediaPipeClient:
             raise MediaPipeClientError("Error opening file")
         while cap.isOpened():
             # bail if we go over processing limit
-            if self.frame_count > limit:
+            if self.frame_count >= limit:
                 return
             ret, image = cap.read()
             if not ret:
@@ -242,7 +242,7 @@ class MediaPipeClient:
 
             # format pose object how we like
             pose_landmarks = self.serialize_pose_landmarks(
-                pose_landmarks=,
+                pose_landmarks=list(results.pose_landmarks.landmark)
             )
             frame_data["joint_positions"] = pose_landmarks
             # add frame to client pose list
@@ -253,10 +253,10 @@ class MediaPipeClient:
         This method iterates through each pose data dictionary in the pose_data list.
         It then creates a json file at the json output path with all this data
         """
-        for pose_data in self.pose_landmarks:
-            file_path = f"{self.json_output_path}/keypoints-{pose_data['frame_number']:04d}.json"
+        for frame_data in self.frame_data_list:
+            file_path = f"{self.json_output_path}/keypoints-{frame_data['frame_number']:04d}.json"
             with open(file_path, "w") as f:
-                json.dump(pose_data, f)
+                json.dump(frame_data, f)
                 print(
                     f"Successfully wrote keypoints from {self.video_input_filename} to {f}"
                 )
@@ -281,9 +281,6 @@ class MediaPipeClient:
         Rerturns
             landmarks: dict
                 dictionary containing x, y, z and x_normalized, y_normalized, z_normalized
-            
-        
-
         """
         landmarks = {}
         if pose_landmarks:
@@ -292,10 +289,14 @@ class MediaPipeClient:
                 landmarks[joint] = {
                     "x": (pose_landmarks[i].x),
                     "y": (pose_landmarks[i].y),
-                    "z": (pose_landmarks[i].z), # according to docs, z uses "roughly the same scale as x"
+                    "z": (
+                        pose_landmarks[i].z
+                    ),  # according to docs, z uses "roughly the same scale as x"
                     "x_normalized": (pose_landmarks[i].x * w),
                     "y_normalized": (pose_landmarks[i].y * h),
-                    "z_normalized": (pose_landmarks[i].z * w), # according to docs, z uses "roughly the same scale as x"
+                    "z_normalized": (
+                        pose_landmarks[i].z * w
+                    ),  # according to docs, z uses "roughly the same scale as x"
                 }
         return landmarks
 
