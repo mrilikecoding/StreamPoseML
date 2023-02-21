@@ -13,6 +13,30 @@ from pose_parser.pose_parser import (
 )
 
 
+class TestBlazePoseFrame(unittest.TestCase):
+    def setUp(self) -> None:
+        self.output_path = "./tmp/data/keypoints"
+        self.video_path = "./test_videos"
+        input_path = self.video_path
+        output_path = self.output_path
+        mpc = MediaPipeClient(
+            video_input_filename="back.mp4",
+            video_input_path=input_path,
+            video_output_prefix=output_path,
+        )
+        mpc.process_video(limit=50)
+        self.bps = BlazePoseSequence(mpc.frame_data_list)
+
+    def tearDown(self) -> None:
+        # cleanup
+        try:
+            shutil.rmtree(self.output_path)
+        except:
+            return super().tearDown()
+
+        return super().tearDown()
+
+
 class TestBlazePoseSequence(unittest.TestCase):
     def setUp(self) -> None:
         self.output_path = "./tmp/data/keypoints"
@@ -54,7 +78,6 @@ class TestBlazePoseSequence(unittest.TestCase):
         """
         bad_data = [{"frame_number": 0}]
         self.assertRaises(BlazePoseSequenceError, lambda: BlazePoseSequence((bad_data)))
-
 
 
 class TestMediaPipeClient(unittest.TestCase):
@@ -115,6 +138,8 @@ class TestMediaPipeClient(unittest.TestCase):
         mpc.process_video(limit=50)
         self.assertEqual(mpc.frame_count, len(mpc.frame_data_list))
         for pose_data in mpc.frame_data_list:
+            self.assertIn("sequence_id", pose_data)
+            self.assertIn("sequence_source", pose_data)
             self.assertIn("frame_number", pose_data)
             self.assertIn("joint_positions", pose_data)
             self.assertIn("image_dimensions", pose_data)

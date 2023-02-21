@@ -7,16 +7,93 @@ import mediapipe as mp
 import cv2
 
 
+class BlazePoseFrame:
+    def __init__(self, frame_data) -> None:
+        self.joint_positions = [
+            "nose",
+            "left_eye_inner",
+            "left_eye",
+            "left_eye_outer",
+            "right_eye_inner",
+            "right_eye",
+            "right_eye_outer",
+            "left_ear",
+            "right_ear",
+            "mouth_left",
+            "mouth_right",
+            "left_shoulder",
+            "right_shoulder",
+            "left_elbow",
+            "right_elbow",
+            "left_wrist",
+            "right_wrist",
+            "left_pinky",
+            "right_pinky",
+            "left_index",
+            "right_index",
+            "left_thumb",
+            "right_thumb",
+            "left_hip",
+            "right_hip",
+            "left_knee",
+            "right_knee",
+            "left_ankle",
+            "right_anle",
+            "left_heel",
+            "right_heel",
+            "left_foot_index",
+            "right_foot_index",
+        ]
+        self.frame_number = frame_data["frame_number"]
+        self.has_joint_positions = bool(frame_data["joint_positions"])
+        self.image_dimensions = tuple(frame_data["image_dimensions"])
+        self.sequence_id = frame_data["sequence_id"]
+        self.sequence_source = frame_data["sequence_source"]
+        if self.has_joint_positions:
+            self.validate_joint_positions(frame_data["joint_positions"])
+            self.joint_positions = frame_data["joint_positions"]
+        self.generate_angle_measurements()
+
+    def validate_joint_position_data(self, joint_positions: dict):
+        required_joint_keys = ["x", "y", "z", "x_normalized", "y_normalized", "z_normalized"]
+        for joint in joint_positions:
+            if joint in joint_positions:
+                for key in required_joint_keys:
+                    if key in joint_positions[joint]:
+                        return True
+                    else:
+                        raise BlazePoseFrameError(f"{key} missing from {joint} position data")
+            else:
+                raise BlazePoseFrameError(f"{joint} missing from joint positions dict")
+            
+
+    def extract_joint_data(self, joint_positions: dict):
+        pass
+
+    def generate_angle_measurements(self):
+        pass
+
+    def serialize_frame_data(self):
+        pass
+
+class BlazePoseFrameError(Exception):
+    """
+    Raise when there is an error in the BlazePoseFrame class
+    """
+
+    pass
+
 class BlazePoseSequence:
     """
     This class represents a sequence of BlazePoseFrames
 
-    It validates they have the right shape and then performs operations
-    to encode angle measurements and provide other useful info
+    It validates they have the right shape and then creates a BlazePoseFrame for each pass frame
+
     """
 
-    sequence: list
-    joint_positions: list
+    sequence_data: list  # a list of frame data dicts for keypoints / metadata
+    frames: list  # a list of BlazePoseFrames representing the sequence data
+    joint_positions: list  # required keys for a non-empty joint position object
 
     def __init__(self, sequence: list = []) -> None:
         self.joint_positions = [
@@ -58,7 +135,8 @@ class BlazePoseSequence:
             if not self.validate_pose_schema(frame_data=frame):
                 raise BlazePoseSequenceError("Validation error!")
 
-        self.sequence = sequence
+        self.sequence_data = sequence
+        self.frames = []
 
     def validate_pose_schema(self, frame_data: dict):
         """
@@ -80,7 +158,13 @@ class BlazePoseSequence:
             exception: BlazePoseSequenceError
                 Raises an exception if there is a problem with validation
         """
-        required_keys = ["frame_number", "image_dimensions", "joint_positions"]
+        required_keys = [
+            "sequence_id",
+            "sequence_source",
+            "frame_number",
+            "image_dimensions",
+            "joint_positions",
+        ]
         # verify required top level keys are present
         for key in required_keys:
             if key not in frame_data:
@@ -103,6 +187,11 @@ class BlazePoseSequence:
 
         return True
 
+    def generate_blaze_pose_frames_from_sequence(self):
+        for frame_data in self.sequence:
+            bpf = BlazePoseFrame(frame_data=frame_data)
+            self.frames.append(bpf)
+
 
 class BlazePoseSequenceError(Exception):
     """
@@ -110,92 +199,6 @@ class BlazePoseSequenceError(Exception):
     """
 
     pass
-
-
-class PoseSequenceSerializer:
-    """
-    This class returns a json output of a Pose Sequence
-    for use by an external client
-    """
-
-    def __init__(self) -> None:
-        pass
-
-
-class BlazePose:
-    """ """
-
-    pass
-
-
-class MediaPipeFrame:
-    """
-    This class is responsible for representing a frame of mediapipe pose data
-    It also computes various angle measurements from the raw pose data
-    and represents them
-    """
-
-    def __init__(self, keypoints_raw: dict) -> None:
-        self.joints = {
-            0: "nose",
-            1: "left_eye_inner",
-            2: "left_eye",
-            3: "left_eye_outer",
-            4: "right_eye_inner",
-            5: "right_eye",
-            6: "right_eye_outer",
-            7: "left_ear",
-            8: "right_ear",
-            9: "mouth_left",
-            10: "mouth_right",
-            11: "left_shoulder",
-            12: "right_shoulder",
-            13: "left_elbow",
-            14: "right_elbow",
-            15: "left_wrist",
-            16: "right_wrist",
-            17: "left_pinky",
-            18: "right_pinky",
-            19: "left_index",
-            20: "right_index",
-            21: "left_thumb",
-            22: "right_thumb",
-            23: "left_hip",
-            24: "right_hip",
-            25: "left_knee",
-            26: "right_knee",
-            27: "left_ankle",
-            28: "right_anle",
-            29: "left_heel",
-            30: "right_heel",
-            31: "left_foot_index",
-            32: "right_foot_index",
-        }
-
-        self.angles = {}
-        self.keypoints = {}
-        x = []
-        y = []
-        c = []  # TODO replace this with depth estimation based on
-        for joint in list(self.joints.values()):
-            if joint in keypoints_raw:
-                x.append(keypoints_raw[joint]["x"])
-                y.append(keypoints_raw[joint]["y"])
-                c.append(
-                    -1
-                )  # no confidence val in MediaPipe, but again just keeping same format as OP for now
-            else:
-                x.append(-1)
-                y.append(-1)
-                c.append(-1)
-
-        for i in range(len(x)):
-            self.keypoints[self.joints[i]] = {}
-            self.keypoints[self.joints[i]]["x"] = x[i]
-            self.keypoints[self.joints[i]]["y"] = y[i]
-            self.keypoints[self.joints[i]]["c"] = c[i]
-
-        self.plumbline = []
 
 
 class MediaPipeClient:
@@ -324,6 +327,8 @@ class MediaPipeClient:
             self.image_dimensions = image.shape
             h, w, _ = self.image_dimensions
             frame_data = {
+                "sequence_id": self.id,
+                "sequence_source": "mediapipe",
                 "frame_number": self.frame_count,
                 "image_dimensions": {"height": h, "width": w},
                 "joint_positions": {},
@@ -401,14 +406,3 @@ class MediaPipeClientError(Exception):
     """Raised when there's an error in this class"""
 
     pass
-
-
-class PoseParser:
-    """
-    This class is responsible for accepting an incoming frame of video,
-    performing keypoints extraction using the specified client
-    and then tranlating the client's keypoints into the desired pose model
-    """
-
-    def __init__() -> None:
-        pass
