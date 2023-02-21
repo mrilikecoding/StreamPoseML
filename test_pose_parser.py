@@ -5,13 +5,72 @@ import shutil
 import os
 import json
 
-from pose_parser.pose_parser import MediaPipeClient, MediaPipeClientError
+from pose_parser.pose_parser import (
+    MediaPipeClient,
+    MediaPipeClientError,
+    BlazePoseSequence,
+    BlazePoseSequenceError,
+)
+
+
+class TestBlazePoseSequence(unittest.TestCase):
+    def setUp(self) -> None:
+        self.output_path = "./tmp/data/keypoints"
+        self.video_path = "./test_videos"
+        input_path = self.video_path
+        output_path = self.output_path
+        mpc = MediaPipeClient(
+            video_input_filename="back.mp4",
+            video_input_path=input_path,
+            video_output_prefix=output_path,
+        )
+        mpc.process_video(limit=50)
+        self.mpc = mpc
+        self.frame_data_list = mpc.frame_data_list
+
+    def tearDown(self) -> None:
+        # cleanup
+        try:
+            shutil.rmtree(self.output_path)
+        except:
+            return super().tearDown()
+
+        return super().tearDown()
+
+    def test_init(self):
+        """
+        GIVEN a BlazePoseSequence class
+        WHEN initialized with correct frame data list
+        THEN an object is successfully initialized with a sequence property
+        """
+        bps = BlazePoseSequence(self.frame_data_list)
+        self.assertEqual(bps.sequence, self.frame_data_list)
+
+    def test_client_init_error(self):
+        """
+        GIVEN a BlasePoseSequence class
+        WHEN initialized with bad data
+        THEN a BlazePoseSequenceError is raised
+        """
+        bad_data = [{"frame_number": 0}]
+        self.assertRaises(BlazePoseSequenceError, lambda: BlazePoseSequence((bad_data)))
+
 
 
 class TestMediaPipeClient(unittest.TestCase):
     def setUp(self) -> None:
+        self.output_path = "./tmp/data/keypoints"
         self.video_path = "./test_videos"
         return super().setUp()
+
+    def tearDown(self) -> None:
+        # cleanup
+        try:
+            shutil.rmtree(self.output_path)
+        except:
+            return super().tearDown()
+
+        return super().tearDown()
 
     def test_client_init(self):
         """
@@ -19,8 +78,8 @@ class TestMediaPipeClient(unittest.TestCase):
         WHEN passed into the MediaPipeClient at init
         THEN the client object sets the appropriate output data paths with the current timestamp
         """
-        input_path = "./test_videos"
-        output_path = "./tmp/data/keypoints"
+        input_path = self.video_path
+        output_path = self.output_path
         files = ["back.mp4", "front.mp4", "side.mp4"]
         for f in files:
             id = int(time.time_ns())
@@ -31,8 +90,6 @@ class TestMediaPipeClient(unittest.TestCase):
                 id=id,
             )
             self.assertEqual(mpc.json_output_path, f"{output_path}/{Path(f).stem}-{id}")
-            # cleanup
-            shutil.rmtree(mpc.json_output_path)
 
     def test_client_init_error(self):
         """
@@ -48,8 +105,8 @@ class TestMediaPipeClient(unittest.TestCase):
         WHEN process video is called
         THEN pose landmarks are added to the client object
         """
-        input_path = "./test_videos"
-        output_path = "./tmp/data/keypoints"
+        input_path = self.video_path
+        output_path = self.output_path
         mpc = MediaPipeClient(
             video_input_filename="back.mp4",
             video_input_path=input_path,
@@ -62,9 +119,6 @@ class TestMediaPipeClient(unittest.TestCase):
             self.assertIn("joint_positions", pose_data)
             self.assertIn("image_dimensions", pose_data)
 
-        # cleanup
-        shutil.rmtree(mpc.json_output_path)
-
     def test_serialize_pose_landmarks(self):
         """
         GIVEN a MediaPipe client and some extracted pose landmarks from a frame
@@ -72,8 +126,8 @@ class TestMediaPipeClient(unittest.TestCase):
         THEN a dictionary is returned containing the appropriate data
         """
         limit = 10
-        input_path = "./test_videos"
-        output_path = "./tmp/data/keypoints"
+        input_path = self.video_path
+        output_path = self.output_path
         mpc = MediaPipeClient(
             video_input_filename="back.mp4",
             video_input_path=input_path,
@@ -92,8 +146,6 @@ class TestMediaPipeClient(unittest.TestCase):
                     self.assertIn("x_normalized", serialized[joint])
                     self.assertIn("y_normalized", serialized[joint])
                     self.assertIn("z_normalized", serialized[joint])
-        # cleanup
-        shutil.rmtree(mpc.json_output_path)
 
     def test_write_pose_data_to_file(self):
         """
@@ -102,8 +154,8 @@ class TestMediaPipeClient(unittest.TestCase):
         THEN an amount of files equal to the passed limit is created with the right keys
         """
         limit = 10
-        input_path = "./test_videos"
-        output_path = "./tmp/data/keypoints"
+        input_path = self.video_path
+        output_path = self.output_path
         mpc = MediaPipeClient(
             video_input_filename="back.mp4",
             video_input_path=input_path,
@@ -123,6 +175,3 @@ class TestMediaPipeClient(unittest.TestCase):
                 self.assertIn("frame_number", pose_data)
                 self.assertIn("joint_positions", pose_data)
                 self.assertIn("image_dimensions", pose_data)
-
-        # cleanup
-        shutil.rmtree(mpc.json_output_path)
