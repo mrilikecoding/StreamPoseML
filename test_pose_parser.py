@@ -12,7 +12,16 @@ from pose_parser.pose_parser import (
     BlazePoseSequenceError,
     BlazePoseFrame,
     BlazePoseFrameError,
+    Joint,
 )
+
+
+class TestAngle(unittest.TestCase):
+    pass
+
+
+class TestJoint(unittest.TestCase):
+    pass
 
 
 class TestBlazePoseFrame(unittest.TestCase):
@@ -51,6 +60,24 @@ class TestBlazePoseFrame(unittest.TestCase):
         self.assertIsInstance(bpf_no_joint, BlazePoseFrame)
         self.assertIsInstance(bpf_joint, BlazePoseFrame)
 
+    def test_set_joint_positions(self):
+        """
+        GIVEN a BlazePoseFrame class
+        WHEN calling to set joint positions when there are joints
+        THEN a Joint object is instantiated using the raw joint data on the BlazePoseFrame instance
+        """
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        bpf.set_joint_positions()
+        for joint in bpf.joint_position_names:
+            self.assertIsInstance(bpf.joints[joint], Joint)
+
+    def test_generate_angle_measurements(self):
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        result = bpf.generate_angle_measurements()
+        pass
+
     def test_validate_joint_position_data(self):
         """
         GIVEN a BlazePoseFrame instance
@@ -64,6 +91,15 @@ class TestBlazePoseFrame(unittest.TestCase):
             ),
             True,
         )
+
+    def test_get_vector(self):
+        pass
+
+    def test_get_plumbline_vector(self):
+        pass
+
+    def test_serialize_frame_data(self):
+        pass
 
     def test_validate_joint_position_data_invalid(self):
         """

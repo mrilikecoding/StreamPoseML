@@ -5,6 +5,117 @@ import json
 
 import mediapipe as mp
 import cv2
+import numpy as np
+
+
+class Angle:
+    """
+    This is a data structure representing angles between 2d and 3d vectors
+
+    From:
+    https://stackoverflow.com/questions/2827393/angles-between-two-n-dimensional-vectors-in-python/13849249#13849249
+
+    """
+
+    name: str
+
+    def __init__(self, name: str, vector1: tuple, vector2: tuple) -> None:
+        self.name = name
+        self.vector_1 = vector1
+        self.vector_2 = vector2
+        self.angle_2d = self.angle_between(vector1[:2], vector2[:2])
+        self.angle_3d = self.angle_between(vector1[:3], vector2[:3])
+        self.angle_2d_radians = self.angle_2d # alias
+        self.angle_3d_radians = self.angle_3d # alias
+        self.angle_2d_degrees = np.degrees(self.angle_2d)
+        self.angle_3d_degrees = np.degrees(self.angle_3d)
+
+    def unit_vector(self, vector: tuple):
+        """Returns the unit vector of the vector."""
+        return vector / np.linalg.norm(vector)
+
+    def angle_between(self, vector_1: tuple=None, vector_2: tuple=None):
+        """ Returns the angle in radians between vectors 'v1' and 'v2'::
+
+            >>> angle_between((1, 0, 0), (0, 1, 0))
+            1.5707963267948966
+            >>> angle_between((1, 0, 0), (1, 0, 0))
+            0.0
+            >>> angle_between((1, 0, 0), (-1, 0, 0))
+            3.141592653589793
+
+        """
+        if vector_1 is None:
+            vector_1 = self.vector_1
+        if vector_2 is None:
+            vector_2 = self.vector_2
+        v1_u = self.unit_vector(vector_1)
+        v2_u = self.unit_vector(vector_2)
+        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+
+class Joint:
+    """
+    This is a data structure representing the attributes of a joint
+    """
+
+    # the name of this joint
+    name: str
+    # x, y, z as 0-1
+    x: float
+    y: float
+    z: float
+    # x, y, z normalized to the image dimensions
+    x_normalized: float
+    y_normalized: float
+    z_normalized: float
+    # the image dimensions for the joint's image {"height": 100, "width": 200}
+    image_dimensions: dict
+
+    def __init__(self, name, joint_data: dict) -> None:
+        """
+        This initializes a Joint object with required data
+
+        Parameters
+        ---------
+            joint_data: dict
+                Ex.
+                {
+                    'image_dimensions': { 'height': 500, 'width': 1000 },
+                    'x': 0.7057283520698547,
+                    'y': 1.333446979522705,
+                    'z': 0.5175799131393433,
+                    'x_normalized': 1354.998435974121,
+                    'y_normalized': 1440.1227378845215,
+                    'z_normalized': 993.7534332275391,
+                }
+        """
+        required_keys = [
+            "x",
+            "y",
+            "z",
+            "x_normalized",
+            "y_normalized",
+            "z_normalized",
+            "image_dimensions",
+        ]
+        if not all([key in required_keys for key in joint_data]):
+            raise JointError(
+                "The required data is missing from the joint data dictionary."
+            )
+
+        self.name = name
+        self.image_dimensions = joint_data["image_dimensions"]
+        self.x = joint_data["x"]
+        self.y = joint_data["y"]
+        self.z = joint_data["z"]
+        self.x_normalized = joint_data["x_normalized"]
+        self.y_normalized = joint_data["y_normalized"]
+        self.z_normalized = joint_data["z_normalized"]
+
+
+class JointError(Exception):
+    """Raise when there is an error in the Joint class"""
 
 
 class BlazePoseFrame:
@@ -19,6 +130,7 @@ class BlazePoseFrame:
     image_dimensions: tuple
     sequence_id: int
     sequence_source: str
+    joints: dict
     angles: dict
 
     def __init__(self, frame_data: dict) -> None:
@@ -42,7 +154,7 @@ class BlazePoseFrame:
                 }
 
         """
-        self.joint_positions = [
+        self.joint_position_names = [
             "nose",
             "left_eye_inner",
             "left_eye",
@@ -77,18 +189,71 @@ class BlazePoseFrame:
             "left_foot_index",
             "right_foot_index",
         ]
+        self.joints = {}
+        self.angles = {}
         self.frame_number = frame_data["frame_number"]
         self.has_joint_positions = bool(frame_data["joint_positions"])
-        self.image_dimensions = tuple(frame_data["image_dimensions"])
+        self.image_dimensions = frame_data["image_dimensions"]
         self.sequence_id = frame_data["sequence_id"]
         self.sequence_source = frame_data["sequence_source"]
-        self.angles = {}
+        # if we have joint positions, validate them
+        # and instantiate joint objects into dictionary
         if self.has_joint_positions:
             self.validate_joint_position_data(frame_data["joint_positions"])
-            self.joint_positions = frame_data["joint_positions"]
-            self.generate_angle_measurements()
+            self.joint_positions_raw = frame_data["joint_positions"]
+            self.joints = self.set_joint_positions()
+            self.angles = self.generate_angle_measurements()
+
+    def set_joint_positions(self) -> dict:
+        """
+        This method takes the raw joint data from every named joint
+        and formats a data object to create a Joint object instance
+
+        Returns
+
+            joint_positions: dict
+                A joint position dictionary where each key is the name of
+                a joint and the value is a dictionary containing position
+                data for that joint in this frame instance
+        """
+        if not self.has_joint_positions:
+            raise BlazePoseFrameError("There are no joint positions to set")
+        joint_positions = {}
+        for joint in self.joint_position_names:
+            joints_raw = self.joint_positions_raw
+            joint_data = {
+                "image_dimensions": self.image_dimensions,
+                "x": joints_raw[joint]["x"],
+                "y": joints_raw[joint]["y"],
+                "z": joints_raw[joint]["z"],
+                "x_normalized": joints_raw[joint]["x_normalized"],
+                "y_normalized": joints_raw[joint]["y_normalized"],
+                "z_normalized": joints_raw[joint]["z_normalized"],
+            }
+            joint_positions[joint] = Joint(name=joint, joint_data=joint_data)
+        return joint_positions
 
     def validate_joint_position_data(self, joint_positions: dict):
+        """
+        This method validates that the required keys are present in 
+        the joint position data
+
+        Parameters
+        --------
+            joint_positions: dict
+                a dictionary of joint position data to be validated
+
+        Returns
+        ______
+            success: bool
+                If all keys are present return true
+
+        Raise
+        -----
+            BlazePoseFrameError if we are missing a key 
+
+
+        """
         required_joint_keys = [
             "x",
             "y",
@@ -98,20 +263,71 @@ class BlazePoseFrame:
             "z_normalized",
         ]
 
-        for joint in self.joint_positions:
+        for joint in self.joint_position_names:
             if joint in joint_positions:
                 for key in required_joint_keys:
                     if key in joint_positions[joint]:
-                        return True
+                        continue
                     else:
                         raise BlazePoseFrameError(
                             f"{key} missing from {joint} position data"
                         )
             else:
                 raise BlazePoseFrameError(f"{joint} missing from joint positions dict")
+        
+        return True
 
     def generate_angle_measurements(self):
-        self.plumb_line_vector = None
+        if not self.has_joint_positions:
+            raise BlazePoseFrameError(
+                f"There are no joint data to generate angles from"
+            )
+
+
+        self.plumb_line_vector = self.get_plumbline_vector()
+
+
+    def get_vector(self, joint_name1: str, joint_name2: str):
+        x1 = self.joints[joint_name1].x 
+        y1 = self.joints[joint_name1].y 
+        z1 = self.joints[joint_name1].z 
+        x2 = self.joints[joint_name1].x
+        y2 = self.joints[joint_name1].y
+        z2 = self.joints[joint_name1].z
+
+        vector = [(x1, y1, z1), (x2, y2, z2)]
+
+        x1_normalized = self.joints[joint_name2].x 
+        y1_normalized = self.joints[joint_name2].y 
+        z1_normalized = self.joints[joint_name2].z 
+        x2_normalized = self.joints[joint_name2].x
+        y2_normalized = self.joints[joint_name2].y
+        z2_normalized = self.joints[joint_name2].z
+
+        vector_normalized = [(x1_normalized, y1_normalized, z1_normalized), (x2_normalized, y2_normalized, z2_normalized)]
+
+        return vector, vector_normalized
+
+    def get_plumbline_vector(self):
+        x1 = (self.joints['left_shoulder'].x + self.joints['right_shoulder'].x)/2
+        y1 = (self.joints['left_shoulder'].y + self.joints['right_shoulder'].y)/2
+        z1 = (self.joints['left_shoulder'].z + self.joints['right_shoulder'].z)/2
+        x2 = (self.joints['left_hip'].x + self.joints['right_hip'].x)/2
+        y2 = (self.joints['left_hip'].y + self.joints['right_hip'].y)/2
+        z2 = (self.joints['left_hip'].z + self.joints['right_hip'].z)/2
+
+        plumbline = [(x1, y1, z1), (x2, y2, z2)]
+
+        x1_normalized =self.joints['left_shoulder'].x_normalized + self.joints['right_shoulder'].x_normalized)/2
+        y1_normalized =self.joints['left_shoulder'].y_normalized + self.joints['right_shoulder'].y_normalized)/2
+        z1_normalized =self.joints['left_shoulder'].z_normalized + self.joints['right_shoulder'].z_normalized)/2
+        x2_normalized = (self.joints['left_hip'].x_normalized + self.joints['right_hip'].x_normalized)/2
+        y2_normalized = (self.joints['left_hip'].y_normalized + self.joints['right_hip'].y_normalized)/2
+        z2_normalized = (self.joints['left_hip'].z_normalized + self.joints['right_hip'].z_normalized)/2
+
+        plumbline_normalized = [(x1_normalized, y1_normalized, z1_normalized), (x2_normalized, y2_normalized, z2_normalized)]
+
+        return plumbline, plumbline_normalized
 
     def serialize_frame_data(self):
         pass
