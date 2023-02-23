@@ -10,11 +10,14 @@ from pose_parser.pose_parser import (
     MediaPipeClientError,
     BlazePoseSequence,
     BlazePoseSequenceError,
+    BlazePoseFrame,
+    BlazePoseFrameError,
 )
 
 
 class TestBlazePoseFrame(unittest.TestCase):
-    def setUp(self) -> None:
+    @classmethod
+    def setUpClass(self) -> None:
         self.output_path = "./tmp/data/keypoints"
         self.video_path = "./test_videos"
         input_path = self.video_path
@@ -27,18 +30,56 @@ class TestBlazePoseFrame(unittest.TestCase):
         mpc.process_video(limit=50)
         self.bps = BlazePoseSequence(mpc.frame_data_list)
 
-    def tearDown(self) -> None:
+    @classmethod
+    def tearDownClass(self) -> None:
         # cleanup
         try:
             shutil.rmtree(self.output_path)
         except:
-            return super().tearDown()
+            return super().tearDown(self)
 
-        return super().tearDown()
+        return super().tearDown(self)
+
+    def test_init(self):
+        """
+        GIVEN a BlazePoseFrame class
+        WHEN initialized with a frame of BlazePoseSequence.sequence data
+        THEN a BlazePoseFrame object is instantiated regardless of whether joint position data is present
+        """
+        bpf_no_joint = BlazePoseFrame(frame_data=self.bps.sequence_data[0])
+        bpf_joint = BlazePoseFrame(frame_data=self.bps.sequence_data[2])
+        self.assertIsInstance(bpf_no_joint, BlazePoseFrame)
+        self.assertIsInstance(bpf_joint, BlazePoseFrame)
+
+    def test_validate_joint_position_data(self):
+        """
+        GIVEN a BlazePoseFrame instance
+        WHEN validate joint position data is called with joint positions
+        THEN True is returned
+        """
+        bpf = BlazePoseFrame(frame_data=self.bps.sequence_data[0])
+        self.assertEqual(
+            bpf.validate_joint_position_data(
+                self.bps.sequence_data[2]["joint_positions"]
+            ),
+            True,
+        )
+
+    def test_validate_joint_position_data_invalid(self):
+        """
+        GIVEN a BlazePoseFrame instance
+        WHEN validate joint position data is called with invalid data
+        THEN an exception is raised
+        """
+        bpf = BlazePoseFrame(frame_data=self.bps.sequence_data[0])
+        self.assertRaises(
+            BlazePoseFrameError, lambda: bpf.validate_joint_position_data({})
+        )
 
 
 class TestBlazePoseSequence(unittest.TestCase):
-    def setUp(self) -> None:
+    @classmethod
+    def setUpClass(self) -> None:
         self.output_path = "./tmp/data/keypoints"
         self.video_path = "./test_videos"
         input_path = self.video_path
@@ -52,14 +93,15 @@ class TestBlazePoseSequence(unittest.TestCase):
         self.mpc = mpc
         self.frame_data_list = mpc.frame_data_list
 
-    def tearDown(self) -> None:
+    @classmethod
+    def tearDownClass(self) -> None:
         # cleanup
         try:
             shutil.rmtree(self.output_path)
         except:
-            return super().tearDown()
+            return super().tearDown(self)
 
-        return super().tearDown()
+        return super().tearDown(self)
 
     def test_init(self):
         """
@@ -68,7 +110,7 @@ class TestBlazePoseSequence(unittest.TestCase):
         THEN an object is successfully initialized with a sequence property
         """
         bps = BlazePoseSequence(self.frame_data_list)
-        self.assertEqual(bps.sequence, self.frame_data_list)
+        self.assertEqual(bps.sequence_data, self.frame_data_list)
 
     def test_client_init_error(self):
         """
@@ -78,6 +120,40 @@ class TestBlazePoseSequence(unittest.TestCase):
         """
         bad_data = [{"frame_number": 0}]
         self.assertRaises(BlazePoseSequenceError, lambda: BlazePoseSequence((bad_data)))
+
+    def test_validate_pose_schema(self):
+        """
+        GIVEN a BlazePoseSequence object
+        WHEN validate_pose_schema is called
+        THEN True is returned if the required keys are present
+        """
+        bps = BlazePoseSequence(self.frame_data_list)
+        frame_data_no_joint = self.frame_data_list[0]
+        frame_data_joint = self.frame_data_list[2]
+        result = bps.validate_pose_schema(frame_data=frame_data_no_joint)
+        self.assertEqual(True, result)
+        result = bps.validate_pose_schema(frame_data=frame_data_joint)
+        self.assertEqual(True, result)
+
+    def test_validate_pose_schema_invalid_data(self):
+        """
+        GIVEN a BlazePoseSequence object
+        WHEN validate_pose_schema is called
+        THEN True is returned if the required keys are present
+        """
+        bps = BlazePoseSequence(self.frame_data_list)
+        bad_data = {"frame_number": 0}
+        self.assertRaises(
+            BlazePoseSequenceError,
+            lambda: bps.validate_pose_schema(frame_data=bad_data),
+        )
+
+    def test_generate_pose_frames_from_sequence(self):
+        bps = BlazePoseSequence(self.frame_data_list)
+        bps.generate_blaze_pose_frames_from_sequence()
+        self.assertEqual(len(bps.frames), len(self.frame_data_list))
+        for frame in bps.frames:
+            self.assertIsInstance(frame, BlazePoseFrame)
 
 
 class TestMediaPipeClient(unittest.TestCase):

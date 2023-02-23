@@ -8,7 +8,40 @@ import cv2
 
 
 class BlazePoseFrame:
-    def __init__(self, frame_data) -> None:
+    """
+    This class represents a single frame of BlazePose joint positions
+    It stores meta-data related to the frame and also computes angle measurements if joint positions are present
+    """
+
+    joint_positions: list
+    frame_number: int
+    has_joint_positions: bool
+    image_dimensions: tuple
+    sequence_id: int
+    sequence_source: str
+    angles: dict
+
+    def __init__(self, frame_data: dict) -> None:
+        """
+        Initialize this class - passed a dictionary of frame data
+
+        Parameters
+        -----
+            frame_data: dict
+                This is passed from a BlazePoseSequence.sequence_data entry
+                ex.
+                {
+                    'sequence_id': 1677107027968938000,
+                    'sequence_source': 'mediapipe',
+                    'frame_number': 43,
+                    'image_dimensions': {'height': 1080, 'width': 1920},
+                    'joint_positions': {
+                        'nose': {'x': 12., 'y': 42., 'z': 32., x_normalized: ...}
+                        ...
+                    }
+                }
+
+        """
         self.joint_positions = [
             "nose",
             "left_eye_inner",
@@ -49,32 +82,40 @@ class BlazePoseFrame:
         self.image_dimensions = tuple(frame_data["image_dimensions"])
         self.sequence_id = frame_data["sequence_id"]
         self.sequence_source = frame_data["sequence_source"]
+        self.angles = {}
         if self.has_joint_positions:
-            self.validate_joint_positions(frame_data["joint_positions"])
+            self.validate_joint_position_data(frame_data["joint_positions"])
             self.joint_positions = frame_data["joint_positions"]
-        self.generate_angle_measurements()
+            self.generate_angle_measurements()
 
     def validate_joint_position_data(self, joint_positions: dict):
-        required_joint_keys = ["x", "y", "z", "x_normalized", "y_normalized", "z_normalized"]
-        for joint in joint_positions:
+        required_joint_keys = [
+            "x",
+            "y",
+            "z",
+            "x_normalized",
+            "y_normalized",
+            "z_normalized",
+        ]
+
+        for joint in self.joint_positions:
             if joint in joint_positions:
                 for key in required_joint_keys:
                     if key in joint_positions[joint]:
                         return True
                     else:
-                        raise BlazePoseFrameError(f"{key} missing from {joint} position data")
+                        raise BlazePoseFrameError(
+                            f"{key} missing from {joint} position data"
+                        )
             else:
                 raise BlazePoseFrameError(f"{joint} missing from joint positions dict")
-            
-
-    def extract_joint_data(self, joint_positions: dict):
-        pass
 
     def generate_angle_measurements(self):
-        pass
+        self.plumb_line_vector = None
 
     def serialize_frame_data(self):
         pass
+
 
 class BlazePoseFrameError(Exception):
     """
@@ -82,6 +123,7 @@ class BlazePoseFrameError(Exception):
     """
 
     pass
+
 
 class BlazePoseSequence:
     """
@@ -188,7 +230,7 @@ class BlazePoseSequence:
         return True
 
     def generate_blaze_pose_frames_from_sequence(self):
-        for frame_data in self.sequence:
+        for frame_data in self.sequence_data:
             bpf = BlazePoseFrame(frame_data=frame_data)
             self.frames.append(bpf)
 
