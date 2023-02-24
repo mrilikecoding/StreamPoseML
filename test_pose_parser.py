@@ -16,12 +16,25 @@ from pose_parser.pose_parser import (
 )
 
 
+class TestVector(unittest.TestCase):
+    def test_init(self):
+        pass
+
+
 class TestAngle(unittest.TestCase):
-    pass
+    def test_unit_vector(self):
+        pass
+
+    def test_angle_between(self):
+        pass
+
+    def test_init(self):
+        pass
 
 
 class TestJoint(unittest.TestCase):
-    pass
+    def test_init(self):
+        pass
 
 
 class TestBlazePoseFrame(unittest.TestCase):
@@ -93,6 +106,9 @@ class TestBlazePoseFrame(unittest.TestCase):
         )
 
     def test_get_vector(self):
+        pass
+
+    def test_get_joint_average(self):
         pass
 
     def test_get_plumbline_vector(self):
