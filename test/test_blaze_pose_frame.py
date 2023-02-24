@@ -1,0 +1,100 @@
+import unittest
+import shutil
+
+
+from pose_parser.mediapipe_client import MediaPipeClient
+from pose_parser.blaze_pose_sequence import BlazePoseSequence
+from pose_parser.blaze_pose_frame import BlazePoseFrame, BlazePoseFrameError
+from pose_parser.geometry.joint import Joint
+
+
+class TestBlazePoseFrame(unittest.TestCase):
+    @classmethod
+    def setUpClass(self) -> None:
+        self.output_path = "./tmp/data/keypoints"
+        self.video_path = "./test_videos"
+        input_path = self.video_path
+        output_path = self.output_path
+        mpc = MediaPipeClient(
+            video_input_filename="back.mp4",
+            video_input_path=input_path,
+            video_output_prefix=output_path,
+        )
+        mpc.process_video(limit=50)
+        self.bps = BlazePoseSequence(mpc.frame_data_list)
+
+    @classmethod
+    def tearDownClass(self) -> None:
+        # cleanup
+        try:
+            shutil.rmtree(self.output_path)
+        except:
+            return super().tearDown(self)
+
+        return super().tearDown(self)
+
+    def test_init(self):
+        """
+        GIVEN a BlazePoseFrame class
+        WHEN initialized with a frame of BlazePoseSequence.sequence data
+        THEN a BlazePoseFrame object is instantiated regardless of whether joint position data is present
+        """
+        bpf_no_joint = BlazePoseFrame(frame_data=self.bps.sequence_data[0])
+        bpf_joint = BlazePoseFrame(frame_data=self.bps.sequence_data[2])
+        self.assertIsInstance(bpf_no_joint, BlazePoseFrame)
+        self.assertIsInstance(bpf_joint, BlazePoseFrame)
+
+    def test_set_joint_positions(self):
+        """
+        GIVEN a BlazePoseFrame class
+        WHEN calling to set joint positions when there are joints
+        THEN a Joint object is instantiated using the raw joint data on the BlazePoseFrame instance
+        """
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        bpf.set_joint_positions()
+        for joint in bpf.joint_position_names:
+            self.assertIsInstance(bpf.joints[joint], Joint)
+
+    def test_generate_angle_measurements(self):
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        result = bpf.generate_angle_measurements()
+        pass
+
+    def test_validate_joint_position_data(self):
+        """
+        GIVEN a BlazePoseFrame instance
+        WHEN validate joint position data is called with joint positions
+        THEN True is returned
+        """
+        bpf = BlazePoseFrame(frame_data=self.bps.sequence_data[0])
+        self.assertEqual(
+            bpf.validate_joint_position_data(
+                self.bps.sequence_data[2]["joint_positions"]
+            ),
+            True,
+        )
+
+    def test_get_vector(self):
+        pass
+
+    def test_get_joint_average(self):
+        pass
+
+    def test_get_plumbline_vector(self):
+        pass
+
+    def test_serialize_frame_data(self):
+        pass
+
+    def test_validate_joint_position_data_invalid(self):
+        """
+        GIVEN a BlazePoseFrame instance
+        WHEN validate joint position data is called with invalid data
+        THEN an exception is raised
+        """
+        bpf = BlazePoseFrame(frame_data=self.bps.sequence_data[0])
+        self.assertRaises(
+            BlazePoseFrameError, lambda: bpf.validate_joint_position_data({})
+        )
