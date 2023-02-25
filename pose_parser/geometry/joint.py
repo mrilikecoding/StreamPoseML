@@ -57,6 +57,25 @@ class Joint:
         self.y_normalized = joint_data["y_normalized"]
         self.z_normalized = joint_data["z_normalized"]
 
+    def get_coord_tuple(self, normalized=False):
+        """
+        This method returns a tuple representation of the joint
+
+        Parameters
+        --------
+            normalized: bool
+                If True, return the vectors's normalized values
+
+        Return
+        ------
+            joint: tuple[float, float, float]
+                The tuple representation of this joint
+        """
+        if normalized:
+            return self.x_normalized, self.y_normalized, self.z_normalized
+
+        return self.x, self.y, self.z
+
 
 class JointError(Exception):
     """Raise when there is an error in the Joint class"""

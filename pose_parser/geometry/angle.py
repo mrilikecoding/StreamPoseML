@@ -13,8 +13,8 @@ class Angle:
     """
 
     name: str
-    vector_1: tuple
-    vector_2: tuple
+    vector_1: Vector
+    vector_2: Vector
     angle_2d: float
     angle_3d: float
     angle_2d_radians: float
@@ -55,12 +55,12 @@ class Angle:
         self.angle_3d_normalized_degrees = np.degrees(self.angle_3d)
 
     @staticmethod
-    def unit_vector(vector: tuple):
+    def unit_vector(vector: tuple) -> float:
         """Returns the unit vector of the vector."""
         return vector / np.linalg.norm(vector)
 
     @staticmethod
-    def angle_between(self, vector_1: tuple, vector_2: tuple):
+    def angle_between(self, vector_1: tuple, vector_2: tuple) -> float:
         """Returns the angle in radians between vectors 'v1' and 'v2'::
 
         >>> angle_between((1, 0, 0), (0, 1, 0))

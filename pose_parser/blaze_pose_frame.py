@@ -1,6 +1,7 @@
 from pose_parser.geometry.joint import Joint
 from pose_parser.geometry.vector import Vector
 from pose_parser.geometry.angle import Angle
+from pose_parser.geometry.distance import Distance
 
 
 class BlazePoseFrame:
@@ -176,6 +177,10 @@ class BlazePoseFrame:
             raise BlazePoseFrameError(
                 f"There are no joint data to generate angles from"
             )
+
+        # TODO call these for each key by making Distance and Angles
+        # distances = self.open_pose_angle_definition_map()
+        # angles = self.open_pose_angle_definition_map()
 
     def open_pose_distance_definition_map(self):
         """
