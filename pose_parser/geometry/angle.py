@@ -28,48 +28,81 @@ class Angle:
         where the angle between two vectors is calculated in radians
         and degrees with accessible attributes for introspection
         """
-        self.name = name
-        self.vector_1 = vector1
-        self.vector_2 = vector2
-        self.angle_2d = self.angle_between(
-            vector1.get_coord_tuple()[:2], vector2.get_coord_tuple()[:2]
-        )
-        self.angle_3d = self.angle_between(
-            vector1.get_coord_tuple()[:3], vector2.get_coord_tuple()[:3]
-        )
-        self.angle_2d_radians = self.angle_2d  # alias
-        self.angle_3d_radians = self.angle_3d  # alias
-        self.angle_2d_degrees = np.degrees(self.angle_2d)
-        self.angle_3d_degrees = np.degrees(self.angle_3d)
-        self.angle_2d_normalized = self.angle_between(
-            vector1.get_coord_tuple(normalized=True)[:2],
-            vector2.get_coord_tuple(normalized=True)[:2],
-        )
-        self.angle_3d_normalized = self.angle_between(
-            vector1.get_coord_tuple(normalized=True)[:3],
-            vector2.get_coord_tuple(normalized=True)[:3],
-        )
-        self.angle_2d_normalized_radians = self.angle_2d  # alias
-        self.angle_3d_normalized_radians = self.angle_3d  # alias
-        self.angle_2d_normalized_degrees = np.degrees(self.angle_2d)
-        self.angle_3d_normalized_degrees = np.degrees(self.angle_3d)
+        try:
+            self.name = name
+            self.vector_1 = vector1
+            self.vector_2 = vector2
+            self.angle_2d = self.angle_between(
+                vector1.direction_2d, vector2.direction_2d
+            )
+            self.angle_3d = self.angle_between(
+                vector1.direction_3d, vector2.direction_3d
+            )
+            self.angle_2d_radians = self.angle_2d  # alias
+            self.angle_3d_radians = self.angle_3d  # alias
+            self.angle_2d_degrees = np.degrees(self.angle_2d)
+            self.angle_3d_degrees = np.degrees(self.angle_3d)
+        except:
+            raise AngleError("There was a problem instantiating the angle.")
 
     def unit_vector(self, vector: tuple) -> float:
-        """Returns the unit vector of the vector."""
-        return vector / np.linalg.norm(vector)
+        """
+        Given a passed vector with beginning and end points
+        Obtain the directional vector then compute the unit vector
+
+        Parameters
+        --------
+            vector: tuple[float, float, float] | tuple[float, float]
+                3D or 2D directional vector - e.g. Vector(...).direction_2d
+                Note - this is not two points but rather the computed vector direction from the points
+
+        Return
+        --------
+            unit_vector: tuple[float, float, float] | tuple[float, float]
+                A unit vector in 3D or 2D - note, this will be the same
+                regardless of normalized values
+        """
+        try:
+            return vector / np.linalg.norm(vector)
+        except:
+            raise AngleError("There was an error computing the unit vector")
 
     def angle_between(self, vector_1: tuple, vector_2: tuple) -> float:
-        """Returns the angle in radians between vectors 'v1' and 'v2'::
+        """
+        Given two directional vectors (i.e. Vector(..).direction_3d)
+        Returns the angle in radians between vectors 'v1' and 'v2'
 
-        >>> angle_between((1, 0, 0), (0, 1, 0))
+        e.g.
+        angle_between((1, 0, 0), (0, 1, 0))
         1.5707963267948966
-        >>> angle_between((1, 0, 0), (1, 0, 0))
+        angle_between((1, 0, 0), (1, 0, 0))
         0.0
-        >>> angle_between((1, 0, 0), (-1, 0, 0))
+        angle_between((1, 0, 0), (-1, 0, 0))
         3.141592653589793
 
+        Parameters
+        --------
+            vector_1: tuple[float, float, float]
+            vector_2: tuple[float, float, float]
+
+        Returns
+        --------
+            angle: float
+                Angle in radians
+
+        Raise
+        -----
+            exception: AngleError
+                When there's an issue computing the angle
+
         """
-        v1_u = self.unit_vector(vector_1)
-        v2_u = self.unit_vector(vector_2)
-        # TODO this is not working yet...
-        return np.arccos(np.clip(np.dot(v1_u, v2_u.T), -1.0, 1.0))
+        try:
+            v1_u = self.unit_vector(vector_1)
+            v2_u = self.unit_vector(vector_2)
+            return np.arccos(np.clip(np.dot(v1_u, v2_u.T), -1.0, 1.0))
+        except:
+            raise AngleError("There was an error computing the vector angle.")
+
+
+class AngleError(Exception):
+    """Raise when there is an error in the Angle class"""

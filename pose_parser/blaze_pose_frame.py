@@ -59,44 +59,51 @@ class BlazePoseFrame:
                 specialized joints and vectors for translating between BlazePose model and OpenPose
 
         """
-        self.joint_position_names = [joint.name for joint in BlazePoseJoints]
-        self.joints = {}
-        self.vectors = {}
-        self.angles = {}
-        self.distances = {}
+        try:
+            self.joint_position_names = [joint.name for joint in BlazePoseJoints]
+            self.joints = {}
+            self.vectors = {}
+            self.angles = {}
+            self.distances = {}
 
-        self.frame_number = frame_data["frame_number"]
-        self.has_joint_positions = bool(frame_data["joint_positions"])
-        self.image_dimensions = frame_data["image_dimensions"]
-        self.sequence_id = frame_data["sequence_id"]
-        self.sequence_source = frame_data["sequence_source"]
+            self.frame_number = frame_data["frame_number"]
+            self.has_joint_positions = bool(frame_data["joint_positions"])
+            self.image_dimensions = frame_data["image_dimensions"]
+            self.sequence_id = frame_data["sequence_id"]
+            self.sequence_source = frame_data["sequence_source"]
 
-        # if we have joint positions, validate them
-        # and instantiate joint objects into dictionary
-        if self.has_joint_positions:
-            self.validate_joint_position_data(frame_data["joint_positions"])
-            self.joint_positions_raw = frame_data["joint_positions"]
-            self.joints = self.set_joint_positions()
+            # if we have joint positions, validate them
+            # and instantiate joint objects into dictionary
+            if self.has_joint_positions:
+                self.validate_joint_position_data(frame_data["joint_positions"])
+                self.joint_positions_raw = frame_data["joint_positions"]
+                self.joints = self.set_joint_positions()
 
-        # By default, we don't have new joints / vectors calculated
-        # using openpose specifications...
-        self.has_openpose_joints_and_vectors = False
-        # So here, if desired, generate angles and distance measures based on
-        # OpenPose Body 25 angle / distance measures
-        if self.has_joint_positions and (generate_angles or generate_distances):
-            self.has_openpose_joints_and_vectors = (
-                OpenPoseMediapipeTransformer.create_openpose_joints_and_vectors(self)
+            # By default, we don't have new joints / vectors calculated
+            # using openpose specifications...
+            self.has_openpose_joints_and_vectors = False
+            # So here, if desired, generate angles and distance measures based on
+            # OpenPose Body 25 angle / distance measures
+            if self.has_joint_positions and (generate_angles or generate_distances):
+                self.has_openpose_joints_and_vectors = (
+                    OpenPoseMediapipeTransformer.create_openpose_joints_and_vectors(
+                        self
+                    )
+                )
+                if self.has_openpose_joints_and_vectors and generate_angles:
+                    angle_map = (
+                        OpenPoseMediapipeTransformer.open_pose_angle_definition_map()
+                    )
+                    self.angles = self.generate_angle_measurements(angle_map)
+                if self.has_openpose_joints_and_vectors and generate_distances:
+                    distance_map = (
+                        OpenPoseMediapipeTransformer.open_pose_distance_definition_map()
+                    )
+                    self.distances = self.generate_distance_measurements(distance_map)
+        except:
+            raise BlazePoseFrameError(
+                "There was an issue instantiating the BlazePoseFrame"
             )
-            if self.has_openpose_joints_and_vectors and generate_angles:
-                angle_map = (
-                    OpenPoseMediapipeTransformer.open_pose_angle_definition_map()
-                )
-                self.angles = self.generate_angle_measurements(angle_map)
-            if self.has_openpose_joints_and_vectors and generate_distances:
-                distance_map = (
-                    OpenPoseMediapipeTransformer.open_pose_distance_definition_map()
-                )
-                self.distances = self.generate_distance_measurements(distance_map)
 
     def set_joint_positions(self) -> dict:
         """
@@ -110,22 +117,27 @@ class BlazePoseFrame:
                 a joint and the value is a dictionary containing position
                 data for that joint in this frame instance
         """
-        if not self.has_joint_positions:
-            raise BlazePoseFrameError("There are no joint positions to set")
-        joint_positions = {}
-        for joint in self.joint_position_names:
-            joints_raw = self.joint_positions_raw
-            joint_data = {
-                "image_dimensions": self.image_dimensions,
-                "x": joints_raw[joint]["x"],
-                "y": joints_raw[joint]["y"],
-                "z": joints_raw[joint]["z"],
-                "x_normalized": joints_raw[joint]["x_normalized"],
-                "y_normalized": joints_raw[joint]["y_normalized"],
-                "z_normalized": joints_raw[joint]["z_normalized"],
-            }
-            joint_positions[joint] = Joint(name=joint, joint_data=joint_data)
-        return joint_positions
+        try:
+            if not self.has_joint_positions:
+                raise BlazePoseFrameError("There are no joint positions to set")
+            joint_positions = {}
+            for joint in self.joint_position_names:
+                joints_raw = self.joint_positions_raw
+                joint_data = {
+                    "image_dimensions": self.image_dimensions,
+                    "x": joints_raw[joint]["x"],
+                    "y": joints_raw[joint]["y"],
+                    "z": joints_raw[joint]["z"],
+                    "x_normalized": joints_raw[joint]["x_normalized"],
+                    "y_normalized": joints_raw[joint]["y_normalized"],
+                    "z_normalized": joints_raw[joint]["z_normalized"],
+                }
+                joint_positions[joint] = Joint(name=joint, joint_data=joint_data)
+            return joint_positions
+        except:
+            raise BlazePoseFrameError(
+                "There was an error setting the joint positions for the BlazePoseFrame"
+            )
 
     def validate_joint_position_data(self, joint_positions: dict) -> bool:
         """

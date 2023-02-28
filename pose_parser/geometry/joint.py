@@ -34,28 +34,32 @@ class Joint:
                     'z_normalized': 993.7534332275391,
                 }
         """
-        required_keys = [
-            "x",
-            "y",
-            "z",
-            "x_normalized",
-            "y_normalized",
-            "z_normalized",
-            "image_dimensions",
-        ]
-        if not all([key in required_keys for key in joint_data]):
-            raise JointError(
-                "The required data is missing from the joint data dictionary."
-            )
+        try:
 
-        self.name = name
-        self.image_dimensions = joint_data["image_dimensions"]
-        self.x = joint_data["x"]
-        self.y = joint_data["y"]
-        self.z = joint_data["z"]
-        self.x_normalized = joint_data["x_normalized"]
-        self.y_normalized = joint_data["y_normalized"]
-        self.z_normalized = joint_data["z_normalized"]
+            required_keys = [
+                "x",
+                "y",
+                "z",
+                "x_normalized",
+                "y_normalized",
+                "z_normalized",
+                "image_dimensions",
+            ]
+            if not all([key in required_keys for key in joint_data]):
+                raise JointError(
+                    "The required data is missing from the joint data dictionary."
+                )
+
+            self.name = name
+            self.image_dimensions = joint_data["image_dimensions"]
+            self.x = joint_data["x"]
+            self.y = joint_data["y"]
+            self.z = joint_data["z"]
+            self.x_normalized = joint_data["x_normalized"]
+            self.y_normalized = joint_data["y_normalized"]
+            self.z_normalized = joint_data["z_normalized"]
+        except:
+            raise JointError("There was an error instantiating the Joint object")
 
     def get_coord_tuple(self, normalized=False):
         """

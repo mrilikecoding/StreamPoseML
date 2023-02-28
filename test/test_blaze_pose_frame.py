@@ -6,6 +6,7 @@ from pose_parser.mediapipe_client import MediaPipeClient
 from pose_parser.blaze_pose_sequence import BlazePoseSequence
 from pose_parser.blaze_pose_frame import BlazePoseFrame, BlazePoseFrameError
 from pose_parser.geometry.joint import Joint
+from pose_parser.geometry.vector import Vector
 from pose_parser.openpose_mediapipe_transformer import OpenPoseMediapipeTransformer
 
 
@@ -74,7 +75,6 @@ class TestBlazePoseFrame(unittest.TestCase):
         self.assertEqual(True, bool(bpf.angles))
         self.assertEqual(True, bool(bpf.distances))
 
-
     def test_generate_angle_measurements(self):
         """
         GIVEN a blaze pose frame from joint data
@@ -90,7 +90,7 @@ class TestBlazePoseFrame(unittest.TestCase):
             key
             for key in OpenPoseMediapipeTransformer().open_pose_angle_definition_map()
         ]
-        for key in bpf.distances.keys():
+        for key in bpf.angles.keys():
             self.assertIn(key, angle_names)
 
     def test_distances_measurements(self):
@@ -128,13 +128,51 @@ class TestBlazePoseFrame(unittest.TestCase):
         )
 
     def test_get_vector(self):
-        pass
+        """
+        GIVEN a Blaze Pose Frame instance with joints
+        WHEN getting a vector between two points
+        THEN a Vector object is returned using the coordinates of the two joints
+        """
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        vector = bpf.get_vector("nose_left_eye", "nose", "left_eye")
+        self.assertIsInstance(vector, Vector)
+        self.assertEqual("nose_left_eye", vector.name)
+        self.assertEqual(bpf.joints["nose"].x, vector.x1)
+        self.assertEqual(bpf.joints["left_eye"].x, vector.x2)
 
-    def test_get_joint_average(self):
-        pass
-
-    def test_get_plumbline_vector(self):
-        pass
+    def test_get_average_joint(self):
+        """
+        GIVEN a Blaze Pose Frame instance with joints
+        WHEN getting the average coordinate between two joints
+        THEN a Joint object is returned using the coordinates of the average of the two joints
+        """
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        joint_avg = bpf.get_average_joint("nose_left_eye", "nose", "left_eye")
+        self.assertEqual("nose_left_eye", joint_avg.name)
+        self.assertIsInstance(joint_avg, Joint)
+        self.assertEqual(
+            joint_avg.x, (bpf.joints["nose"].x + bpf.joints["left_eye"].x) / 2
+        )
+        self.assertEqual(
+            joint_avg.y, (bpf.joints["nose"].y + bpf.joints["left_eye"].y) / 2
+        )
+        self.assertEqual(
+            joint_avg.z, (bpf.joints["nose"].z + bpf.joints["left_eye"].z) / 2
+        )
+        self.assertEqual(
+            joint_avg.x_normalized,
+            (bpf.joints["nose"].x_normalized + bpf.joints["left_eye"].x_normalized) / 2,
+        )
+        self.assertEqual(
+            joint_avg.y_normalized,
+            (bpf.joints["nose"].y_normalized + bpf.joints["left_eye"].y_normalized) / 2,
+        )
+        self.assertEqual(
+            joint_avg.z_normalized,
+            (bpf.joints["nose"].z_normalized + bpf.joints["left_eye"].z_normalized) / 2,
+        )
 
     def test_serialize_frame_data(self):
         pass
