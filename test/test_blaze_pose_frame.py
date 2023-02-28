@@ -6,6 +6,7 @@ from pose_parser.mediapipe_client import MediaPipeClient
 from pose_parser.blaze_pose_sequence import BlazePoseSequence
 from pose_parser.blaze_pose_frame import BlazePoseFrame, BlazePoseFrameError
 from pose_parser.geometry.joint import Joint
+from pose_parser.openpose_mediapipe_transformer import OpenPoseMediapipeTransformer
 
 
 class TestBlazePoseFrame(unittest.TestCase):
@@ -56,11 +57,61 @@ class TestBlazePoseFrame(unittest.TestCase):
         for joint in bpf.joint_position_names:
             self.assertIsInstance(bpf.joints[joint], Joint)
 
-    def test_generate_angle_measurements(self):
+    def test_angles_and_distances(self):
+        """
+        GIVEN a blaze pose frame from joint data
+        WHEN angles and distances are calculated
+        THEN angles and distances are stored in the corresponding dictionary
+        """
         self.bps.generate_blaze_pose_frames_from_sequence()
         bpf = self.bps.frames[2]
-        result = bpf.generate_angle_measurements()
-        pass
+        angle_map = OpenPoseMediapipeTransformer().open_pose_angle_definition_map()
+        distance_map = (
+            OpenPoseMediapipeTransformer().open_pose_distance_definition_map()
+        )
+        bpf.angles = bpf.generate_angle_measurements(angle_map=angle_map)
+        bpf.distances = bpf.generate_distance_measurements(distance_map=distance_map)
+        self.assertEqual(True, bool(bpf.angles))
+        self.assertEqual(True, bool(bpf.distances))
+
+
+    def test_generate_angle_measurements(self):
+        """
+        GIVEN a blaze pose frame from joint data
+        WHEN generate angle measurements is called
+        THEN angles are calculated and stored in the angles dictionary
+        """
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        angle_map = OpenPoseMediapipeTransformer().open_pose_angle_definition_map()
+        bpf.angles = bpf.generate_angle_measurements(angle_map=angle_map)
+        self.assertEqual(True, bool(bpf.angles))
+        angle_names = [
+            key
+            for key in OpenPoseMediapipeTransformer().open_pose_angle_definition_map()
+        ]
+        for key in bpf.distances.keys():
+            self.assertIn(key, angle_names)
+
+    def test_distances_measurements(self):
+        """
+        GIVEN a blaze pose frame from joint data
+        WHEN generate distance measurements is called
+        THEN distances are calculated and stored in the distances dictionary
+        """
+        self.bps.generate_blaze_pose_frames_from_sequence()
+        bpf = self.bps.frames[2]
+        distance_map = (
+            OpenPoseMediapipeTransformer().open_pose_distance_definition_map()
+        )
+        bpf.distances = bpf.generate_distance_measurements(distance_map=distance_map)
+        self.assertEqual(True, bool(bpf.distances))
+        distance_names = [
+            key
+            for key in OpenPoseMediapipeTransformer().open_pose_distance_definition_map()
+        ]
+        for key in bpf.distances.keys():
+            self.assertIn(key, distance_names)
 
     def test_validate_joint_position_data(self):
         """

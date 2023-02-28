@@ -6,6 +6,9 @@ import json
 import mediapipe as mp
 import cv2
 
+from pose_parser.enumerations import BlazePoseJoints
+
+
 class MediaPipeClient:
     """
     This class provides an interface to Mediapipe for keypoint extraction, sets I/O paths
@@ -44,41 +47,7 @@ class MediaPipeClient:
 
         """
         self._results_raw = []
-        self.joints = [
-            "nose",
-            "left_eye_inner",
-            "left_eye",
-            "left_eye_outer",
-            "right_eye_inner",
-            "right_eye",
-            "right_eye_outer",
-            "left_ear",
-            "right_ear",
-            "mouth_left",
-            "mouth_right",
-            "left_shoulder",
-            "right_shoulder",
-            "left_elbow",
-            "right_elbow",
-            "left_wrist",
-            "right_wrist",
-            "left_pinky",
-            "right_pinky",
-            "left_index",
-            "right_index",
-            "left_thumb",
-            "right_thumb",
-            "left_hip",
-            "right_hip",
-            "left_knee",
-            "right_knee",
-            "left_ankle",
-            "right_anle",
-            "left_heel",
-            "right_heel",
-            "left_foot_index",
-            "right_foot_index",
-        ]
+        self.joints = [joint.name for joint in BlazePoseJoints]
         self.frame_count = 0
         self.id = id
         # path to OP executable in repo

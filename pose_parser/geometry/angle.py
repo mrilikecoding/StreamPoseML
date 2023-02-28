@@ -54,12 +54,10 @@ class Angle:
         self.angle_2d_normalized_degrees = np.degrees(self.angle_2d)
         self.angle_3d_normalized_degrees = np.degrees(self.angle_3d)
 
-    @staticmethod
-    def unit_vector(vector: tuple) -> float:
+    def unit_vector(self, vector: tuple) -> float:
         """Returns the unit vector of the vector."""
         return vector / np.linalg.norm(vector)
 
-    @staticmethod
     def angle_between(self, vector_1: tuple, vector_2: tuple) -> float:
         """Returns the angle in radians between vectors 'v1' and 'v2'::
 
@@ -73,4 +71,5 @@ class Angle:
         """
         v1_u = self.unit_vector(vector_1)
         v2_u = self.unit_vector(vector_2)
-        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+        # TODO this is not working yet...
+        return np.arccos(np.clip(np.dot(v1_u, v2_u.T), -1.0, 1.0))
