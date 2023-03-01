@@ -15,8 +15,11 @@ class BlazePoseSequence:
         BlazePoseFrame
     ]  # a list of BlazePoseFrames representing the sequence data
     joint_positions: list[str]  # required keys for a non-empty joint position object
+    include_geometry: bool  # compute angles / distance measure for each frame based on joint data
 
-    def __init__(self, name: str, sequence: list = []) -> None:
+    def __init__(
+        self, name: str, sequence: list = [], include_geometry: bool = False
+    ) -> None:
         self.name = name
         self.joint_positions = [joint.name for joint in BlazePoseJoints]
         for frame in sequence:
@@ -24,6 +27,7 @@ class BlazePoseSequence:
                 raise BlazePoseSequenceError("Validation error!")
 
         self.sequence_data = sequence
+        self.include_geometry = include_geometry
         self.frames = []
 
     def validate_pose_schema(self, frame_data: dict):
@@ -87,7 +91,11 @@ class BlazePoseSequence:
         """
         try:
             for frame_data in self.sequence_data:
-                bpf = BlazePoseFrame(frame_data=frame_data)
+                bpf = BlazePoseFrame(
+                    frame_data=frame_data,
+                    generate_angles=self.include_geometry,
+                    generate_distances=self.include_geometry,
+                )
                 self.frames.append(bpf)
             return self
         except:
