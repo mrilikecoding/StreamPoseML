@@ -1,12 +1,12 @@
 import unittest
 import shutil
 
-from pose_parser.mediapipe_client import MediaPipeClient
-from pose_parser.blaze_pose_sequence import (
+from pose_parser.blaze_pose.mediapipe_client import MediaPipeClient
+from pose_parser.blaze_pose.blaze_pose_sequence import (
     BlazePoseSequence,
     BlazePoseSequenceError,
 )
-from pose_parser.blaze_pose_frame import BlazePoseFrame
+from pose_parser.blaze_pose.blaze_pose_frame import BlazePoseFrame
 
 
 class TestBlazePoseSequence(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestBlazePoseSequence(unittest.TestCase):
         WHEN initialized with correct frame data list
         THEN an object is successfully initialized with a sequence property
         """
-        bps = BlazePoseSequence(self.frame_data_list)
+        bps = BlazePoseSequence(name="test", sequence=self.frame_data_list)
         self.assertEqual(bps.sequence_data, self.frame_data_list)
 
     def test_client_init_error(self):
@@ -51,7 +51,10 @@ class TestBlazePoseSequence(unittest.TestCase):
         THEN a BlazePoseSequenceError is raised
         """
         bad_data = [{"frame_number": 0}]
-        self.assertRaises(BlazePoseSequenceError, lambda: BlazePoseSequence((bad_data)))
+        self.assertRaises(
+            BlazePoseSequenceError,
+            lambda: BlazePoseSequence(name="test", sequence=bad_data),
+        )
 
     def test_validate_pose_schema(self):
         """
@@ -59,7 +62,7 @@ class TestBlazePoseSequence(unittest.TestCase):
         WHEN validate_pose_schema is called
         THEN True is returned if the required keys are present
         """
-        bps = BlazePoseSequence(self.frame_data_list)
+        bps = BlazePoseSequence(name="test", sequence=self.frame_data_list)
         frame_data_no_joint = self.frame_data_list[0]
         frame_data_joint = self.frame_data_list[2]
         result = bps.validate_pose_schema(frame_data=frame_data_no_joint)
@@ -73,7 +76,7 @@ class TestBlazePoseSequence(unittest.TestCase):
         WHEN validate_pose_schema is called
         THEN True is returned if the required keys are present
         """
-        bps = BlazePoseSequence(self.frame_data_list)
+        bps = BlazePoseSequence(name="test", sequence=self.frame_data_list)
         bad_data = {"frame_number": 0}
         self.assertRaises(
             BlazePoseSequenceError,
@@ -81,7 +84,7 @@ class TestBlazePoseSequence(unittest.TestCase):
         )
 
     def test_generate_pose_frames_from_sequence(self):
-        bps = BlazePoseSequence(self.frame_data_list)
+        bps = BlazePoseSequence(name="test", sequence=self.frame_data_list)
         bps.generate_blaze_pose_frames_from_sequence()
         self.assertEqual(len(bps.frames), len(self.frame_data_list))
         for frame in bps.frames:

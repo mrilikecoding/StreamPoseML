@@ -2,11 +2,10 @@ import os
 import time
 from pathlib import Path
 import json
-
 import mediapipe as mp
 import cv2
 
-from pose_parser.enumerations import BlazePoseJoints
+from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class MediaPipeClient:
@@ -64,7 +63,7 @@ class MediaPipeClient:
 
         self.video_input_filename = video_input_filename
 
-    def process_video(self, limit: int = None):
+    def process_video(self, limit: int = None) -> "MediaPipeClient":
         """
         This method is responsible for iterating through frames in the input video
         and running the keypoint pose extraction via media pipe.
@@ -77,6 +76,11 @@ class MediaPipeClient:
         -----
             limit: int
                 If a limit is passed in, only process frames up to this number
+
+        Return
+        ------
+            self: MediaPipeClient
+                returns this instance for chaining to init
         """
         # init frame counter
         self.frame_count = 0
@@ -91,7 +95,7 @@ class MediaPipeClient:
             raise MediaPipeClientError("Error opening file")
         while cap.isOpened():
             # bail if we go over processing limit
-            if self.frame_count >= limit:
+            if limit and self.frame_count >= limit:
                 return
             ret, image = cap.read()
             if not ret:
@@ -122,6 +126,7 @@ class MediaPipeClient:
             frame_data["joint_positions"] = pose_landmarks
             # add frame to client pose list
             self.frame_data_list.append(frame_data)
+        return self
 
     def write_pose_data_to_file(self):
         """

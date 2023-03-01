@@ -1,5 +1,5 @@
-from pose_parser.blaze_pose_frame import BlazePoseFrame
-from pose_parser.enumerations import BlazePoseJoints
+from pose_parser.blaze_pose.blaze_pose_frame import BlazePoseFrame
+from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class BlazePoseSequence:
@@ -10,11 +10,14 @@ class BlazePoseSequence:
 
     """
 
-    sequence_data: list  # a list of frame data dicts for keypoints / metadata
-    frames: list  # a list of BlazePoseFrames representing the sequence data
-    joint_positions: list  # required keys for a non-empty joint position object
+    sequence_data: list[dict]  # a list of frame data dicts for keypoints / metadata
+    frames: list[
+        BlazePoseFrame
+    ]  # a list of BlazePoseFrames representing the sequence data
+    joint_positions: list[str]  # required keys for a non-empty joint position object
 
-    def __init__(self, sequence: list = []) -> None:
+    def __init__(self, name: str, sequence: list = []) -> None:
+        self.name = name
         self.joint_positions = [joint.name for joint in BlazePoseJoints]
         for frame in sequence:
             if not self.validate_pose_schema(frame_data=frame):
@@ -72,10 +75,43 @@ class BlazePoseSequence:
 
         return True
 
-    def generate_blaze_pose_frames_from_sequence(self):
-        for frame_data in self.sequence_data:
-            bpf = BlazePoseFrame(frame_data=frame_data)
-            self.frames.append(bpf)
+    def generate_blaze_pose_frames_from_sequence(self) -> "BlazePoseSequence":
+        """
+        For each frame data in the sequence data list
+        generate a BlazePoseFrame object and add it to the list of frames
+
+        Return
+        ------
+            self: BlazePoseSequence
+                returns this instance for chaining to init
+        """
+        try:
+            for frame_data in self.sequence_data:
+                bpf = BlazePoseFrame(frame_data=frame_data)
+                self.frames.append(bpf)
+            return self
+        except:
+            raise BlazePoseSequenceError(
+                "There was a problem generating a BlazePoseFrame"
+            )
+
+    def serialize_sequence_data(self):
+        """
+        This method returns a list of serialized frame data
+
+        Return
+        ------
+            frames_json: list[dict]
+
+        Raise
+        -----
+            exception: BlazePoseSequenceError
+                raises BlazePoseSequenceError if there's a problem
+        """
+        try:
+            return [frame.serialize_frame_data() for frame in self.frames]
+        except:
+            raise BlazePoseSequenceError("Error serializing frames")
 
 
 class BlazePoseSequenceError(Exception):

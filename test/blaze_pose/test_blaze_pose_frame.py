@@ -2,12 +2,14 @@ import unittest
 import shutil
 
 
-from pose_parser.mediapipe_client import MediaPipeClient
-from pose_parser.blaze_pose_sequence import BlazePoseSequence
-from pose_parser.blaze_pose_frame import BlazePoseFrame, BlazePoseFrameError
+from pose_parser.blaze_pose.mediapipe_client import MediaPipeClient
+from pose_parser.blaze_pose.blaze_pose_sequence import BlazePoseSequence
+from pose_parser.blaze_pose.blaze_pose_frame import BlazePoseFrame, BlazePoseFrameError
 from pose_parser.geometry.joint import Joint
 from pose_parser.geometry.vector import Vector
-from pose_parser.openpose_mediapipe_transformer import OpenPoseMediapipeTransformer
+from pose_parser.blaze_pose.openpose_mediapipe_transformer import (
+    OpenPoseMediapipeTransformer,
+)
 
 
 class TestBlazePoseFrame(unittest.TestCase):
@@ -23,7 +25,7 @@ class TestBlazePoseFrame(unittest.TestCase):
             video_output_prefix=output_path,
         )
         mpc.process_video(limit=50)
-        self.bps = BlazePoseSequence(mpc.frame_data_list)
+        self.bps = BlazePoseSequence(name="test", sequence=mpc.frame_data_list)
 
     @classmethod
     def tearDownClass(self) -> None:
@@ -173,9 +175,6 @@ class TestBlazePoseFrame(unittest.TestCase):
             joint_avg.z_normalized,
             (bpf.joints["nose"].z_normalized + bpf.joints["left_eye"].z_normalized) / 2,
         )
-
-    def test_serialize_frame_data(self):
-        pass
 
     def test_validate_joint_position_data_invalid(self):
         """

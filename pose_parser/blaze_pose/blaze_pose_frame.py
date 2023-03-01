@@ -2,8 +2,10 @@ from pose_parser.geometry.joint import Joint
 from pose_parser.geometry.vector import Vector
 from pose_parser.geometry.angle import Angle
 from pose_parser.geometry.distance import Distance
-from pose_parser.openpose_mediapipe_transformer import OpenPoseMediapipeTransformer
-from pose_parser.enumerations import BlazePoseJoints
+from pose_parser.blaze_pose.openpose_mediapipe_transformer import (
+    OpenPoseMediapipeTransformer,
+)
+from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class BlazePoseFrame:
@@ -217,7 +219,7 @@ class BlazePoseFrame:
 
         return distances
 
-    def generate_angle_measurements(self, angle_map: dict) -> bool:
+    def generate_angle_measurements(self, angle_map: dict) -> dict:
         """
         Create angle measurements based on the passed map
 
@@ -313,9 +315,6 @@ class BlazePoseFrame:
                 "image_dimensions": self.image_dimensions,
             },
         )
-
-    def serialize_frame_data(self):
-        pass
 
 
 class BlazePoseFrameError(Exception):

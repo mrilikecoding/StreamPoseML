@@ -5,7 +5,10 @@ from pathlib import Path
 import os
 import json
 
-from pose_parser.mediapipe_client import MediaPipeClient, MediaPipeClientError
+from pose_parser.blaze_pose.mediapipe_client import (
+    MediaPipeClient,
+    MediaPipeClientError,
+)
 
 
 class TestMediaPipeClient(unittest.TestCase):

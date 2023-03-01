@@ -1,4 +1,4 @@
-import pose_parser.blaze_pose_frame as bpf
+import pose_parser.blaze_pose.blaze_pose_frame as bpf
 
 
 class OpenPoseMediapipeTransformer:
