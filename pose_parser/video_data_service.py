@@ -29,6 +29,10 @@ class VideoDataService:
         if not id:
             id = int(time.time_ns())
         # Load MPClient and process video
+        # TODO parameterize various mediapipe configurables
+        # i.e. confidence
+        # TODO process multiple times at different confidence?
+        # TODO profile this...
         mpc = MediaPipeClient(
             video_input_filename=input_filename,
             video_input_path=video_input_path,
@@ -44,6 +48,8 @@ class VideoDataService:
         ).generate_blaze_pose_frames_from_sequence()
 
         # Serialize Data
-        data = BlazePoseSequenceSerializer().serialize(sequence, key_off_frame_number=True)
+        data = BlazePoseSequenceSerializer().serialize(
+            sequence, key_off_frame_number=True
+        )
 
         return data
