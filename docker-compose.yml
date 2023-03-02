@@ -1,18 +1,7 @@
 # https://www.dabbleofdevops.com/blog/setup-a-redis-python-docker-dev-stack
 version: '3'
 
-# Run as
-# docker-compose build; docker-compose up -d
-# Check with
-# docker ps
-# Then check the logs with
-# docker logs --tail 50 $container_id
-# docker-compose images
-# docker-compose logs --tail 20 repo_name
-
-
 services:
-
   redis:
     image: redis
     ports:
@@ -20,17 +9,29 @@ services:
     networks:
       - app-tier
 
-  python_app:
+  pose_parser_api:
     build:
-      context: .
+      context: ./pose_parser
       dockerfile: Dockerfile
+    ports:
+      - "3080:5000"
     depends_on:
       - redis
     networks:
       - app-tier
     command:
-      tail -f /dev/null
-
+      tail -f python api/app.py
+  
+  web_ui:
+    build:
+      context: ./web_ui
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    volumes:
+      - ./web-ui:/usr/src/app/my-app
+      - ./web-ui/node_modules:/usr/src/app/my-app/node_modules
 
 networks:
   app-tier:

@@ -1,0 +1,11 @@
+name: pose_parser
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - black
+  - tensorflow
+  - pytest
+  - flask
+prefix: /usr/local/Caskroom/miniconda/base/envs/pose_parser
