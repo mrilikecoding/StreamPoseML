@@ -9,8 +9,8 @@ from pose_parser.dataloop_annotation_transformer import DataloopAnnotationTransf
 class TestVideoDataService(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
-        self.output_data_path = "./tmp/data/keypoints"
-        self.video_input_path = "./test_videos"
+        self.video_input_path = "./pose_parser/test_videos"
+        self.output_data_path = "./pose_parser/tmp/data/keypoints"
         self.input_filename = "front.mp4"
         self.dataloop_data = {
             "id": "63e10d737329c2fe92c8ae0a",
@@ -236,7 +236,9 @@ class TestVideoDataService(unittest.TestCase):
         )
 
         transformer = DataloopAnnotationTransformer(dataloop_data=self.dataloop_data)
-        segmented_video_annotations = transformer.segment_video_data_with_annotations(video_data=video_data)
+        segmented_video_annotations = transformer.segment_video_data_with_annotations(
+            video_data=video_data
+        )
         pass
         # TODO assert we have expected keys
         # TODO update frame serializer with right data

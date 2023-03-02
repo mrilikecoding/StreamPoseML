@@ -14,13 +14,13 @@ services:
       context: ./pose_parser
       dockerfile: Dockerfile
     ports:
-      - "3080:5000"
+      - "5000:5000"
     depends_on:
       - redis
     networks:
       - app-tier
-    command:
-      tail -f python api/app.py
+    volumes:
+      - ./pose_parser:/usr/src/app
   
   web_ui:
     build:
@@ -30,8 +30,8 @@ services:
       - "3000:3000"
     stdin_open: true
     volumes:
-      - ./web-ui:/usr/src/app/my-app
-      - ./web-ui/node_modules:/usr/src/app/my-app/node_modules
+      - ./web_ui:/usr/src/app/my-app
+      - ./web_ui/node_modules:/usr/src/app/my-app/node_modules
 
 networks:
   app-tier:

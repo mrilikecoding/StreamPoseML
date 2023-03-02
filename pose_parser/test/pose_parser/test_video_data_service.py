@@ -8,8 +8,8 @@ from pose_parser.video_data_service import VideoDataService
 class TestVideoDataService(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
-        self.output_data_path = "./tmp/data/keypoints"
-        self.video_input_path = "./test_videos"
+        self.output_data_path = "./pose_parser/tmp/data/keypoints"
+        self.video_input_path = "./pose_parser/test_videos"
         self.input_filename = "front.mp4"
 
     @classmethod

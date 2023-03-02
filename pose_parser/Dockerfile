@@ -29,7 +29,9 @@ FROM debian:buster AS runtime
 # Copy /venv from the previous stage:
 COPY --from=build /venv /venv
 
-# When image is run, run the code with the environment
-# activated:
-SHELL ["/bin/bash", "-c"]
-ENTRYPOINT source /venv/bin/activate
+WORKDIR /usr/src/app
+COPY ./docker_entrypoint.sh /docker_entrypoint.sh
+RUN chmod +x /docker_entrypoint.sh
+
+EXPOSE 5000
+ENTRYPOINT ["/docker_entrypoint.sh"]

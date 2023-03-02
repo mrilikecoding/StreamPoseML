@@ -12,8 +12,8 @@ from pose_parser.blaze_pose.blaze_pose_frame import BlazePoseFrame
 class TestBlazePoseSequence(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
-        self.output_path = "./tmp/data/keypoints"
-        self.video_path = "./test_videos"
+        self.output_path = "./pose_parser/tmp/data/keypoints"
+        self.video_path = "./pose_parser/test_videos"
         input_path = self.video_path
         output_path = self.output_path
         mpc = MediaPipeClient(

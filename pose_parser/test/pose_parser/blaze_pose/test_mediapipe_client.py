@@ -13,8 +13,8 @@ from pose_parser.blaze_pose.mediapipe_client import (
 
 class TestMediaPipeClient(unittest.TestCase):
     def setUp(self) -> None:
-        self.output_path = "./tmp/data/keypoints"
-        self.video_path = "./test_videos"
+        self.output_path = "./pose_parser/tmp/data/keypoints"
+        self.video_path = "./pose_parser/test_videos"
         return super().setUp()
 
     def tearDown(self) -> None:

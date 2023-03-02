@@ -26,8 +26,8 @@ class MediaPipeClient:
     def __init__(
         self,
         video_input_filename: str = None,
-        video_input_path: str = "./test_videos",
-        video_output_prefix: str = "./data/keypoints",
+        video_input_path: str = ".pose_parser/test_videos",
+        video_output_prefix: str = ".tmp/data/keypoints",
         id=int(time.time_ns()),
     ) -> None:
         """

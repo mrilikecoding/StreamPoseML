@@ -1,5 +1,4 @@
 import unittest
-import numpy as np
 
 from pose_parser.geometry.angle import Angle
 from pose_parser.geometry.joint import Joint
