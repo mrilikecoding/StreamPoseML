@@ -92,7 +92,9 @@ class MediaPipeClient:
         # start video processing
         cap = cv2.VideoCapture(f"{self.video_input_path}/{self.video_input_filename}")
         if cap.isOpened() == False:
-            raise MediaPipeClientError("Error opening file")
+            raise MediaPipeClientError(
+                f"Error opening file: {self.video_input_path}/{self.video_input_filename}"
+            )
         while cap.isOpened():
             # bail if we go over processing limit
             if limit and self.frame_count >= limit:

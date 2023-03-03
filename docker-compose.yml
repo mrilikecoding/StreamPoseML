@@ -21,6 +21,7 @@ services:
       - app-tier
     volumes:
       - ./pose_parser:/usr/src/app
+    command: python api/app.py
   
   web_ui:
     build:

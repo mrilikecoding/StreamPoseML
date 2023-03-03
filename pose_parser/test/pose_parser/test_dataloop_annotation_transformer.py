@@ -1,12 +1,11 @@
 import unittest
 import shutil
 
-
 from pose_parser.video_data_service import VideoDataService
 from pose_parser.dataloop_annotation_transformer import DataloopAnnotationTransformer
 
 
-class TestVideoDataService(unittest.TestCase):
+class TestDataLoopAnnotationTransformer(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
         self.video_input_path = "./pose_parser/test_videos"
