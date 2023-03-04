@@ -29,6 +29,7 @@ class MediaPipeClient:
         video_input_path: str = ".pose_parser/test_videos",
         video_output_prefix: str = ".tmp/data/keypoints",
         id=int(time.time_ns()),
+        configuration={},
     ) -> None:
         """
         Client init
@@ -45,6 +46,7 @@ class MediaPipeClient:
                 The id for this client - this will be used to set the output sub-directory
 
         """
+        self.configuration = {}
         self._results_raw = []
         self.joints = [joint.name for joint in BlazePoseJoints]
         self.frame_count = 0

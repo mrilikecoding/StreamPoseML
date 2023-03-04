@@ -2,7 +2,7 @@ import unittest
 import shutil
 
 
-from pose_parser.video_data_service import VideoDataService
+from pose_parser.services.video_data_service import VideoDataService
 
 
 class TestVideoDataService(unittest.TestCase):

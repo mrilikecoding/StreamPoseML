@@ -18,6 +18,8 @@ class VideoDataService:
         output_data_path: str,
         include_geometry: bool = True,
         id: int = None,
+        write_to_file: bool = False,
+        configuration={},
     ) -> dict:
         """
         The process_video method takes a file name as well as I/O paths,
@@ -38,7 +40,11 @@ class VideoDataService:
             video_input_path=video_input_path,
             video_output_prefix=output_data_path,
             id=id,
+            configuration=configuration,
         ).process_video()
+
+        if write_to_file:
+            mpc.write_pose_data_to_file()
 
         # Compute sequence / frame data
         sequence = BlazePoseSequence(
