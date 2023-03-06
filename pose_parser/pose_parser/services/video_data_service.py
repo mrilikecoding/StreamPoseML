@@ -1,13 +1,25 @@
 import time
 
-from pose_parser.blaze_pose.mediapipe_client import MediaPipeClient
-from pose_parser.blaze_pose.blaze_pose_sequence import BlazePoseSequence
+from pose_parser.blaze_pose.mediapipe_client import (
+    MediaPipeClient,
+    MediaPipeClientError,
+)
+from pose_parser.blaze_pose.blaze_pose_sequence import (
+    BlazePoseSequence,
+    BlazePoseSequenceError,
+)
 from pose_parser.serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
 )
 
 
 class VideoDataService:
+    """
+    This class is responsible for providing a service layer to a MediaPipe
+    client and passing all the necessary input required to output data
+    for each frame
+    """
+
     def __init__(self) -> None:
         pass
 
@@ -26,36 +38,81 @@ class VideoDataService:
         spins up a MediaPipeClient to generate raw keypoints,
         then loads them into a BlazePoseSequence object which creates a series of frames
         containing various data
+
+        Paramters
+        -------
+            input_filename: str
+                The name of the file to process
+            video_input_path: str
+                The path to the file
+            write_to_file: bool
+                Whether to write the generated data to a file
+            output_data_path: str
+                Where to save the generated data if written to file
+            include_geometry: bool
+                Whether to compute angle and distance measurements
+            id: int
+                If a specific id should be used for this video
+                Will default to a timestamp if not passed into mediapipe client
+            configuration: dict
+                Configuration options to pass into MediapipeClient
+
+        Return
+        ----
+            result: dict
+                a serialized BlazePoseSequence dictionary keyed off frame numbers
+                This is useful for plucking out specific frames when merging with annotation data
+
+        Raise:
+            exception: BlazePoseSequenceError
+                Raised if there's an issue with generating a sequence object
+            exception: MediaPipeClientError
+                Raised if there's an issue with the MediaPipe Client
         """
-        # Set an identifier
-        if not id:
-            id = int(time.time_ns())
-        # Load MPClient and process video
-        # TODO parameterize various mediapipe configurables
-        # i.e. confidence
-        # TODO process multiple times at different confidence?
-        # TODO profile this...
-        mpc = MediaPipeClient(
-            video_input_filename=input_filename,
-            video_input_path=video_input_path,
-            video_output_prefix=output_data_path,
-            id=id,
-            configuration=configuration,
-        ).process_video()
+        try:
+            # Set an identifier
+            if not id:
+                id = int(time.time_ns())
+            # Load MPClient and process video
+            # TODO parameterize various mediapipe configurables
+            # i.e. confidence
+            # TODO process multiple times at different confidence?
+            # TODO profile this...
+            mpc = MediaPipeClient(
+                video_input_filename=input_filename,
+                video_input_path=video_input_path,
+                video_output_prefix=output_data_path,
+                id=id,
+                configuration=configuration,
+            ).process_video()
 
-        if write_to_file:
-            mpc.write_pose_data_to_file()
+            if write_to_file:
+                mpc.write_pose_data_to_file()
 
-        # Compute sequence / frame data
-        sequence = BlazePoseSequence(
-            name=input_filename,
-            sequence=mpc.frame_data_list,
-            include_geometry=include_geometry,
-        ).generate_blaze_pose_frames_from_sequence()
+            # Compute sequence / frame data
+            sequence = BlazePoseSequence(
+                name=input_filename,
+                sequence=mpc.frame_data_list,
+                include_geometry=include_geometry,
+            ).generate_blaze_pose_frames_from_sequence()
 
-        # Serialize Data
-        data = BlazePoseSequenceSerializer().serialize(
-            sequence, key_off_frame_number=True
-        )
+            # Serialize Data
+            data = BlazePoseSequenceSerializer().serialize(
+                sequence, key_off_frame_number=True
+            )
 
-        return data
+            return data
+        except MediaPipeClientError as e:
+            raise VideoDataServiceError(
+                f"There was an issue running the MediaPipe Client: {e}"
+            )
+        except BlazePoseSequenceError as e:
+            raise VideoDataServiceError(
+                f"There was an issue computing the BlazePoseSequence: {e}"
+            )
+
+
+class VideoDataServiceError(Exception):
+    """Raise when something is wrong with VideoDataService"""
+
+    pass

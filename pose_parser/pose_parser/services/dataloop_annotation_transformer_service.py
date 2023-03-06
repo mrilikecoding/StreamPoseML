@@ -1,5 +1,22 @@
-class DataloopAnnotationTransformer:
+class DataloopAnnotationTransformerService:
+    """
+    This class is responsible for marrying video frame data and annotations
+    """
+
+    data: dict
+
     def __init__(self, dataloop_data) -> None:
+        """
+        Upon initialization this class sets a data object to the passed dataloop data dictionary
+
+        Parameters
+        ---------
+
+                dataloop_data: dict
+                        This is a dataloop dictionary (see schema at bottom of file)
+
+
+        """
         self.data = dataloop_data
 
     def segment_video_data_with_annotations(self, video_data: dict) -> dict:
