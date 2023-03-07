@@ -34,7 +34,7 @@ class DataloopAnnotationTransformerService:
                 end_frame = annotation["metadata"]["system"]["endFrame"]
                 clip = []
                 for frame_number in range(start_frame, end_frame + 1):
-                    clip.append({frame_number: video_data["frames"][frame_number]})
+                    clip.append(video_data["frames"][frame_number])
                 segmented_video_data[label].append(clip)
             return segmented_video_data
         except:

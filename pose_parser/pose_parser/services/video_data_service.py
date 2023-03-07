@@ -32,6 +32,7 @@ class VideoDataService:
         id: int = None,
         write_to_file: bool = False,
         configuration={},
+        key_off_frame_number: bool = True,
     ) -> dict:
         """
         The process_video method takes a file name as well as I/O paths,
@@ -56,6 +57,8 @@ class VideoDataService:
                 Will default to a timestamp if not passed into mediapipe client
             configuration: dict
                 Configuration options to pass into MediapipeClient
+            key_off_frame_number: dict
+                When True will key the data dictionary off the frame number - this is handy for extracting specific frames from data
 
         Return
         ----
@@ -98,7 +101,7 @@ class VideoDataService:
 
             # Serialize Data
             data = BlazePoseSequenceSerializer().serialize(
-                sequence, key_off_frame_number=True
+                sequence, key_off_frame_number=key_off_frame_number
             )
 
             return data

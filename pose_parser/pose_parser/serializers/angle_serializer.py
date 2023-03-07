@@ -7,8 +7,8 @@ class AngleSerializer:
     def serialize(angle: Angle):
         return {
             "type": "Angle",
-            "vector_1": VectorSerializer().serialize(angle.vector_1),
-            "vector_2": VectorSerializer().serialize(angle.vector_2),
+            "vector_1": angle.vector_1.name,
+            "vector_2": angle.vector_2.name,
             "name": angle.name,
             "angle_2d": angle.angle_2d,
             "angle_2d_degrees": angle.angle_2d_degrees,

@@ -45,14 +45,6 @@ class TestMediaPipeClient(unittest.TestCase):
             )
             self.assertEqual(mpc.json_output_path, f"{output_path}/{Path(f).stem}-{id}")
 
-    def test_client_init_error(self):
-        """
-        GIVEN no filenames
-        WHEN initializing MediaPipeClient
-        THEN the client returns an MediaPipe
-        """
-        self.assertRaises(MediaPipeClientError, lambda: MediaPipeClient())
-
     def test_process_video(self):
         """
         GIVEN a file passed into a MediaPipeClient

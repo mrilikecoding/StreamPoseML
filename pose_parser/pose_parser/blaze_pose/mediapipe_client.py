@@ -55,10 +55,14 @@ class MediaPipeClient:
         self.video_output_prefix = video_output_prefix
         self.video_input_path = video_input_path
         self.video_input_filename = video_input_filename
-
         self.frame_data_list = []
 
-        self.video_input_filename = video_input_filename
+        if video_input_filename:
+            self.video_input_filename = video_input_filename
+            pre = Path(self.video_input_filename).stem
+            self.json_output_path = f"{self.video_output_prefix}/{pre}-{id}"
+        else:
+            raise MediaPipeClientError("No input file specified")
 
     def process_video(self, limit: int = None) -> "MediaPipeClient":
         """
@@ -133,12 +137,7 @@ class MediaPipeClient:
         It then creates a json file at the json output path with all this data
         """
         try:
-            if self.video_input_filename:
-                pre = Path(self.video_input_filename).stem
-                self.json_output_path = f"{self.video_output_prefix}/{pre}-{id}"
-                os.makedirs(self.json_output_path)
-            else:
-                raise MediaPipeClientError("No input file specified")
+            os.makedirs(self.json_output_path)
             for frame_data in self.frame_data_list:
                 file_path = f"{self.json_output_path}/keypoints-{frame_data['frame_number']:04d}.json"
                 with open(file_path, "w") as f:

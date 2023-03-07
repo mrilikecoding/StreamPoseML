@@ -21,7 +21,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
     def tearDown(self) -> None:
         # cleanup
         try:
-            # shutil.rmtree(self.output_data_path)
+            shutil.rmtree(self.output_data_path)
             shutil.rmtree(self.output_keypoints_path)
         except:
             return super().tearDown()
@@ -55,6 +55,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
             annotations_directory=self.annotations_directory,
             video_directory=self.source_videos,
             output_data_path=self.output_data_path,
+            output_keypoints_path=self.output_keypoints_path,
         )
         vdms.create_video_annotation_map()
         dataset = vdms.generate_dataset_from_map(limit=2)
@@ -77,5 +78,5 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
             output_keypoints_path=self.output_keypoints_path,
         )
         vdms.create_video_annotation_map()
-        vdms.generate_dataset_from_map(limit=1, write_to_file=True)
+        vdms.generate_dataset_from_map(limit=limit, write_to_file=True)
         self.assertEqual(True, os.path.exists(self.output_data_path))

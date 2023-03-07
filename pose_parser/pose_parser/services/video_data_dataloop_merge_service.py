@@ -120,6 +120,7 @@ class VideoDataDataloopMergeService:
                     video_input_path=os.path.split(video)[0],
                     output_data_path=self.output_keypoints_path,
                     write_to_file=False,
+                    key_off_frame_number=False,
                     configuration={},
                 )
 
