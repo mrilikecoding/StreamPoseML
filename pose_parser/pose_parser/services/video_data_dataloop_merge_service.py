@@ -1,6 +1,7 @@
 import glob
 import os
 import json
+import time
 from pathlib import Path
 
 from pose_parser.services.dataloop_annotation_transformer_service import (
@@ -23,12 +24,17 @@ class VideoDataDataloopMergeService:
     annotations_directory: str
     video_directory: str
     output_data_path: str
+    output_keypoints_path: str
     annotation_video_map: dict
     video_annotation_map: dict
     merged_data: dict
 
     def __init__(
-        self, annotations_directory: str, video_directory: str, output_data_path: str
+        self,
+        annotations_directory: str,
+        video_directory: str,
+        output_data_path: str,
+        output_keypoints_path: str,
     ) -> None:
         """
         Upon initialization set data source directories and initialize storage dicts
@@ -36,6 +42,7 @@ class VideoDataDataloopMergeService:
         self.annotations_directory = annotations_directory
         self.video_directory = video_directory
         self.output_data_path = output_data_path
+        self.output_keypoints_path = (output_keypoints_path,)
         self.annotation_video_map = {}
         self.video_annotation_map = {}
         self.merged_data = {}
@@ -111,7 +118,8 @@ class VideoDataDataloopMergeService:
                 video_data = vds.process_video(
                     input_filename=os.path.basename(video),
                     video_input_path=os.path.split(video)[0],
-                    output_data_path=self.output_data_path,
+                    output_data_path=self.output_keypoints_path,
+                    write_to_file=False,
                     configuration={},
                 )
 
@@ -121,6 +129,9 @@ class VideoDataDataloopMergeService:
                 self.merge_segmented_data(segmented_data=segmented_data)
                 process_counter += 1
 
+                if write_to_file:
+                    self.write_merged_data_to_file()
+
             return self.merged_data
         except DataloopAnnotationTransformerServiceError:
             raise VideoDataDataloopMergeServiceError(
@@ -129,6 +140,31 @@ class VideoDataDataloopMergeService:
         except VideoDataServiceError:
             raise VideoDataDataloopMergeServiceError(
                 "There was an error processing dataset due to the VideoDataService"
+            )
+
+    def write_merged_data_to_file(self) -> bool:
+        """
+        This method is responsible for writing the contents of the merged data dictionary to a json file
+
+        Return
+        -------
+            success: bool
+                True if operation was successful
+        """
+        try:
+            Path(self.output_data_path).mkdir(parents=True, exist_ok=True)
+            merged_data_json = json.dumps(self.merged_data, indent=4)
+            with open(
+                os.path.join(
+                    self.output_data_path, f"combined_dataset_{time.time_ns()}.json"
+                ),
+                "w",
+            ) as outfile:
+                outfile.write(merged_data_json)
+            return True
+        except:
+            raise VideoDataDataloopMergeServiceError(
+                "Error outputting JSON for merged data."
             )
 
     def merge_segmented_data(self, segmented_data: dict) -> None:

@@ -52,16 +52,11 @@ class MediaPipeClient:
         self.frame_count = 0
         self.id = id
         # path to OP executable in repo
+        self.video_output_prefix = video_output_prefix
         self.video_input_path = video_input_path
+        self.video_input_filename = video_input_filename
 
         self.frame_data_list = []
-
-        if video_input_filename:
-            pre = Path(video_input_filename).stem
-            self.json_output_path = f"{video_output_prefix}/{pre}-{id}"
-            os.makedirs(self.json_output_path)
-        else:
-            raise MediaPipeClientError("No input file specified")
 
         self.video_input_filename = video_input_filename
 
@@ -137,13 +132,22 @@ class MediaPipeClient:
         This method iterates through each pose data dictionary in the pose_data list.
         It then creates a json file at the json output path with all this data
         """
-        for frame_data in self.frame_data_list:
-            file_path = f"{self.json_output_path}/keypoints-{frame_data['frame_number']:04d}.json"
-            with open(file_path, "w") as f:
-                json.dump(frame_data, f)
-                print(
-                    f"Successfully wrote keypoints from {self.video_input_filename} to {f}"
-                )
+        try:
+            if self.video_input_filename:
+                pre = Path(self.video_input_filename).stem
+                self.json_output_path = f"{self.video_output_prefix}/{pre}-{id}"
+                os.makedirs(self.json_output_path)
+            else:
+                raise MediaPipeClientError("No input file specified")
+            for frame_data in self.frame_data_list:
+                file_path = f"{self.json_output_path}/keypoints-{frame_data['frame_number']:04d}.json"
+                with open(file_path, "w") as f:
+                    json.dump(frame_data, f)
+                    print(
+                        f"Successfully wrote keypoints from {self.video_input_filename} to {f}"
+                    )
+        except:
+            raise MediaPipeClientError("There was a problem writing pose data to json")
 
     def serialize_pose_landmarks(self, pose_landmarks: list):
         """

@@ -1,4 +1,6 @@
 import unittest
+import os
+import shutil
 from pathlib import Path
 
 from pose_parser.services.video_data_dataloop_merge_service import (
@@ -12,10 +14,17 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
         self.annotations_directory = "./source_annotations"
         self.source_videos = "./source_videos"
         self.output_data_path = "./data/generated_datasets"
+        self.output_keypoints_path = "./data/keypoints"
 
         return super().setUp()
 
     def tearDown(self) -> None:
+        # cleanup
+        try:
+            # shutil.rmtree(self.output_data_path)
+            shutil.rmtree(self.output_keypoints_path)
+        except:
+            return super().tearDown()
         return super().tearDown()
 
     def test_create_video_annotation_map(self):
@@ -28,6 +37,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
             annotations_directory=self.annotations_directory,
             video_directory=self.source_videos,
             output_data_path=self.output_data_path,
+            output_keypoints_path=self.output_keypoints_path,
         )
 
         success = vdms.create_video_annotation_map()
@@ -52,3 +62,20 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
         for key in ["Left Step", "Right Step", "Successful Weight Transfer"]:
             self.assertIn(key, dataset)
             self.assertIsInstance(dataset[key], list)
+
+    def test_write_merged_data_to_file(self):
+        """
+        GIVEN a merge service instance that has created a annotation map
+        WHEN write to file is selected when generating a dataset
+        THEN a file is successfully created in the specified location
+        """
+        limit = 1
+        vdms = VideoDataDataloopMergeService(
+            annotations_directory=self.annotations_directory,
+            video_directory=self.source_videos,
+            output_data_path=self.output_data_path,
+            output_keypoints_path=self.output_keypoints_path,
+        )
+        vdms.create_video_annotation_map()
+        vdms.generate_dataset_from_map(limit=1, write_to_file=True)
+        self.assertEqual(True, os.path.exists(self.output_data_path))
