@@ -3,34 +3,50 @@ class DataloopAnnotationTransformerService:
     This class is responsible for marrying video frame data and annotations
     """
 
-    data: dict
+    def __init__(self) -> None:
+        pass
 
-    def __init__(self, dataloop_data) -> None:
+    @staticmethod
+    def segment_video_data_with_annotations(
+        dataloop_data: dict, video_data: dict
+    ) -> dict:
         """
-        Upon initialization this class sets a data object to the passed dataloop data dictionary
+        This method accepts a dictionary of dataloop_data and a serialized video_data dictionary
+        and then extracts the corresponding clip from the video frame data and stores it with the right
+        annotation label
 
         Parameters
-        ---------
-
-                dataloop_data: dict
-                        This is a dataloop dictionary (see schema at bottom of file)
-
-
+        -------
+            dataloop_data: dict
+                Raw json from dataloop corresponding to the passed video data
+            video_data: dict
+                Serialized video data for each frame
         """
-        self.data = dataloop_data
+        try:
+            segmented_video_data = {}
+            for annotation in dataloop_data["annotations"]:
+                label = annotation["label"]
+                segmented_video_data[label] = []
 
-    def segment_video_data_with_annotations(self, video_data: dict) -> dict:
-        segmented_video_data = {}
-        for annotation in self.data["annotations"]:
-            label = annotation["label"]
-            segmented_video_data[label] = {}
-            start_frame = annotation["metadata"]["system"]["frame"]
-            end_frame = annotation["metadata"]["system"]["endFrame"]
-            for frame_number in range(start_frame, end_frame + 1):
-                segmented_video_data[label][frame_number] = video_data["frames"][
-                    frame_number
-                ]
-        return segmented_video_data
+            for annotation in dataloop_data["annotations"]:
+                label = annotation["label"]
+                start_frame = annotation["metadata"]["system"]["frame"]
+                end_frame = annotation["metadata"]["system"]["endFrame"]
+                clip = []
+                for frame_number in range(start_frame, end_frame + 1):
+                    clip.append({frame_number: video_data["frames"][frame_number]})
+                segmented_video_data[label].append(clip)
+            return segmented_video_data
+        except:
+            raise DataloopAnnotationTransformerServiceError(
+                "Error processing video with annotation data"
+            )
+
+
+class DataloopAnnotationTransformerServiceError(Exception):
+    """Raised when there's a problem in the DataloopAnnotationTransformerService"""
+
+    pass
 
 
 """
