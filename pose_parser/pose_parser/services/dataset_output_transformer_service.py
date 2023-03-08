@@ -57,6 +57,7 @@ class DatasetOutputTransformerService:
                 for frame in frames:
                     frame_data = {}
                     frame_data["label"] = label
+                    frame_data["frame_count"] = frame_counter
                     if self.include_joints:
                         joint_data = self.format_joint_data(frame["joint_positions"])
                         frame_data["joints"] = joint_data
@@ -104,11 +105,12 @@ class DatasetOutputTransformerService:
                 examples.append(example)
 
         if self.key_off_frames:
-            examples = [
-                {f"frame_{i % 95}": frame}
-                for i, frame in enumerate(example)
-                for example in examples
-            ]
+            flattened_examples = []
+            for example in examples:
+                for frame in example:
+                    flattened_examples.append(frame)
+
+            examples = flattened_examples
 
         return {"labels": labels, "examples": examples}
 
