@@ -7,3 +7,5 @@ node_modules/
 source_videos/*
 source_annotations/*
 data/*
+*.pickle
+test.csv

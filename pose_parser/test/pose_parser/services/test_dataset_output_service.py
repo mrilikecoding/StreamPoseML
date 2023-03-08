@@ -1,5 +1,6 @@
 import unittest
 import shutil
+import pose_parser.utils.pickler as pickler
 
 from pose_parser.services.video_data_dataloop_merge_service import (
     VideoDataDataloopMergeService,
@@ -15,14 +16,28 @@ class TestDatasetOutputTransformerService(unittest.TestCase):
         self.source_videos = "./source_videos"
         self.output_data_path = "./data/generated_datasets"
         self.output_keypoints_path = "./data/keypoints"
-        vdms = VideoDataDataloopMergeService(
-            annotations_directory=self.annotations_directory,
-            video_directory=self.source_videos,
-            output_data_path=self.output_data_path,
-            output_keypoints_path=self.output_keypoints_path,
-        )
-        vdms.create_video_annotation_map()
-        self.dataset = vdms.generate_dataset_from_map(limit=2)
+        test_dataset_path = "./test_dataset"
+        # vdms = VideoDataDataloopMergeService(
+        #     annotations_directory=self.annotations_directory,
+        #     video_directory=self.source_videos,
+        #     output_data_path=self.output_data_path,
+        #     output_keypoints_path=self.output_keypoints_path,
+        # )
+        # vdms.create_video_annotation_map()
+        # self.dataset = vdms.generate_dataset_from_map(limit=2)
+        try:
+            dataset = pickler.load_from_pickle(test_dataset_path)
+            self.dataset = dataset
+        except:
+            vdms = VideoDataDataloopMergeService(
+                annotations_directory=self.annotations_directory,
+                video_directory=self.source_videos,
+                output_data_path=self.output_data_path,
+                output_keypoints_path=self.output_keypoints_path,
+            )
+            vdms.create_video_annotation_map()
+            self.dataset = vdms.generate_dataset_from_map(limit=10)
+            pickler.save_to_pickle(self.dataset, test_dataset_path)
 
         return super().setUp()
 
@@ -39,13 +54,12 @@ class TestDatasetOutputTransformerService(unittest.TestCase):
         opts = {
             "include_joints": False,
             "include_angles": True,
-            "include_distances": True,
+            "include_distances": False,
             "include_normalized_points": False,
             "include_z_axis": False,
             "decimal_precision": 4,
-            "pad_data": True,
             "merge_labels": True,
-            "key_off_frames": True,
+            "save_to_csv": True,
         }
         dots = DatasetOutputTransformerService(opts=opts)
-        dots.format_dataset(generated_raw_dataset=self.dataset)
+        dataset = dots.format_dataset(generated_raw_dataset=self.dataset)
