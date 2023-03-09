@@ -5,7 +5,7 @@ from pose_parser.geometry.joint import Joint
 
 
 class Distance:
-    """This is a data structure representing distance between a joint and midpoint of vector"""
+    """This is a data structure representing distance between a joint and midpoint of vector."""
 
     name: str  # name of this distance
     joint: Joint
@@ -16,9 +16,22 @@ class Distance:
     distance_3d_normalized: float
 
     def __init__(self, name: str, joint: Joint, vector: Vector) -> None:
-        """
+        """Initialized a Distance object.
+
         Upon init, compute the 2D and 3D distance from the Joint's coordinates
         to the midpoint of the passed Vector object
+
+        Args:
+            name: str
+                The name of this distance measure
+            joint: Joint
+                A joint object to compute the distance to the vector with
+            vector: Vector
+                A vector object to compute the midpoint's distance to joint with
+
+        Raises:
+            exception: DistanceError
+
         """
         try:
             self.name = name
@@ -49,25 +62,26 @@ class Distance:
     def distance_from_joint_to_vector_midpoint(
         self, joint_coords: tuple, vector: tuple
     ):
-        """
+        """Get distance from joint to a vector's midpoint.
+
         This method determines the midpoint of the passed vector tuple
         and then returns the Euclidean distance (L2 Norm) between
         the joint coords and the midpoint.
 
-
-        Parameters
-        ----------
+        Args:
             joint_coords: tuple[float]
                 (x, y, z) coordintaes for a joint
             vector: tuple[tuple[float, float], tuplep[float, float]]
                 ((x, y, z), (x, y, z)) for a vector
 
-        Returns
-        ------
+        Returns:
             distance: float
                 The Euclidean distance (L2 Norm) between the joint and the midpoint of the vector.
                 Also see:
                 https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html
+
+        Raises:
+            exception: DistanceError
 
         """
         try:

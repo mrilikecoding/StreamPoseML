@@ -9,8 +9,7 @@ from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class MediaPipeClient:
-    """
-    This class provides an interface to Mediapipe for keypoint extraction, sets I/O paths
+    """This class provides an interface to Mediapipe for keypoint extraction, sets I/O paths.
 
     See https://google.github.io/mediapipe/solutions/pose.html for information about inner workings of MediaPipe
     """
@@ -31,11 +30,9 @@ class MediaPipeClient:
         id=int(time.time_ns()),
         configuration={},
     ) -> None:
-        """
-        Client init
+        """Initalize a mediapipe client object.
 
-        Parameters
-        ----
+        Args:
             video_input_filename: str
                 the name of the file - "some_file.mp4"
             video_input_path: str
@@ -65,7 +62,8 @@ class MediaPipeClient:
             raise MediaPipeClientError("No input file specified")
 
     def process_video(self, limit: int = None) -> "MediaPipeClient":
-        """
+        """This method runs mediapipe on a video referenced by this object.
+
         This method is responsible for iterating through frames in the input video
         and running the keypoint pose extraction via media pipe.
 
@@ -73,13 +71,11 @@ class MediaPipeClient:
         See https://github.com/google/mediapipe/issues/1589
         Also see https://google.github.io/mediapipe/solutions/pose.html
 
-        Parameters
-        -----
+        Args:
             limit: int
                 If a limit is passed in, only process frames up to this number
 
-        Return
-        ------
+        Returns:
             self: MediaPipeClient
                 returns this instance for chaining to init
         """
@@ -132,7 +128,8 @@ class MediaPipeClient:
         return self
 
     def write_pose_data_to_file(self):
-        """
+        """Write this object's video pose data to file.
+
         This method iterates through each pose data dictionary in the pose_data list.
         It then creates a json file at the json output path with all this data
         """
@@ -149,14 +146,14 @@ class MediaPipeClient:
             raise MediaPipeClientError("There was a problem writing pose data to json")
 
     def serialize_pose_landmarks(self, pose_landmarks: list):
-        """
+        """Get a formatted list of video data coordinates.
+
         This method take a list of pose landmarks (casted from the mediapipe pose_landmarks.landmark object)
         and extracts x, y, z data, performs a normalization, then stores all the data in a dictionary
 
         Note: according to MediaPipe docs "z" uses roughly same scale as x. May not be very accurate.
 
-        Paramters
-        -----
+        Args:
             pose_landmarks: list
                 Resulting from this process...
                     mp_pose = mp.solutions.pose

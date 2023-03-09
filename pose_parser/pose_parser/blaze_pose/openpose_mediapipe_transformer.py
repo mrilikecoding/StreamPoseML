@@ -2,7 +2,8 @@ import pose_parser.blaze_pose.blaze_pose_frame as bpf
 
 
 class OpenPoseMediapipeTransformer:
-    """
+    """Compute common angle and distance measures, typically used when doing CV with OpenPose .
+
     This class is responsible for encapsulating methods to make translation
     between Openpose angle and distance paradigms to equivalent Mediapipe
     representations. Openpose uses the Body 25 model. To represent the plumbline
@@ -14,14 +15,14 @@ class OpenPoseMediapipeTransformer:
 
     @staticmethod
     def open_pose_distance_definition_map():
-        """
+        """A map of OpenPose distance definitions to vector/joint names used in this package.
+
         This method is responsible for translating Blaze pose joints into
         OpenPose domain joints / vectors and returning a map to vectors
         that can be used to generate distance calculations between a joint
         and vectors
 
-        Return
-        -----
+        Returns:
             distance_definition_map: dict
                 A map from named joints to vectors for use in
                 distance calculation
@@ -57,13 +58,13 @@ class OpenPoseMediapipeTransformer:
 
     @staticmethod
     def open_pose_angle_definition_map():
-        """
+        """A map of OpenPose angle definitions to vector/joint names used in this package.
+
         This method is responsible for translating Mediapipe Blaze pose joints into
         OpenPose domain joints / vectors and returning a map to vectors
         that can be used to generate angle calculations between vectors
 
-        Return
-        -----
+        Returns:
             angle_definition_map: dict
                 A map from named angles to created vectors for use in
                 angle generation
@@ -129,7 +130,8 @@ class OpenPoseMediapipeTransformer:
     def create_openpose_joints_and_vectors(
         frame: "bpf.BlazePoseFrame",
     ) -> bool:
-        """
+        """Create new joints / vectors based on OpenPose angles/distance.
+
         This method is responsible for creating new joints that are
         part of the OpenPose 25 Body Key-points. The purpose of doing this
         is to use body angle measurements that are consistent with angles used
@@ -139,20 +141,17 @@ class OpenPoseMediapipeTransformer:
         from Blaze points to create intermediate points. Then vectors are
         calculated to use as the basis for angle calculations.
 
-        Parameters
-        --------
+        Args:
             frame: BlazePoseFrame - a BlazePoseFrame object to be updated
 
-        Returns
-        ______
+        Returns:
             success: bool
-                Returns True if joints and vectors are created successfully,
+                Returns: True if joints and vectors are created successfully,
                 False otherwise
 
-        Raise
-        ------
+        Raises:
             exception: BlazePoseFrameError
-                Raise BlazePoseFrameError if there is a problem
+                Raises: BlazePoseFrameError if there is a problem
 
         """
         if not frame.has_joint_positions:

@@ -17,11 +17,11 @@ class Joint:
     image_dimensions: dict
 
     def __init__(self, name, joint_data: dict) -> None:
-        """
-        This initializes a Joint object with required data
+        """This initializes a Joint object with required data.
 
-        Parameters
-        ---------
+        Args:
+            name: str
+                The name of this joint
             joint_data: dict
                 Ex.
                 {
@@ -33,6 +33,8 @@ class Joint:
                     'y_normalized': 1440.1227378845215,
                     'z_normalized': 993.7534332275391,
                 }
+        Raises:
+            exception: JointError
         """
         try:
 
@@ -62,16 +64,13 @@ class Joint:
             raise JointError("There was an error instantiating the Joint object")
 
     def get_coord_tuple(self, normalized=False):
-        """
-        This method returns a tuple representation of the joint
+        """This method returns a tuple representation of the joint.
 
-        Parameters
-        --------
+        Args:
             normalized: bool
                 If True, return the vectors's normalized values
 
-        Return
-        ------
+        Returns:
             joint: tuple[float, float, float]
                 The tuple representation of this joint
         """

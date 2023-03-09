@@ -7,17 +7,14 @@ from pose_parser.serializers.joint_serializer import JointSerializer
 class BlazePoseFrameSerializer:
     @staticmethod
     def serialize(blaze_pose_frame: BlazePoseFrame):
-        """
-        This method is responsible for returning a formatted data object
-        for the passed blaze pose frame
+        """This method is responsible for returning a formatted data object
+        for the passed blaze pose frame.
 
-        Parameters
-        ---------
+        Args:
             blaze_pose_frame: BlazePoseFrame
                 a BlazePoseFrame object
 
-        Return
-        -------
+        Returns:
             data: dict
                 A dict containing the sequence name and its serialized frame data
         """

@@ -1,6 +1,6 @@
 class DataloopAnnotationTransformerService:
     """
-    This class is responsible for marrying video frame data and annotations
+    This class is responsible for marrying video frame data and annotations.
     """
 
     def __init__(self) -> None:
@@ -15,12 +15,16 @@ class DataloopAnnotationTransformerService:
         and then extracts the corresponding clip from the video frame data and stores it with the right
         annotation label
 
-        Parameters
-        -------
+        Args:
             dataloop_data: dict
                 Raw json from dataloop corresponding to the passed video data
             video_data: dict
                 Serialized video data for each frame
+        Returns:
+            segmented_video_data: dict
+                a dictionary of clips keyed of labels corresponding to an annotation section of video
+        Raises:
+            exception DataloopAnnotationTransformerServiceError
         """
         try:
             segmented_video_data = {}

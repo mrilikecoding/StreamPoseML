@@ -16,7 +16,8 @@ from pose_parser.services.video_data_service import (
 
 
 class VideoDataDataloopMergeService:
-    """
+    """Merge Dataloop annotations with video data.
+
     This class is responsible for searching an annotations directory to find
     relevant annotations for a specified video
     """
@@ -36,8 +37,17 @@ class VideoDataDataloopMergeService:
         output_data_path: str,
         output_keypoints_path: str,
     ) -> None:
-        """
-        Upon initialization set data source directories and initialize storage dicts
+        """Upon initialization set data source directories and initialize storage dicts.
+
+        Args:
+            annotations_directory: str
+                where do the source annotations live?
+            video_directory: str
+                where do the source videos live?
+            output_data_path: str
+                where to save the merged data
+            output_keypoints_path: str
+                where to put keypoint data
         """
         self.annotations_directory = annotations_directory
         self.video_directory = video_directory
@@ -48,19 +58,16 @@ class VideoDataDataloopMergeService:
         self.merged_data = {}
 
     def create_video_annotation_map(self):
-        """
-        This method reads from the annotations and videos directory to
-        create a file path map between videos and annotations
+        """This method reads from the annotations and videos directory to
+        create a file path map between videos and annotations.
 
-        Return
-        -----
+        Returns:
             success: bool
-                Returns True if operation completes successfully
+                Returns: True if operation completes successfully
 
-        Raises
-        -----
+        Raises:
             exception: VideoDataDataloopMergeServiceError
-                Raised if there's an error creating this map
+                Raises:d if there's an error creating this map
         """
         try:
             annotation_files = [
@@ -94,17 +101,21 @@ class VideoDataDataloopMergeService:
     def generate_dataset_from_map(
         self, limit: int = None, write_to_file: bool = False
     ) -> dict:
-        """
+        """Use this object's generated map to create a nested dataset
+
         This method is reponsible for calling the video data service
         based on the map and merging the returned data into a dataset
         using the corresponding annotation
 
-        Parameters:
+        Args:
             limit: int
                 if there's a limit passed, only process up to this many annotations
         Returns:
             merged_data: dict
                 If successful return the merged data from all source videos and annotations
+        Raises:
+            exception: VideoDataDataloopMergeServiceError
+
         """
         try:
             vds = VideoDataService()
@@ -147,10 +158,11 @@ class VideoDataDataloopMergeService:
         """
         This method is responsible for writing the contents of the merged data dictionary to a json file
 
-        Return
-        -------
+        Returns:
             success: bool
                 True if operation was successful
+        Raises:
+            exception: VideoDataDataloopMergeServiceError
         """
         try:
             Path(self.output_data_path).mkdir(parents=True, exist_ok=True)
@@ -172,10 +184,11 @@ class VideoDataDataloopMergeService:
         """
         This method takes a segmented data dictionary and merges it into the class's merged data dictionary
 
-        Parameters
-        --------
+        Args:
             segmented_data: dict
                 A dictionary keyed off annotation labels containing a list of frame data dictionaries representing all the frames for a labeled clip of video
+        Raises:
+            exception: VideoDataDataloopMergeServiceError
         """
         try:
             for label, examples in segmented_data.items():

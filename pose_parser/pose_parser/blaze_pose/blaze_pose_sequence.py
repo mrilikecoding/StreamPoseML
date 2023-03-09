@@ -3,8 +3,7 @@ from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class BlazePoseSequence:
-    """
-    This class represents a sequence of BlazePoseFrames
+    """This class represents a sequence of BlazePoseFrames.
 
     It validates they have the right shape and then creates a BlazePoseFrame for each pass frame
 
@@ -31,24 +30,20 @@ class BlazePoseSequence:
         self.frames = []
 
     def validate_pose_schema(self, frame_data: dict):
-        """
-        This method is responsible for ensuring data meets the required schema
+        """This method is responsible for ensuring data meets the required schema.
 
-        Parameters
-        ------
+        Args:
 
             frame_data: dict
                 a MediaPipeClient.frame_data_list entry conforming to proper schema
 
-        Returns
-        -------
+        Returns:
             valid: bool
                 returns True if the data is valid
 
-        Raises
-        _____
+        Raises:
             exception: BlazePoseSequenceError
-                Raises an exception if there is a problem with validation
+                Raises: an exception if there is a problem with validation
         """
         required_keys = [
             "sequence_id",
@@ -80,12 +75,12 @@ class BlazePoseSequence:
         return True
 
     def generate_blaze_pose_frames_from_sequence(self) -> "BlazePoseSequence":
-        """
+        """Create frame objects from this object's sequence of data.
+
         For each frame data in the sequence data list
         generate a BlazePoseFrame object and add it to the list of frames
 
-        Return
-        ------
+        Returns:
             self: BlazePoseSequence
                 returns this instance for chaining to init
         """
@@ -104,15 +99,12 @@ class BlazePoseSequence:
             )
 
     def serialize_sequence_data(self):
-        """
-        This method returns a list of serialized frame data
+        """ This method returns a list of serialized frame data.
 
-        Return
-        ------
+        Returns:
             frames_json: list[dict]
 
-        Raise
-        -----
+        Raises:
             exception: BlazePoseSequenceError
                 raises BlazePoseSequenceError if there's a problem
         """
@@ -124,7 +116,7 @@ class BlazePoseSequence:
 
 class BlazePoseSequenceError(Exception):
     """
-    Raise when there is an error in the BlazePoseSequence class
+    Raises: when there is an error in the BlazePoseSequence class
     """
 
     pass

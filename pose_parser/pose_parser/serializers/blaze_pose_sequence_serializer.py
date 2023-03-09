@@ -7,19 +7,16 @@ class BlazePoseSequenceSerializer:
     def serialize(
         blaze_pose_sequence: BlazePoseSequence, key_off_frame_number: bool = False
     ) -> dict:
-        """
-        This method is responsible for returning a formatted data object
-        for the passed blaze pose sequence
+        """This method is responsible for returning a formatted data object
+        for the passed blaze pose sequence.
 
-        Parameters
-        ---------
+        Args:
             blaze_pose_sequence: BlazePoseSequence
                 a BlazePoseSequence object
             key_off_frame_number: bool
                 if True, the frame data will a dictionary keyed off frame number
 
-        Return
-        -------
+        Returns:
             data: dict |
                 A dict containing the sequence name and its serialized frame data
         """

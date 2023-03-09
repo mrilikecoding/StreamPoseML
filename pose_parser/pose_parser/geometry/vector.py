@@ -2,7 +2,7 @@ from pose_parser.geometry.joint import Joint
 
 
 class Vector:
-    """This is a data structure representing a vector of two joints"""
+    """This is a data structure representing a vector of two joints."""
 
     name: str  # name of this vector
     joint_1: Joint
@@ -25,9 +25,21 @@ class Vector:
     direction_reverse_3d: tuple[float, float, float]
 
     def __init__(self, name: str, joint_1: Joint, joint_2: Joint) -> None:
-        """
+        """Initialize a Vector object.
+
         Upon intitialization, build a representation of a vector using the two
         passed joints for both normalized and original values
+
+        Args:
+            name: str
+                the name of this Vector
+            joint_1: Joint
+                the first joint in the vector
+            joint_2: Joint
+                the second joint in the vector
+        Raises:
+            exception: VectorError
+
         """
         try:
             self.name = name
@@ -62,16 +74,13 @@ class Vector:
             raise VectorError("There was an issue instantiating the Vector object")
 
     def get_coord_tuple(self, normalized: bool = False):
-        """
-        This method returns a tuple representation of the vector points
+        """This method returns a tuple representation of the vector points.
 
-        Parameters
-        --------
+        Args:
             normalized: bool
                 If True, return the vectors's normalized values
 
-        Return
-        ------
+        Returns:
             joint: tuple[tuple[float, float, float], tuple[float, float, float]]
                 The tuple representation of this vector
         """

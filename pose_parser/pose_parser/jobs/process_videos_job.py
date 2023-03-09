@@ -3,8 +3,7 @@ from pose_parser.jobs.process_video_job import ProcessVideoJob, ProcessVideoJobE
 
 
 class ProcessVideosJob:
-    """
-    This class encapsulates processing a batch of videos
+    """This class encapsulates processing a batch of videos.
 
     WIP - the idea here will be to use a job queue via Redis but just getting the basic idea here first
     """
@@ -20,16 +19,16 @@ class ProcessVideosJob:
         """
         This method runs subroutine to process each video in source directory
 
-        Parameters
-        -------
+        Args:
             src_video_path: str
                 the directory where source videos are found
             limit: int
                 max number of videos from this directory to process
-        Return
-        -----
+        Returns:
             results: list
                 List of serialized video data dictionaries
+        Raises:
+            exception: ProcessVideosJobError
         """
         # TODO replace with queued job
         job_count = 0

@@ -9,7 +9,8 @@ from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class BlazePoseFrame:
-    """
+    """Object representation of video frame.
+
     This class represents a single frame of BlazePose joint positions
     It stores meta-data related to the frame and also computes angle measurements if joint positions are present
     """
@@ -32,10 +33,9 @@ class BlazePoseFrame:
         generate_distances: bool = False,
     ) -> None:
         """
-        Initialize this class - passed a dictionary of frame data
+        Initialize frame object.
 
-        Parameters
-        -----
+        Args:
             frame_data: dict
                 This is passed from a BlazePoseSequence.sequence_data entry
                 ex.
@@ -108,11 +108,12 @@ class BlazePoseFrame:
             )
 
     def set_joint_positions(self) -> dict:
-        """
+        """Take raw joint data and create Joint object.
+
         This method takes the raw joint data from every named joint
         and formats a data object to create a Joint object instance
 
-        Returns
+        Returns:
 
             joint_positions: dict
                 A joint position dictionary where each key is the name of
@@ -142,22 +143,20 @@ class BlazePoseFrame:
             )
 
     def validate_joint_position_data(self, joint_positions: dict) -> bool:
-        """
+        """Make sure right data is present in joint position.
+
         This method validates that the required keys are present in
         the joint position data
 
-        Parameters
-        --------
+        Args:
             joint_positions: dict
                 a dictionary of joint position data to be validated
 
-        Returns
-        ______
+        Returns:
             success: bool
                 If all keys are present return true
 
-        Raise
-        -----
+        Raises:
             BlazePoseFrameError if we are missing a key
 
 
@@ -186,17 +185,14 @@ class BlazePoseFrame:
         return True
 
     def generate_distance_measurements(self, distance_map: dict) -> dict:
-        """
-        Create distance measurements based on the passed map
+        """Create distance measurements based on the passed map.
 
-        Parameters
-        --------
+        Args:
             map: dict[str, tuple[str, str]]
                 map of openpose definitions to their named joint -> vector distance calculation.
                 This is essentially defining the
 
-        Return
-        -------
+        Returns:
             distances: dict[str, Distance]
                 dictionary mapping the named distance measure to a Distance object
 
@@ -220,16 +216,13 @@ class BlazePoseFrame:
         return distances
 
     def generate_angle_measurements(self, angle_map: dict) -> dict:
-        """
-        Create angle measurements based on the passed map
+        """Create angle measurements based on the passed map.
 
-        Parameters
-        -------
+        Args:
             map: dict[str, tuple[str, str]]
                 Keys structured "angle_name": ("vector_name_1", "vector_name_2":)
 
-        Return
-        -------
+        Returns:
             angles: dict[str, Angle]
                 dictionary mapping the named angle measure to an Angle object
         """
@@ -251,11 +244,9 @@ class BlazePoseFrame:
         return angles
 
     def get_vector(self, name: str, joint_name_1: str, joint_name_2: str) -> Vector:
-        """
-        This method creates and returns a new vector object based on existing joints
+        """This method creates and returns a new vector object based on existing joints.
 
-        Parameters
-        ---------
+        Args:
             name: str
                 The name of this vector for reference
             joint_name_1: str
@@ -263,21 +254,20 @@ class BlazePoseFrame:
             joint_name_2: str
                 The name of the second joint - this should be an existing key in self.joints
 
-        Return
-        -------
+        Returns:
             vector: Vector
                 a Vector object representing 2d and 3d vector between passed joints
         """
         return Vector(name, self.joints[joint_name_1], self.joints[joint_name_2])
 
     def get_average_joint(self, name: str, joint_1: str, joint_2: str) -> Joint:
-        """
+        """Compute a new joint at coordinate average of two other joints.
+
         Blaze pose has a specific set of joints. However, some instances we want
         to compute the value of a mid point. In these cases take the average of two
         named joints
 
-        Parameters
-        ---------
+        Args:
             name: str
                 what to name the joint that is generated
             joint_1: str
@@ -285,8 +275,7 @@ class BlazePoseFrame:
             joint_2: str
                 the name of the joint to lookup in self.joints
 
-        Returns
-        -------
+        Returns:
             joint: Joint
                 a Joint object representing a joint at the average of the passed joints
         """
@@ -319,7 +308,7 @@ class BlazePoseFrame:
 
 class BlazePoseFrameError(Exception):
     """
-    Raise when there is an error in the BlazePoseFrame class
+    Raised when there is an error in the BlazePoseFrame class
     """
 
     pass

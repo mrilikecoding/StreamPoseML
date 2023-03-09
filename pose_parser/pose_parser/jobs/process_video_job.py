@@ -2,6 +2,11 @@ from pose_parser.services.video_data_service import VideoDataService
 
 
 class ProcessVideoJob:
+    """This class is a wrapper for the VideoDataService.
+
+    This is meant to be run by a job queue.
+    """
+
     @staticmethod
     def process_video(
         input_filename: str,
@@ -10,26 +15,23 @@ class ProcessVideoJob:
         write_to_file: bool = False,
         configuration: dict = {},
     ):
-        """
-        This method is intended to wrap the video data service
-        which sits in front of the MediaPipe client with a queued job
+        """This method is intended to wrap the video data service which sits in front of the MediaPipe client with a queued job
 
-        Parameters
-        -------
+        Args:
             input_filename: str
                 the name of the file (webm or mp4 extention right now)
             video_input_path: str
                 the location of this video
 
-        Return
-        ------
+        Returns:
 
             result: dict
                 The dictionary of video data returned by the video processing service
 
+        Raises:
+            exception: ProcessVideoJobError
 
-        TODO Here also we should grab some configuration options that can pass
-        down into the mediapipe client
+
 
         """
         try:

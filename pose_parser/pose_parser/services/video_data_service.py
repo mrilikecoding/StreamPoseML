@@ -1,4 +1,6 @@
 import time
+import glob
+import os
 
 from pose_parser.blaze_pose.mediapipe_client import (
     MediaPipeClient,
@@ -60,17 +62,16 @@ class VideoDataService:
             key_off_frame_number: dict
                 When True will key the data dictionary off the frame number - this is handy for extracting specific frames from data
 
-        Return
-        ----
+        Returns:
             result: dict
                 a serialized BlazePoseSequence dictionary keyed off frame numbers
                 This is useful for plucking out specific frames when merging with annotation data
 
-        Raise:
+        Raises:
             exception: BlazePoseSequenceError
-                Raised if there's an issue with generating a sequence object
+                Raises:d if there's an issue with generating a sequence object
             exception: MediaPipeClientError
-                Raised if there's an issue with the MediaPipe Client
+                Raises:d if there's an issue with the MediaPipe Client
         """
         try:
             # Set an identifier
