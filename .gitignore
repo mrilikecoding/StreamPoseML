@@ -3,6 +3,8 @@ __pycache__
 .DS_Store
 *.mp4
 
+config.yaml
+
 node_modules/
 source_videos/*
 source_annotations/*

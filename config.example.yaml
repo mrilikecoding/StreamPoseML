@@ -1,0 +1,28 @@
+# This file is for setting general application configuration variables
+
+# I/O paths
+keypoints_data_output_directory: ./data/keypoints
+sequence_data_output_directory: ./data/keypoints
+merged_annotation_output_directory: ./data/annotated_videos
+source_video_directory: ./source_videos
+source_annotation_directory: ./source/annotations
+
+# testing paths - tmp for generated output. Make sure to cleanup!
+test_video_directory: ./pose_parser/test_videos
+test_annotation_directory: ./pose_parser/test_annotations
+test_keypoints_data_output_directory: ./pose_parser/tmp/test_keypoints
+test_sequence_data_output_directory: ./pose_parser/tmp/test_sequences
+test_merged_annotation_output_directory: ./pose_parser/tmp/annotated_videos
+
+# data schemas
+annotation_schemas:
+  - dataloop
+
+# for videos
+supported_filetypes:
+  - webm
+  - mp4
+
+# This is configuration to pass into mediapipe
+# See https://google.github.io/mediapipe/solutions/pose.html
+mediapipe_configuration: {}
