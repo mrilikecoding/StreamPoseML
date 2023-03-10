@@ -1,5 +1,11 @@
 import unittest
 import shutil
+import time
+
+
+import yaml
+
+CONFIG = yaml.safe_load(open("./config.yaml"))
 
 from pose_parser.jobs.process_videos_job import ProcessVideosJob
 
@@ -13,18 +19,18 @@ class TestProcessVideosJob(unittest.TestCase):
     """
 
     def setUp(self) -> None:
-        self.output_path = "./data/keypoints"
-        self.video_path = "./source_videos"
-        self.cleanup = False
+        self.output_keypoints_data_path = CONFIG["test_keypoints_data_output_directory"]
+        self.output_sequence_data_path = CONFIG["test_sequence_data_output_directory"]
+        self.video_path = CONFIG["test_video_directory"]
         return super().setUp()
 
     def tearDown(self) -> None:
         # cleanup
-        if self.cleanup:
-            try:
-                shutil.rmtree(self.output_path)
-            except:
-                return super().tearDown()
+        try:
+            shutil.rmtree(self.output_keypoints_data_path)
+            shutil.rmtree(self.output_sequence_data_path)
+        except:
+            return super().tearDown()
 
         return super().tearDown()
 
@@ -36,11 +42,29 @@ class TestProcessVideosJob(unittest.TestCase):
         """
         limit = 2
         src_videos_path = self.video_path
-        output_data_path = self.output_path
+        output_keypoints_data_path = self.output_keypoints_data_path
+        output_sequence_data_path = self.output_sequence_data_path
+
+        # TODO prob want a nice way to do this outside this test :)
+        # To run the real vids uncomment this to override
+        # limit = None
+        # src_videos_path = CONFIG["source_video_directory"]
+        # folder = f"run-{time.time_ns()}"  # give a timestamped folder to not overwrite
+        # output_keypoints_data_path = (
+        #     f'{CONFIG["keypoints_data_output_directory"]}/{folder}'
+        # )
+        # output_sequence_data_path = (
+        #     f'{CONFIG["sequence_data_output_directory"]}/{folder}'
+        # )
+
         results = ProcessVideosJob().process_videos(
             src_videos_path=src_videos_path,
-            output_data_path=output_data_path,
+            output_keypoints_data_path=output_keypoints_data_path,
+            output_sequence_data_path=output_sequence_data_path,
+            write_keypoints_to_file=True,
+            write_serialized_sequence_to_file=True,
             limit=limit,
-            write_to_file=True
+            configuration={},
         )
-        self.assertEqual(len(results), limit)
+        if limit:
+            self.assertEqual(len(results), limit)

@@ -4,8 +4,7 @@ import pandas as pd
 class DatasetOutputTransformerService:
     def __init__(self, opts) -> None:
         """
-        Parameters
-        -----------
+        Args:
             opts: dict[str, bool | int]
                 specifications for this output
                 e.g.
@@ -38,15 +37,13 @@ class DatasetOutputTransformerService:
         This method is responsible for taking a raw dataset generated from VideoDataloopMergeService
         and outputing in specified formats
 
-        Parameters
-        --------
+        Args:
             generated_raw_dataset: dict
                 output from VideoDataloopMergeService.generate_dataset_from_map
 
-        Return
-        -----
+        Returns:
             formatted_dataset: dict
-                Returns a data object with a list of all labels and a list of labeled examples
+                Returns: a data object with a list of all labels and a list of labeled examples
 
                 {
                     labels:
