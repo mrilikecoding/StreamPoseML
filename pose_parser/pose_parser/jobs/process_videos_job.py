@@ -1,4 +1,8 @@
-import os
+import yaml
+
+CONFIG = yaml.safe_load(open("./config.yaml"))
+
+from pose_parser.utils import path_utility
 from pose_parser.jobs.process_video_job import ProcessVideoJob, ProcessVideoJobError
 
 
@@ -10,11 +14,13 @@ class ProcessVideosJob:
 
     @staticmethod
     def process_videos(
-        src_videos_path: str,
-        output_data_path: str,
-        limit: int = None,
-        write_to_file: bool = False,
-        configuration: dict = {},
+        src_videos_path: str | None = None,
+        output_keypoints_data_path: str | None = None,
+        output_sequence_data_path: str | None = None,
+        write_keypoints_to_file: bool = False,
+        write_serialized_sequence_to_file: bool = False,
+        configuration: dict | None = None,
+        limit: int | None = None,
     ):
         """
         This method runs subroutine to process each video in source directory
@@ -23,35 +29,54 @@ class ProcessVideosJob:
             src_video_path: str
                 the directory where source videos are found
             limit: int
-                max number of videos from this directory to process
+                max number of videos from this directory to process - useful for testing
+            write_keypoints_to_file: bool
+                whether to write keypoints data to a json file at the output data directory
+            write_serialized_sequence_to_file: bool
+                whether to write sequence data to a json file at the output data directory
+            output_keypoints_data_path: str
+                the location to store keypoint data
+            output_sequence_data_path: str
+                the location to store sequence data
+            configuration: dict
+                options to pass down to mediapipe client
+
         Returns:
             results: list
                 List of serialized video data dictionaries
+
         Raises:
             exception: ProcessVideosJobError
+                when no source videos path is present, either passed or in CONFIG
         """
         # TODO replace with queued job
         job_count = 0
-        try:
-            results = []
-            for root, dir_names, file_names in os.walk(src_videos_path):
-                for f in file_names:
-                    if job_count < limit:
-                        if f.endswith(("webm", "mp4")):
-                            result = ProcessVideoJob.process_video(
-                                input_filename=f,
-                                video_input_path=src_videos_path,
-                                output_data_path=output_data_path,
-                                write_to_file=write_to_file,
-                                configuration=configuration,
-                            )
-                            results.append(result)
-                            job_count += 1
-                    else:
-                        break
-            return results
-        except ProcessVideoJobError as e:
-            raise ProcessVideosJobError(f"Error processing videos: {e}")
+        results = []
+        video_files = []
+        # TODO better way to enforce filetypes?
+        for extension in CONFIG["supported_filetypes"]:
+            video_files += path_utility.get_file_paths_in_directory(
+                src_videos_path, extension
+            )
+        number_to_process = len(video_files)
+        for video in video_files:
+            if bool(limit) and job_count == limit:
+                break
+            filename = path_utility.get_file_name(video)
+            video_input_path = path_utility.get_base_path(video)
+            result = ProcessVideoJob.process_video(
+                input_filename=filename,
+                video_input_path=video_input_path,
+                output_keypoint_data_path=output_keypoints_data_path,
+                output_sequence_data_path=output_sequence_data_path,
+                write_keypoints_to_file=write_keypoints_to_file,
+                write_serialized_sequence_to_file=write_serialized_sequence_to_file,
+                configuration=configuration,
+            )
+            results.append(result)
+            job_count += 1
+            print(f"{job_count}/{number_to_process} completed: {filename}.")
+        return results
 
 
 class ProcessVideosJobError(Exception):

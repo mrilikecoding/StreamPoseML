@@ -140,7 +140,7 @@ class MediaPipeClient:
                 with open(file_path, "w") as f:
                     json.dump(frame_data, f)
                     print(
-                        f"Successfully wrote keypoints from {self.video_input_filename} to {f}"
+                        f"Successfully wrote keypoints from {self.video_input_filename} to {file_path}"
                     )
         except:
             raise MediaPipeClientError("There was a problem writing pose data to json")

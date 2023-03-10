@@ -11,8 +11,10 @@ class ProcessVideoJob:
     def process_video(
         input_filename: str,
         video_input_path: str,
-        output_data_path: str,
-        write_to_file: bool = False,
+        output_keypoint_data_path: str,
+        output_sequence_data_path: str,
+        write_keypoints_to_file: bool = False,
+        write_serialized_sequence_to_file: bool = False,
         configuration: dict = {},
     ):
         """This method is intended to wrap the video data service which sits in front of the MediaPipe client with a queued job
@@ -22,30 +24,36 @@ class ProcessVideoJob:
                 the name of the file (webm or mp4 extention right now)
             video_input_path: str
                 the location of this video
+            output_data_path: str
+                where to put keypoint_data
 
         Returns:
-
             result: dict
                 The dictionary of video data returned by the video processing service
 
         Raises:
-            exception: ProcessVideoJobError
-
+            ProcessVideoJob error when file writes are wanted but not paths are provided
 
 
         """
-        try:
-            return VideoDataService().process_video(
-                input_filename=input_filename,
-                video_input_path=video_input_path,
-                output_data_path=output_data_path,
-                write_to_file=write_to_file,
-                configuration=configuration,
-            )
-        except:
+        if write_keypoints_to_file and output_keypoint_data_path is None:
             raise ProcessVideoJobError(
-                f"There was an issue processing video {video_input_path}/{input_filename}"
+                "No output location specified for keypoints files."
             )
+        if write_serialized_sequence_to_file and output_sequence_data_path is None:
+            raise ProcessVideoJobError(
+                "No output location specified for sequence data files."
+            )
+
+        return VideoDataService().process_video(
+            input_filename=input_filename,
+            video_input_path=video_input_path,
+            write_keypoints_to_file=write_keypoints_to_file,
+            output_keypoint_data_path=output_keypoint_data_path,
+            write_serialized_sequence_to_file=write_serialized_sequence_to_file,
+            output_sequence_data_path=output_sequence_data_path,
+            configuration=configuration,
+        )
 
 
 class ProcessVideoJobError(Exception):
