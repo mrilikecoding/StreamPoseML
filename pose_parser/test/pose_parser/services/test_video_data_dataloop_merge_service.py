@@ -45,7 +45,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
         for k, v in vdms.annotation_video_map.items():
             self.assertIn(Path(k).stem, v)
 
-    def test_generate_dataset_from_map(self):
+    def test_generate_dataset(self):
         """
         GIVEN a video dataloop merge service instance with a file map
         WHEN calling to generate a dataset from the file map
@@ -57,8 +57,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
             output_data_path=self.output_data_path,
             output_keypoints_path=self.output_keypoints_path,
         )
-        vdms.create_video_annotation_map()
-        dataset = vdms.generate_dataset_from_map(limit=2)
+        dataset = vdms.generate_dataset(limit=2)
         self.assertIsInstance(dataset, dict)
         for key in ["Left Step", "Right Step", "Successful Weight Transfer"]:
             self.assertIn(key, dataset)
@@ -77,6 +76,5 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
             output_data_path=self.output_data_path,
             output_keypoints_path=self.output_keypoints_path,
         )
-        vdms.create_video_annotation_map()
-        vdms.generate_dataset_from_map(limit=limit, write_to_file=True)
+        vdms.generate_dataset(limit=limit, write_to_file=True)
         self.assertEqual(True, os.path.exists(self.output_data_path))

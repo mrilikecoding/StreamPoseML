@@ -16,7 +16,7 @@ class ProcessVideoJob:
         write_keypoints_to_file: bool = False,
         write_serialized_sequence_to_file: bool = False,
         configuration: dict = {},
-    ):
+    ) -> dict:
         """This method is intended to wrap the video data service which sits in front of the MediaPipe client with a queued job
 
         Args:

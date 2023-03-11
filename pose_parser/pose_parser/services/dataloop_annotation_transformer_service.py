@@ -26,25 +26,26 @@ class DataloopAnnotationTransformerService:
         Raises:
             exception DataloopAnnotationTransformerServiceError
         """
-        try:
-            segmented_video_data = {}
-            for annotation in dataloop_data["annotations"]:
-                label = annotation["label"]
-                segmented_video_data[label] = []
+        segmented_video_data = {}
+        for annotation in dataloop_data["annotations"]:
+            label = annotation["label"]
+            segmented_video_data[label] = []
 
-            for annotation in dataloop_data["annotations"]:
-                label = annotation["label"]
-                start_frame = annotation["metadata"]["system"]["frame"]
-                end_frame = annotation["metadata"]["system"]["endFrame"]
-                clip = []
-                for frame_number in range(start_frame, end_frame + 1):
+        for annotation in dataloop_data["annotations"]:
+            label = annotation["label"]
+            start_frame = annotation["metadata"]["system"]["frame"]
+            end_frame = annotation["metadata"]["system"]["endFrame"]
+            clip = []
+            # Dataloop annotations have zero indexed frames
+            # frames processed here start at 1, so add one to the iterator
+            for frame_number in range(start_frame + 1, end_frame + 1):
+                if frame_number in video_data["frames"]:
                     clip.append(video_data["frames"][frame_number])
-                segmented_video_data[label].append(clip)
-            return segmented_video_data
-        except:
-            raise DataloopAnnotationTransformerServiceError(
-                "Error processing video with annotation data"
-            )
+                elif str(frame_number) in video_data["frames"]:
+                    clip.append(video_data["frames"][str(frame_number)])
+
+            segmented_video_data[label].append(clip)
+        return segmented_video_data
 
 
 class DataloopAnnotationTransformerServiceError(Exception):
