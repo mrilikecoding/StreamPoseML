@@ -21,30 +21,71 @@ class DataloopAnnotationTransformerService:
             video_data: dict
                 Serialized video data for each frame
         Returns:
-            segmented_video_data: dict
-                a dictionary of clips keyed of labels corresponding to an annotation section of video
-        Raises:
-            exception DataloopAnnotationTransformerServiceError
+            segmented_video_data: list[list[dict]]
+                a list of lists of frame dictionaries representing annotated clip of video
         """
-        segmented_video_data = {}
-        for annotation in dataloop_data["annotations"]:
-            label = annotation["label"]
-            segmented_video_data[label] = []
+        clip_annotation_map = [
+            {
+                "label": annotation["label"],
+                "frame": annotation["metadata"]["system"]["frame"],
+                "endFrame": annotation["metadata"]["system"]["endFrame"],
+            }
+            for annotation in dataloop_data["annotations"]
+        ]
 
-        for annotation in dataloop_data["annotations"]:
-            label = annotation["label"]
-            start_frame = annotation["metadata"]["system"]["frame"]
-            end_frame = annotation["metadata"]["system"]["endFrame"]
-            clip = []
-            # Dataloop annotations have zero indexed frames
-            # frames processed here start at 1, so add one to the iterator
-            for frame_number in range(start_frame + 1, end_frame + 1):
-                if frame_number in video_data["frames"]:
-                    clip.append(video_data["frames"][frame_number])
-                elif str(frame_number) in video_data["frames"]:
-                    clip.append(video_data["frames"][str(frame_number)])
+        # TODO set this in config - this should match annotation ontology
+        # binary label value: label key
+        label_heirarchy = {
+            "Left Step": "step_type",
+            "Right Step": "step_type",
+            "Successful Weight Transfer": "weight_transfer_type",
+            "Failure Weight Transfer": "weight_transfer_type",
+        }
+        # determine top level column names
+        label_columns = set(label_heirarchy.values())
+        labeled_frames = []
 
-            segmented_video_data[label].append(clip)
+        for frame, frame_data in video_data["frames"].items():
+            data = {column: None for column in label_columns}
+            # for each frame, assign top level column values to their appropriate labels
+            for annotation in clip_annotation_map:
+                label_column = label_heirarchy[annotation["label"]]
+                start_frame = annotation["frame"]
+                end_frame = annotation["endFrame"]
+                if start_frame <= frame_data["frame_number"] <= end_frame:
+                    data[label_column] = annotation["label"]
+            data["data"] = frame_data
+
+            # only append frames if they are labeled
+            if all([data[column] for column in label_columns]):
+                labeled_frames.append(data)
+
+        # determine how to split the video in to clips based on labels
+        # here, using change in step type to differentiate clips
+        segment_splitter_key = "step_type"
+        segmented_frames = {}
+        segment_counter = 0
+        for i, frame in enumerate(labeled_frames):
+            if (i + 1) == len(labeled_frames):
+                segmented_frames[segment_counter] += (
+                    frame if segment_counter in segmented_frames else [frame]
+                )
+            elif (
+                labeled_frames[i + 1][segment_splitter_key]
+                == frame[segment_splitter_key]
+            ):
+                if segment_counter in segmented_frames:
+                    segmented_frames[segment_counter].append(frame)
+                else:
+                    segmented_frames[segment_counter] = [frame]
+            else:
+                segment_counter += 1
+                if segment_counter in segmented_frames:
+                    segmented_frames[segment_counter].append(frame)
+                else:
+                    segmented_frames[segment_counter] = [frame]
+
+        segmented_video_data = list(segmented_frames.values())
         return segmented_video_data
 
 

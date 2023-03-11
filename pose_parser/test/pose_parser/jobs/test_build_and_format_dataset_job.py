@@ -28,10 +28,14 @@ class TestBuildAndFormatDatasetJob(unittest.TestCase):
         ]
 
         data_builder = BuildAndFormatDatasetJob()
-        data_builder.build_dataset_from_data_files(
+        dataset = data_builder.build_dataset_from_data_files(
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
             merged_dataset_path=merged_annotation_output_directory,
             limit=5,
-            write_to_file=True,
+        )
+        formatted_dataset = data_builder.format_dataset(
+            dataset=dataset,
+            write_to_csv=True,
+            csv_location=merged_annotation_output_directory,
         )

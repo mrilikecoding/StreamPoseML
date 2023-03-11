@@ -1,14 +1,14 @@
-import glob
 import os
 import json
-import time
-from pathlib import Path
 from pose_parser.utils import path_utility
 
 from pose_parser.services.dataloop_annotation_transformer_service import (
     DataloopAnnotationTransformerService,
 )
-from pose_parser.services.video_data_service import VideoDataService
+
+
+from pose_parser.learning.labeled_clip import LabeledClip
+from pose_parser.services import video_data_service as vds
 
 
 class VideoDataDataloopMergeService:
@@ -26,7 +26,7 @@ class VideoDataDataloopMergeService:
     output_keypoints_path: str
     annotation_video_map: dict
     video_annotation_map: dict
-    merged_data: dict
+    merged_data: list[LabeledClip]
 
     def __init__(
         self,
@@ -66,7 +66,7 @@ class VideoDataDataloopMergeService:
         self.annotation_sequence_map = {}
         self.sequence_annotation_map = {}
         self.process_videos = process_videos
-        self.merged_data = {}
+        self.merged_data = []
 
         self.transformer = DataloopAnnotationTransformerService()
 
@@ -146,12 +146,9 @@ class VideoDataDataloopMergeService:
         else:
             success = self.generate_dataset_from_sequence_data(limit=limit)
 
-        if success and write_to_file:
-            self.write_merged_data_to_file()
-        if not success:
-            raise VideoDataDataloopMergeServiceError("Unable to create dataset")
-
-        return self.merged_data
+        if success:
+            return self.merged_data
+        raise VideoDataDataloopMergeServiceError("Unable to create dataset")
 
     def generate_dataset_from_sequence_data(self, limit: int = None):
         process_counter = 0
@@ -172,13 +169,13 @@ class VideoDataDataloopMergeService:
         return True
 
     def generate_dataset_from_videos(self, limit: int = None):
-        vds = VideoDataService()
+        video_data_service = vds.VideoDataService()
         process_counter = 0
         for annotation, video in self.annotation_video_map.items():
             if limit and process_counter == limit:
                 break
             annotation_data = json.load(open(annotation))
-            video_data = vds.process_video(
+            video_data = video_data_service.process_video(
                 input_filename=os.path.basename(video),
                 video_input_path=os.path.split(video)[0],
                 output_data_path=self.output_keypoints_path,
@@ -195,44 +192,22 @@ class VideoDataDataloopMergeService:
             process_counter += 1
         return True
 
-    def write_merged_data_to_file(self) -> bool:
+    def merge_segmented_data(self, segmented_data: list) -> bool:
         """
-        This method is responsible for writing the contents of the merged data dictionary to a json file
-
-        Returns:
-            success: bool
-                True if operation was successful
-        """
-        merged_data_json = json.dumps(self.merged_data, indent=4)
-        path_utility.write_to_json_file(
-            file_path=self.output_data_path,
-            file_name=f"combined_dataset_{time.time_ns()}.json",
-            data=merged_data_json,
-        )
-        return True
-
-    def merge_segmented_data(self, segmented_data: dict) -> None:
-        """
-        This method takes a segmented data dictionary and merges it into the class's merged data dictionary
+        This method takes a segmented clip data list and merges it into the class's merged data list
 
         Args:
-            segmented_data: dict
-                A dictionary keyed off annotation labels containing a list of frame data dictionaries representing all the frames for a labeled clip of video
-        Raises:
-            exception: VideoDataDataloopMergeServiceError
+            segmented_data: list[list[dict]]
+                A list of clips which are lists of dictionaries of annotated frame data
+        Returns:
+            success: bool
+                True if successful
         """
-        try:
-            for label, examples in segmented_data.items():
-                if (label not in self.merged_data) or (
-                    not bool(self.merged_data[label])
-                ):
-                    self.merged_data[label] = []
-                for example in examples:
-                    self.merged_data[label].append(example)
-        except:
-            raise VideoDataDataloopMergeServiceError(
-                "There was an issue merging segmented data"
-            )
+        for clip in segmented_data:
+            labels = [clip[0]["weight_transfer_type"], clip[0]["step_type"]]
+            labeled_clip = LabeledClip(labels=labels, frames=clip)
+            self.merged_data.append(labeled_clip)
+        return True
 
 
 class VideoDataDataloopMergeServiceError(Exception):
