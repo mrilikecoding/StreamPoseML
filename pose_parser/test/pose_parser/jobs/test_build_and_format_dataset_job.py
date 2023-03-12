@@ -32,10 +32,12 @@ class TestBuildAndFormatDatasetJob(unittest.TestCase):
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
             merged_dataset_path=merged_annotation_output_directory,
-            limit=5,
+            limit=None,
         )
         formatted_dataset = data_builder.format_dataset(
             dataset=dataset,
-            write_to_csv=True,
+        )
+        data_builder.write_dataset_to_csv(
             csv_location=merged_annotation_output_directory,
+            formatted_dataset=formatted_dataset,
         )

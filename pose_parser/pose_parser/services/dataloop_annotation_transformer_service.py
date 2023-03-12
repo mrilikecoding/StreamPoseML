@@ -66,10 +66,12 @@ class DataloopAnnotationTransformerService:
         segmented_frames = {}
         segment_counter = 0
         for i, frame in enumerate(labeled_frames):
+            # if this is the last frame don't compare to next
             if (i + 1) == len(labeled_frames):
-                segmented_frames[segment_counter] += (
-                    frame if segment_counter in segmented_frames else [frame]
-                )
+                if segment_counter in segmented_frames:
+                    segmented_frames[segment_counter].append(frame) 
+                else:
+                    segmented_frames[segment_counter] = [frame]
             elif (
                 labeled_frames[i + 1][segment_splitter_key]
                 == frame[segment_splitter_key]

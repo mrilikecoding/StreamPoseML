@@ -7,7 +7,12 @@ class DatasetSerializer:
         """
         Args:
             dataset: list[LabeledClips]
+        
+        Returns:
+            clips: list[dict]
+                A list of serialized labeled clips
         """
         clips = []
         for clip in dataset:
             clips.append(LabeledClipSerializer().serialize(clip))
+        return clips

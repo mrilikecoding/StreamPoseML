@@ -1,3 +1,6 @@
+import pandas as pd
+import time
+
 from pose_parser.services.video_data_dataloop_merge_service import (
     VideoDataDataloopMergeService,
 )
@@ -50,11 +53,18 @@ class BuildAndFormatDatasetJob:
         return dataset
 
     @staticmethod
-    def format_dataset(dataset: list, write_to_csv: bool = False, csv_location: str | None = None):
+    def format_dataset(dataset: list):
         formatted_data = DatasetSerializer().serialize(dataset)
-        if write_to_csv and csv_location is None:
-            raise BuildAndFormatDatasetJobError("No location specified for output file")
         return formatted_data
 
+    @staticmethod
+    def write_dataset_to_csv(csv_location: str, formatted_dataset: list):
+        df = pd.json_normalize(data=formatted_dataset)
+        filename = f"dataset_{time.time_ns()}.csv"
+        output_path = f"{csv_location}/{filename}"
+        df.to_csv(output_path)
+        return True
+
+
 class BuildAndFormatDatasetJobError(Exception):
-    """ Raise when there's an issue with the BuildAndFormatDatasetJob class"""
+    """Raise when there's an issue with the BuildAndFormatDatasetJob class"""
