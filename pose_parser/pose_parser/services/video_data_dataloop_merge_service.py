@@ -36,6 +36,7 @@ class VideoDataDataloopMergeService:
         sequence_data_directory: str | None = None,
         process_videos: bool = False,
         video_directory: str = None,
+        include_unlabled_data: bool = False,
     ) -> None:
         """Upon initialization set data source directories and initialize storage dicts.
 
@@ -55,6 +56,8 @@ class VideoDataDataloopMergeService:
                 where to save the merged data
             output_keypoints_path: str
                 where to put keypoint data
+            include_unlabled_data: bool
+                if True, include data that doesn't have labels in the output
         """
         self.annotations_data_directory = annotations_data_directory
         self.video_directory = video_directory
@@ -66,6 +69,7 @@ class VideoDataDataloopMergeService:
         self.annotation_sequence_map = {}
         self.sequence_annotation_map = {}
         self.process_videos = process_videos
+        self.include_unlabeled_data = include_unlabled_data
         self.merged_data = []
 
         self.transformer = DataloopAnnotationTransformerService()
@@ -123,7 +127,11 @@ class VideoDataDataloopMergeService:
 
         return True
 
-    def generate_dataset(self, limit: int = None, write_to_file: bool = False) -> dict:
+    def generate_dataset(
+        self,
+        limit: int = None,
+        write_to_file: bool = False,
+    ) -> dict:
         """Use this object's generated map to create a nested dataset
 
         This method is reponsible for calling the video data service
@@ -162,7 +170,9 @@ class VideoDataDataloopMergeService:
             with open(annotation) as f:
                 annotation_data = json.load(f)
             segmented_data = self.transformer.segment_video_data_with_annotations(
-                video_data=video_data, dataloop_data=annotation_data
+                video_data=video_data,
+                dataloop_data=annotation_data,
+                include_unlabeled_data=self.include_unlabeled_data,
             )
             self.merge_segmented_data(segmented_data=segmented_data)
             process_counter += 1

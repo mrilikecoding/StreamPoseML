@@ -8,7 +8,9 @@ class DataloopAnnotationTransformerService:
 
     @staticmethod
     def segment_video_data_with_annotations(
-        dataloop_data: dict, video_data: dict
+        dataloop_data: dict,
+        video_data: dict,
+        include_unlabeled_data: bool = False,
     ) -> dict:
         """
         This method accepts a dictionary of dataloop_data and a serialized video_data dictionary
@@ -20,6 +22,8 @@ class DataloopAnnotationTransformerService:
                 Raw json from dataloop corresponding to the passed video data
             video_data: dict
                 Serialized video data for each frame
+            include_unlabled: bool
+              if True, include all frame data even if it's not labeled in annotations
         Returns:
             segmented_video_data: list[list[dict]]
                 a list of lists of frame dictionaries representing annotated clip of video
@@ -44,7 +48,9 @@ class DataloopAnnotationTransformerService:
         # determine top level column names
         label_columns = set(label_heirarchy.values())
         labeled_frames = []
+        unlabeled_frames = []
 
+        video_name = video_data["name"]
         for frame, frame_data in video_data["frames"].items():
             data = {column: None for column in label_columns}
             # for each frame, assign top level column values to their appropriate labels
@@ -55,10 +61,13 @@ class DataloopAnnotationTransformerService:
                 if start_frame <= frame_data["frame_number"] <= end_frame:
                     data[label_column] = annotation["label"]
             data["data"] = frame_data
+            data["video_id"] = video_name
 
-            # only append frames if they are labeled
+            # only append frames if they are labeled unless specified
             if all([data[column] for column in label_columns]):
                 labeled_frames.append(data)
+            else:
+                unlabeled_frames.append(data)
 
         # determine how to split the video in to clips based on labels
         # here, using change in step type to differentiate clips
@@ -69,7 +78,7 @@ class DataloopAnnotationTransformerService:
             # if this is the last frame don't compare to next
             if (i + 1) == len(labeled_frames):
                 if segment_counter in segmented_frames:
-                    segmented_frames[segment_counter].append(frame) 
+                    segmented_frames[segment_counter].append(frame)
                 else:
                     segmented_frames[segment_counter] = [frame]
             elif (
@@ -87,8 +96,10 @@ class DataloopAnnotationTransformerService:
                 else:
                     segmented_frames[segment_counter] = [frame]
 
-        segmented_video_data = list(segmented_frames.values())
-        return segmented_video_data
+        segmented_data = list(segmented_frames.values())
+        if include_unlabeled_data:
+            segmented_data.append(unlabeled_frames)
+        return segmented_data
 
 
 class DataloopAnnotationTransformerServiceError(Exception):

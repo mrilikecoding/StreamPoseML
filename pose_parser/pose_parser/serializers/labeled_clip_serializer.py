@@ -1,5 +1,17 @@
 from pose_parser.learning.labeled_clip import LabeledClip
 
+from enum import Enum
+
+
+class StepType(Enum):
+    LEFT_STEP = 0
+    RIGHT_STEP = 1
+
+
+class WeightTransferType(Enum):
+    FAILURE_WEIGHT_TRANSFER = 0
+    SUCCESSFUL_WEIGHT_TRANSFER = 1
+
 
 class LabeledClipSerializer:
     def __init__(self):
@@ -21,10 +33,23 @@ class LabeledClipSerializer:
     def serialize(self, labeled_clip: LabeledClip):
         # TODO here, write all the columns we want to inclide in the finale dataset for a clip
         # this should include temporal statistics computed across all frames
+
+        weight_transfer_type_map = {
+            "Successful Weight Transfer": WeightTransferType.SUCCESSFUL_WEIGHT_TRANSFER.value,
+            "Failure Weight Transfer": WeightTransferType.FAILURE_WEIGHT_TRANSFER.value,
+        }
+        step_type_map = {
+            "Left Step": StepType.LEFT_STEP.value,
+            "Right Step": StepType.RIGHT_STEP.value,
+        }
+
         data = {
-            "step_type": labeled_clip.frames[-1]["step_type"],
-            "weight_transfer_type": labeled_clip.frames[-1]["weight_transfer_type"],
+            "step_type": step_type_map[labeled_clip.frames[-1]["step_type"]],
+            "weight_transfer_type": weight_transfer_type_map[
+                labeled_clip.frames[-1]["weight_transfer_type"]
+            ],
             "frame_length": len(labeled_clip.frames),
+            "video_id": labeled_clip.frames[-1]["video_id"]
         }
 
         angles = []

@@ -20,13 +20,14 @@ class BuildAndFormatDatasetJob:
         sequence_data_directory: str,
         merged_dataset_path: str | None = None,
         limit: int | None = None,
-        opts: dict = {},
+        include_unlabaled_data: bool = False,
     ):
         vdms = VideoDataDataloopMergeService(
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
             process_videos=False,
             output_data_path=merged_dataset_path,
+            include_unlabled_data=include_unlabaled_data,
         )
 
         # TODO - write to file is too difficult with data this big
@@ -53,8 +54,19 @@ class BuildAndFormatDatasetJob:
         return dataset
 
     @staticmethod
-    def format_dataset(dataset: list):
-        formatted_data = DatasetSerializer().serialize(dataset)
+    def format_dataset(dataset: list, group_frames_by_clip: bool = True):
+        """Serialize a list of dataset clip data
+
+        Args:
+            dataset: list
+                a list of LabeledClip objects
+            group_frames_by_clip: bool
+                When True, the returned dataset will average frame data across all frame and include a std deviation.
+                So each row will represent a labeled clip
+                When False the returned dataset will return each labeled frame as a separate row
+        """
+        dataset_serializer = DatasetSerializer(combine_rows=group_frames_by_clip)
+        formatted_data = dataset_serializer.serialize(dataset)
         return formatted_data
 
     @staticmethod
