@@ -31,13 +31,11 @@ class TestBuildAndFormatDatasetJob(unittest.TestCase):
         dataset = data_builder.build_dataset_from_data_files(
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
-            merged_dataset_path=merged_annotation_output_directory,
             include_unlabaled_data=True,
             limit=None,
         )
         formatted_dataset = data_builder.format_dataset(
-            group_frames_by_clip=False,
-            dataset=dataset,
+            dataset=dataset, pool_frame_data_by_clip=False, decimal_precision=4
         )
         data_builder.write_dataset_to_csv(
             csv_location=merged_annotation_output_directory,

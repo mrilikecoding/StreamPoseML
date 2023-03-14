@@ -4,11 +4,26 @@ import time
 from pose_parser.services.video_data_dataloop_merge_service import (
     VideoDataDataloopMergeService,
 )
-from pose_parser.services.dataset_output_transformer_service import (
-    DatasetOutputTransformerService,
-)
 
 from pose_parser.serializers.dataset_serializer import DatasetSerializer
+
+
+def round_nested_dict(item: dict, precision: int = 4):
+    """This method takes a dictionary and recursively rounds float values to the indicated precision
+
+    Args:
+        item: dict
+            A dictionary with nested keys and floats that need to be rounded
+        precision: int
+            How many decimals to round to
+    """
+    if isinstance(item, dict):
+        return type(item)(
+            (key, round_nested_dict(value, precision)) for key, value in item.items()
+        )
+    if isinstance(item, float):
+        return round(item, precision)
+    return item
 
 
 class BuildAndFormatDatasetJob:
@@ -18,25 +33,31 @@ class BuildAndFormatDatasetJob:
     def build_dataset_from_data_files(
         annotations_data_directory: str,
         sequence_data_directory: str,
-        merged_dataset_path: str | None = None,
         limit: int | None = None,
         include_unlabaled_data: bool = False,
     ):
+        """This method builds a dataset from pre-processed video data and annotations.
+
+        Args:
+            annotations_data_directory: str
+                location of annotations corresponding to video data json
+            sequence_data_directory: str
+                location of serialized sequence data files (this is output of BlazePoseSequenceSerializer written to json)
+            limit: int
+                only process data to this limit (useful for testing)
+            include_unlabeled_data: bool
+                depending on how the video frame data is segmented into clips it may or may not be useful to have unlabeled frame data
+                using a temporal window, likely you'll want segments that include unlabeled frames as long as the last frame is labeled
+        """
         vdms = VideoDataDataloopMergeService(
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
             process_videos=False,
-            output_data_path=merged_dataset_path,
             include_unlabled_data=include_unlabaled_data,
         )
 
-        # TODO - write to file is too difficult with data this big
-        # 5 videos resulted in a 235 mb json file. Yikes!
         dataset = vdms.generate_dataset(limit=limit)
         return dataset
-
-        # dots = DatasetOutputTransformerService(opts=opts)
-        # dots.format_dataset(generated_raw_dataset=dataset)
 
     @staticmethod
     def build_dataset_from_videos(
@@ -44,6 +65,16 @@ class BuildAndFormatDatasetJob:
         video_directory: str,
         limit: int | None = None,
     ):
+        """This method builds a dataset and also does the video processing for all videos within a directory.
+
+        Use this when you want to go directly from source videos and annotations to a dataset.
+
+        Args:
+            annotations_directory: str
+                the path to annotations
+            video_directory: str
+                the location of videos to be processed
+        """
         vdms = VideoDataDataloopMergeService(
             annotations_directory=annotations_directory,
             video_directory=video_directory,
@@ -54,23 +85,50 @@ class BuildAndFormatDatasetJob:
         return dataset
 
     @staticmethod
-    def format_dataset(dataset: list, group_frames_by_clip: bool = True):
+    def format_dataset(
+        dataset: list,
+        pool_frame_data_by_clip: bool = True,
+        decimal_precision: int | None = None,
+    ):
         """Serialize a list of dataset clip data
 
         Args:
             dataset: list
                 a list of LabeledClip objects
             group_frames_by_clip: bool
-                When True, the returned dataset will average frame data across all frame and include a std deviation.
-                So each row will represent a labeled clip
-                When False the returned dataset will return each labeled frame as a separate row
+                When True, the returned dataset will pool frame data across all frames
+                When False the returned dataset will return each frame as a separate row
+            decimal_precision: int | None
+                if decimal precision is specified, round all float values in dataset to this number of places
+
         """
-        dataset_serializer = DatasetSerializer(combine_rows=group_frames_by_clip)
+        dataset_serializer = DatasetSerializer(pool_rows=pool_frame_data_by_clip)
         formatted_data = dataset_serializer.serialize(dataset)
+
+        if decimal_precision is not None:
+            rounded = []
+            for row in formatted_data:
+                rounded_row = round_nested_dict(item=row, precision=4)
+                rounded.append(rounded_row)
+            formatted_data = rounded
+
         return formatted_data
 
     @staticmethod
     def write_dataset_to_csv(csv_location: str, formatted_dataset: list):
+        """Write the passed serialized dataset to a csv.
+
+        This method will flatten the passed json and save to a timestamped file.
+
+        Args:
+            csv_location: str
+                path to where file should be saved
+            formatted_dataset: list[dict]
+                list of serialized data dicts
+        Returns:
+            success: bool
+                True if successful
+        """
         df = pd.json_normalize(data=formatted_dataset)
         filename = f"dataset_{time.time_ns()}.csv"
         output_path = f"{csv_location}/{filename}"

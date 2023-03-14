@@ -31,7 +31,6 @@ class VideoDataDataloopMergeService:
     def __init__(
         self,
         annotations_data_directory: str,
-        output_data_path: str,
         output_keypoints_path: str | None = None,
         sequence_data_directory: str | None = None,
         process_videos: bool = False,
@@ -52,8 +51,6 @@ class VideoDataDataloopMergeService:
                 where do the source videos live?
             process_videos: bool
                 generate sequence data from videos to use
-            output_data_path: str
-                where to save the merged data
             output_keypoints_path: str
                 where to put keypoint data
             include_unlabled_data: bool
@@ -62,7 +59,6 @@ class VideoDataDataloopMergeService:
         self.annotations_data_directory = annotations_data_directory
         self.video_directory = video_directory
         self.sequence_data_directory = sequence_data_directory
-        self.output_data_path = output_data_path
         self.output_keypoints_path = (output_keypoints_path,)
         self.annotation_video_map = {}
         self.video_annotation_map = {}
@@ -130,7 +126,6 @@ class VideoDataDataloopMergeService:
     def generate_dataset(
         self,
         limit: int = None,
-        write_to_file: bool = False,
     ) -> dict:
         """Use this object's generated map to create a nested dataset
 
