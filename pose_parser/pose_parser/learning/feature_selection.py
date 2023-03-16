@@ -1,5 +1,6 @@
 import pandas as pd
-import numpy as np
+import pickle
+import time
 
 # Modelling
 from sklearn.ensemble import RandomForestClassifier
@@ -8,20 +9,19 @@ from sklearn.metrics import (
     confusion_matrix,
     precision_score,
     recall_score,
-    ConfusionMatrixDisplay,
 )
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from scipy.stats import randint
 
-# Tree Visualisation
-from sklearn.tree import export_graphviz
-from IPython.display import Image
-import graphviz
+# TODO this can just be a jupyter notebook - just getting a rough and dirty model trained to start
 
 
-def rf():
-    data_file = "./data/annotated_videos/dataset_1678732901064497000.csv"
-    X = pd.read_csv(data_file)
+def build_random_forest(data_file):
+    """
+    This
+    """
+    data_file = data_file
+    X = pd.read_csv(data_file, index_col=0)
     X.drop(["video_id"], axis=1, inplace=True)
     X.dropna(thresh=X.shape[1], inplace=True)
     y = X.weight_transfer_type
@@ -34,7 +34,9 @@ def rf():
     rf = RandomForestClassifier()
 
     # Use random search to find the best hyperparameters
-    rand_search = RandomizedSearchCV(rf, param_distributions=param_dist, n_iter=5, cv=5)
+    rand_search = RandomizedSearchCV(
+        rf, param_distributions=param_dist, n_iter=10, cv=5
+    )
 
     # Fit the random search object to the data
     rand_search.fit(X_train, y_train)
@@ -67,7 +69,26 @@ def rf():
 
     print("Feature importance")
     print(feature_importances)
+    test_results = {
+        "type": "Random Forest",
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "classifier": best_rf,
+        "X_train": X_train,
+        "X_test": X_train,
+        "y_train": y_train,
+        "y_test": y_test,
+    }
+    return test_results
 
 
 if __name__ == "__main__":
-    rf()
+    data_file = "./data/annotated_videos/dataset_1678732901064497000.csv"
+    results = build_random_forest(data_file=data_file)
+    saved_model_path = f"./data/models/random-forest-{time.time_ns()}.pickle"
+    if True:
+        # Todo fix mkdir issue
+        with open(saved_model_path, "wb") as f:
+            pickle.dump(results, f, pickle.HIGHEST_PROTOCOL)
+        print("Saved model to pickle!")
