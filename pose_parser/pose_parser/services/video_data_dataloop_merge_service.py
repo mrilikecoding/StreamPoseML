@@ -15,18 +15,14 @@ class VideoDataDataloopMergeService:
     """Merge Dataloop annotations with video data.
 
     This class is responsible for searching an annotations directory to find
-    relevant annotations for a specified video
+    relevant dataloop annotations for a specified video and combining it with right video data.
     """
 
     annotations_data_directory: str
-    video_directory: str
+    output_keypoints_path: str
     sequence_data_directory: str
     process_videos: bool
-    output_data_path: str
-    output_keypoints_path: str
-    annotation_video_map: dict
-    video_annotation_map: dict
-    merged_data: list[LabeledClip]
+    video_directory: str
 
     def __init__(
         self,
@@ -35,7 +31,6 @@ class VideoDataDataloopMergeService:
         sequence_data_directory: str | None = None,
         process_videos: bool = False,
         video_directory: str = None,
-        include_unlabled_data: bool = False,
     ) -> None:
         """Upon initialization set data source directories and initialize storage dicts.
 
@@ -53,8 +48,6 @@ class VideoDataDataloopMergeService:
                 generate sequence data from videos to use
             output_keypoints_path: str
                 where to put keypoint data
-            include_unlabled_data: bool
-                if True, include data that doesn't have labels in the output
         """
         self.annotations_data_directory = annotations_data_directory
         self.video_directory = video_directory
@@ -65,7 +58,6 @@ class VideoDataDataloopMergeService:
         self.annotation_sequence_map = {}
         self.sequence_annotation_map = {}
         self.process_videos = process_videos
-        self.include_unlabeled_data = include_unlabled_data
         self.merged_data = []
 
         self.transformer = DataloopAnnotationTransformerService()
@@ -93,8 +85,8 @@ class VideoDataDataloopMergeService:
             directory=self.annotations_data_directory, extension="json"
         )
 
-        # TODO maybe makes sense to set this in config?
         if self.video_directory:
+            # TODO maybe makes sense to set this in config?
             valid_extensions = ["webm", "mp4"]
             video_files = path_utility.get_file_paths_in_directory(
                 directory=self.video_directory, extension=valid_extensions
@@ -123,7 +115,7 @@ class VideoDataDataloopMergeService:
 
         return True
 
-    def generate_dataset(
+    def generate_annotated_video_data(
         self,
         limit: int = None,
     ) -> dict:
@@ -137,23 +129,47 @@ class VideoDataDataloopMergeService:
             limit: int
                 if there's a limit passed, only process up to this many annotations
         Returns:
-            merged_data: dict
-                If successful return the merged data from all source videos and annotations
+            annotated_data: dict[str, list[dict]]
+                If successful return the merged annotated data from all source videos and annotations
+                {"all_frames": [...], "labeled_frames": [...], "unlabeled_frames": [...]}
         Raises:
             exception: VideoDataDataloopMergeServiceError
 
         """
-        success = False
         if self.process_videos:
-            success = self.generate_dataset_from_videos(limit=limit)
+            self.generate_video_data_from_videos(limit=limit)
         else:
-            success = self.generate_dataset_from_sequence_data(limit=limit)
+            self.generate_video_data_from_sequence_data(limit=limit)
 
-        if success:
-            return self.merged_data
-        raise VideoDataDataloopMergeServiceError("Unable to create dataset")
+        merged_all_frames = []
+        merged_labeled_frames = []
+        merged_unlabeled_frames = []
+        merged_video_data = [data["video_data"] for data in self.merged_data]
+        merged_annotation_data = [data["annotation_data"] for data in self.merged_data]
+        for video_data, annotation_data in zip(
+            merged_video_data, merged_annotation_data
+        ):
+            (
+                all_frames,
+                labeled_frames,
+                unlabeled_frames,
+            ) = self.transformer.update_video_data_with_annotations(
+                video_data=video_data, dataloop_data=annotation_data
+            )
+            merged_all_frames.append(all_frames)
+            merged_labeled_frames.append(labeled_frames)
+            merged_unlabeled_frames.append(unlabeled_frames)
 
-    def generate_dataset_from_sequence_data(self, limit: int = None):
+        annotated_data = {
+            "all_frames": merged_all_frames,
+            "labeled_frames": merged_labeled_frames,
+            "unlabeled_frames": merged_unlabeled_frames,
+        }
+        return annotated_data
+
+    def generate_video_data_from_sequence_data(
+        self, limit: int = None
+    ) -> tuple[dict, dict]:
         process_counter = 0
         for annotation, sequence in self.annotation_sequence_map.items():
             if limit and process_counter == limit:
@@ -164,16 +180,13 @@ class VideoDataDataloopMergeService:
                 video_data = json.load(f)
             with open(annotation) as f:
                 annotation_data = json.load(f)
-            segmented_data = self.transformer.segment_video_data_with_annotations(
-                video_data=video_data,
-                dataloop_data=annotation_data,
-                include_unlabeled_data=self.include_unlabeled_data,
-            )
-            self.merge_segmented_data(segmented_data=segmented_data)
             process_counter += 1
+            self.merged_data.append(
+                {"video_data": video_data, "annotation_data": annotation_data}
+            )
         return True
 
-    def generate_dataset_from_videos(self, limit: int = None):
+    def generate_video_data_from_videos(self, limit: int = None) -> tuple[dict, dict]:
         video_data_service = vds.VideoDataService()
         process_counter = 0
         for annotation, video in self.annotation_video_map.items():
@@ -190,28 +203,10 @@ class VideoDataDataloopMergeService:
                 key_off_frame_number=False,
                 configuration={},
             )
-            segmented_data = self.transformer.segment_video_data_with_annotations(
-                video_data=video_data, dataloop_data=annotation_data
-            )
-            self.merge_segmented_data(segmented_data=segmented_data)
             process_counter += 1
-        return True
-
-    def merge_segmented_data(self, segmented_data: list) -> bool:
-        """
-        This method takes a segmented clip data list and merges it into the class's merged data list
-
-        Args:
-            segmented_data: list[list[dict]]
-                A list of clips which are lists of dictionaries of annotated frame data
-        Returns:
-            success: bool
-                True if successful
-        """
-        for clip in segmented_data:
-            labels = [clip[0]["weight_transfer_type"], clip[0]["step_type"]]
-            labeled_clip = LabeledClip(labels=labels, frames=clip)
-            self.merged_data.append(labeled_clip)
+        self.merged_data.append(
+            {"video_data": video_data, "annotation_data": annotation_data}
+        )
         return True
 
 

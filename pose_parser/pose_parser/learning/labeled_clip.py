@@ -1,5 +1,10 @@
 class LabeledClip:
-    def __init__(self, labels: list[str], frames: list[dict]):
-        self.labels = labels
+    """Object represeting a collection of frames"""
+
+    frames: list[dict]
+    sequence_length: int
+
+    def __init__(self, frames: list[dict] = []):
         self.frames = frames
         self.sequence_length = len(frames)
+        # TODO make LabeledFrames out of the frame data

@@ -1,4 +1,9 @@
+import typing
+
 from pose_parser.serializers.labeled_clip_serializer import LabeledClipSerializer
+
+if typing.TYPE_CHECKING:
+    from pose_parser.learning.dataset import Dataset
 
 
 class DatasetSerializer:
@@ -25,7 +30,7 @@ class DatasetSerializer:
 
         self.pool_rows = pool_rows
 
-    def serialize(self, dataset: list) -> list[dict]:
+    def serialize(self, dataset: "Dataset") -> list[dict]:
         """
         Args:
             dataset: list[LabeledClips]
@@ -34,9 +39,11 @@ class DatasetSerializer:
             clips: list[dict]
                 A list of serialized labeled clips
         """
+        # TODO raise error if segmented data isn't set on dataset
+        segmented_dataset = dataset.segmented_data
         rows = []
         clip_serializer = LabeledClipSerializer()
-        for clip in dataset:
+        for clip in segmented_dataset:
             if self.pool_rows:
                 # append pooled frame data to rows
                 rows.append(
@@ -59,7 +66,7 @@ class DatasetSerializer:
             for i, row in enumerate(sorted_rows):
                 if i + 1 == len(sorted_rows):
                     break
-                if row["step_type"] is "NULL" and row["weight_transfer_type"] is "NULL":
+                if row["step_type"] == "NULL" and row["weight_transfer_type"] == "NULL":
                     row["step_frame_id"] = "NULL"
                 else:
                     row["step_frame_id"] = clip_frame_counter

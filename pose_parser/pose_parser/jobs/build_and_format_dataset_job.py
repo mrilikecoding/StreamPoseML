@@ -5,6 +5,8 @@ from pose_parser.services.video_data_dataloop_merge_service import (
     VideoDataDataloopMergeService,
 )
 
+from pose_parser.services.segmentation_service import SegmentationService
+from pose_parser.learning.dataset import Dataset
 from pose_parser.serializers.dataset_serializer import DatasetSerializer
 
 
@@ -34,7 +36,6 @@ class BuildAndFormatDatasetJob:
         annotations_data_directory: str,
         sequence_data_directory: str,
         limit: int | None = None,
-        include_unlabaled_data: bool = False,
     ):
         """This method builds a dataset from pre-processed video data and annotations.
 
@@ -45,18 +46,20 @@ class BuildAndFormatDatasetJob:
                 location of serialized sequence data files (this is output of BlazePoseSequenceSerializer written to json)
             limit: int
                 only process data to this limit (useful for testing)
-            include_unlabeled_data: bool
-                depending on how the video frame data is segmented into clips it may or may not be useful to have unlabeled frame data
-                using a temporal window, likely you'll want segments that include unlabeled frames as long as the last frame is labeled
         """
         vdms = VideoDataDataloopMergeService(
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
             process_videos=False,
-            include_unlabled_data=include_unlabaled_data,
         )
 
-        dataset = vdms.generate_dataset(limit=limit)
+        annotated_video_data = vdms.generate_annotated_video_data(limit=limit)
+        # TODO rename these attrs all_frames_raw or something to distinguish from segmented data...
+        dataset = Dataset(
+            all_frames=annotated_video_data["all_frames"],
+            labeled_frames=annotated_video_data["labeled_frames"],
+            unlabeled_frames=annotated_video_data["unlabeled_frames"],
+        )
         return dataset
 
     @staticmethod
@@ -81,14 +84,22 @@ class BuildAndFormatDatasetJob:
             process_videos=True,
         )
 
-        dataset = vdms.generate_dataset(limit=limit)
+        annotated_video_data = vdms.generate_annotated_video_data(limit=limit)
+        dataset = Dataset(
+            all_frames=annotated_video_data["all_frames"],
+            labeled_frames=annotated_video_data["labeled_frames"],
+            unlabeled_frames=annotated_video_data["unlabeled_frames"],
+        )
         return dataset
 
     @staticmethod
     def format_dataset(
-        dataset: list,
+        dataset: Dataset,
         pool_frame_data_by_clip: bool = True,
         decimal_precision: int | None = None,
+        include_unlabeled_data: bool = False,
+        segmentation_strategy: str | None = None,
+        segmentation_window: int | None = None,
     ):
         """Serialize a list of dataset clip data
 
@@ -100,10 +111,23 @@ class BuildAndFormatDatasetJob:
                 When False the returned dataset will return each frame as a separate row
             decimal_precision: int | None
                 if decimal precision is specified, round all float values in dataset to this number of places
+            include_unlabeled_data: bool
+                depending on how the video frame data is segmented into clips it may or may not be useful to have unlabeled frame data
+                using a temporal window, likely you'll want segments that include unlabeled frames as long as the last frame is labeled
+            segmentation_strategy: str | None
+                one of "split_on_label", "window", "none"
+            segmentation_window: int | None
+                if segmentation strategy is "window" this will be the frame window size
 
         """
+        segmentation_service = SegmentationService(
+            include_unlabeled_data=include_unlabeled_data,
+            segmentation_strategy=segmentation_strategy,
+            segmentation_window=segmentation_window,
+        )
+        segmented_dataset = segmentation_service.segment_dataset(dataset)
         dataset_serializer = DatasetSerializer(pool_rows=pool_frame_data_by_clip)
-        formatted_data = dataset_serializer.serialize(dataset)
+        formatted_data = dataset_serializer.serialize(segmented_dataset)
 
         if decimal_precision is not None:
             rounded = []
