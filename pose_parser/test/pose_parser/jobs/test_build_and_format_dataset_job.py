@@ -35,11 +35,13 @@ class TestBuildAndFormatDatasetJob(unittest.TestCase):
         )
         formatted_dataset = data_builder.format_dataset(
             dataset=dataset,
-            pool_frame_data_by_clip=False,
+            pool_frame_data_by_clip=True,
             decimal_precision=4,
             include_unlabeled_data=True,
-            segmentation_strategy="none",
-            segmentation_window=None,
+            segmentation_strategy="window",
+            segmentation_splitter_label=None,
+            segmentation_window=25,
+            segmentation_window_label="weight_transfer_type",
         )
         data_builder.write_dataset_to_csv(
             csv_location=merged_annotation_output_directory,
