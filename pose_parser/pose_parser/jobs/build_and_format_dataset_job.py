@@ -99,7 +99,9 @@ class BuildAndFormatDatasetJob:
         decimal_precision: int | None = None,
         include_unlabeled_data: bool = False,
         segmentation_strategy: str | None = None,
+        segmentation_splitter_label: str | None = None,
         segmentation_window: int | None = None,
+        segmentation_window_label: str | None = None,
     ):
         """Serialize a list of dataset clip data
 
@@ -118,12 +120,16 @@ class BuildAndFormatDatasetJob:
                 one of "split_on_label", "window", "none"
             segmentation_window: int | None
                 if segmentation strategy is "window" this will be the frame window size
+            segmentation_splitter_label: str | None
+                if segmentation strategy is "split_on_label" this will be the label used to segment data into training examples.
 
         """
         segmentation_service = SegmentationService(
             include_unlabeled_data=include_unlabeled_data,
             segmentation_strategy=segmentation_strategy,
+            segmentation_splitter_label=segmentation_splitter_label,
             segmentation_window=segmentation_window,
+            segmentation_window_label=segmentation_window_label,
         )
         segmented_dataset = segmentation_service.segment_dataset(dataset)
         dataset_serializer = DatasetSerializer(pool_rows=pool_frame_data_by_clip)

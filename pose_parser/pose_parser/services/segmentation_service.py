@@ -31,6 +31,7 @@ class SegmentationService:
     To:
     segmented_data: [[f1-L, f2-L], [f3-R, f4-R], [f5-L], [f6-R, f7-R]]
 
+    TODO should this be merged into the Dataset class?
     """
 
     segemetation_strategy: str
@@ -42,6 +43,8 @@ class SegmentationService:
         segmentation_strategy: str,
         include_unlabeled_data: bool = False,
         segmentation_window: int | None = None,
+        segmentation_splitter_label: str | None = None,
+        segmentation_window_label: str | None = None,
     ) -> None:
         """Init a SegmentationService object.
 
@@ -50,23 +53,36 @@ class SegmentationService:
                 A string value corresponding to an enumerated SegmentationStrategy type.
                 This will determine how video frames are aggregated.
                     "none" - split every frame into its own segment/clip/example
-
-
-
+                    "split_on_label" - segment frames into examples based on frames grouped by label (in sequence)
+                        i.e. a sequence labeled [[L,L,L,R,R,R,L,L,L]] would result in [[L, L, L], [R, R, R], [L, L, L]]
         """
+        # TODO pass this in
         self.segemetation_strategy = SegmentationStrategy(segmentation_strategy)
         self.segmentation_window = segmentation_window
+        self.segmentation_splitter_label = segmentation_splitter_label
+        self.segmentation_window_label = segmentation_window_label
         self.include_unlabeled_data = include_unlabeled_data
         self.merged_data = []
 
     def segment_dataset(self, dataset: "Dataset") -> "Dataset":
-        segmented_data = None
-        if self.segemetation_strategy == SegmentationStrategy.NONE:
-            segmented_data = self.segment_all_frames(dataset=dataset)
-        elif self.segemetation_strategy == SegmentationStrategy.SPLIT_ON_LABEL:
-            segmented_data = self.split_on_label(dataset=dataset)
+        """ Segment the data in a dataset into various training examples.
 
-        dataset.segmented_data = segmented_data
+        Using the a specified strategy on the class instance, generate LabeledClips to store on the dataset.
+
+        Args:
+            dataset: Dataset
+                a Dataset object with data
+        Returns:
+            dataset: Dataset
+                a Dataset with segmented data added to it based on user specified strategy / params
+        """
+        if self.segemetation_strategy == SegmentationStrategy.NONE:
+            dataset.segmented_data = self.segment_all_frames(dataset=dataset)
+        elif self.segemetation_strategy == SegmentationStrategy.SPLIT_ON_LABEL:
+            dataset.segmented_data = self.split_on_label(dataset=dataset)
+        elif self.segemetation_strategy == SegmentationStrategy.WINDOW:
+            dataset.segmented_data = self.split_on_window(dataset=dataset)
+
         return dataset
 
     def segment_all_frames(self, dataset: "Dataset") -> list[LabeledClip]:
@@ -91,10 +107,12 @@ class SegmentationService:
                 segmented_data.append(LabeledClip(frames=[frame]))
         return segmented_data
 
-    def split_on_label(
-        self, dataset: "Dataset", segment_splitter_label: str
-    ) -> list[list[dict]]:
-        """Split a list of dicts into a list of lists of dicts representing segments of data.
+    def split_on_label(self, dataset: "Dataset") -> list[LabeledClip]:
+        """Split a Datasets labeled_frame list into a list of lists of dicts representing segments of data.
+
+        The Dataset object should have a list of lists of frames where each list is separated by source video.
+        This function will reformat this list into a list of lists of frames sharing the same label (segment_splitter_label).
+        This translates to list of training example video clips.
 
         Args:
             segment_splitter_label: str
@@ -102,38 +120,88 @@ class SegmentationService:
             dataset: Dataset
                 a Dataset object
         Returns:
-            segmented_data
+            labeled_clips: list[LabeledClip]
+                a list of LabelClip objects where each LabeledClip
+                is a sequence of data sharing the same segment_splitter_label.
+                this means that each LabeledClip represents an example of training data
         """
-        pass
-        # segmented_frames = {}
-        # segment_counter = 0
-        # for video in labeled_frames:
-        #     for i, frame in enumerate(labeled_frames):
-        #         # if this is the last frame don't compare to next
-        #         if (i + 1) == len(labeled_frames):
-        #             if segment_counter in segmented_frames:
-        #                 segmented_frames[segment_counter].append(frame)
-        #             else:
-        #                 segmented_frames[segment_counter] = [frame]
-        #         elif (
-        #             labeled_frames[i + 1][segment_splitter_label]
-        #             == frame[segment_splitter_label]
-        #         ):
-        #             if segment_counter in segmented_frames:
-        #                 segmented_frames[segment_counter].append(frame)
-        #             else:
-        #                 segmented_frames[segment_counter] = [frame]
-        #         else:
-        #             segment_counter += 1
-        #             if segment_counter in segmented_frames:
-        #                 segmented_frames[segment_counter].append(frame)
-        #             else:
-        #                 segmented_frames[segment_counter] = [frame]
+        labeled_frame_videos = dataset.labeled_frames
+        segment_splitter_label = self.segmentation_splitter_label
+        segmented_video_data_list = []
+        for video in labeled_frame_videos:
+            segmented_frames = {}
+            segment_counter = 0
+            for i, frame in enumerate(video):
+                # if this is the last frame don't compare to next
+                if (i + 1) == len(video):
+                    if segment_counter in segmented_frames:
+                        segmented_frames[segment_counter].append(frame)
+                    else:
+                        segmented_frames[segment_counter] = [frame]
+                elif (
+                    video[i + 1][segment_splitter_label]
+                    == frame[segment_splitter_label]
+                ):
+                    if segment_counter in segmented_frames:
+                        segmented_frames[segment_counter].append(frame)
+                    else:
+                        segmented_frames[segment_counter] = [frame]
+                else:
+                    segment_counter += 1
+                    if segment_counter in segmented_frames:
+                        segmented_frames[segment_counter].append(frame)
+                    else:
+                        segmented_frames[segment_counter] = [frame]
 
-        # segmented_data = list(segmented_frames.values())
-        # if unlabeled_frames is not None:
-        #     segmented_data.append(unlabeled_frames)
-        # return segmented_data
+            segmented_data = list(segmented_frames.values())
+            segmented_video_data_list.append(segmented_data)
+        merged_segmented_data = sum(segmented_video_data_list, [])
+        labeled_clips = [
+            LabeledClip(frames=example_frames)
+            for example_frames in merged_segmented_data
+        ]
+        return labeled_clips
 
-    def split_on_window(self):
-        pass
+    def split_on_window(self, dataset: "Dataset") -> list[LabeledClip]:
+        """Segment video frame data based on a fixed window size.
+
+        For each video, find a specified number of frames where the last frame has a certain label
+        and use as a training example.
+
+        Args:
+            dataset: Dataset
+                a Dataset with frame data
+        Returns:
+            labeled_clips: list[LabeledClip]
+                a list of LabeledClip objects where each clip represents
+                a window of data where the last frame is labeled
+
+        """
+        segment_window_size = self.segmentation_window
+        segment_window_label = self.segmentation_window_label
+        all_frame_videos = dataset.all_frames
+        segmented_video_data_list = []
+        for video in all_frame_videos:
+            segmented_frames = {}
+            segment_counter = 0
+            for i, frame in enumerate(video):
+                if i < segment_window_size:
+                    continue
+                elif (
+                    i % segment_window_size == 0
+                    and video[i][segment_window_label] is not None
+                ):
+                    frame_segment = []
+                    for j in range(1 + i - segment_window_size, i + 1):
+                        frame_segment.append(video[j])
+                    segmented_frames[segment_counter] = frame_segment
+                    segment_counter += 1
+
+            segmented_data = list(segmented_frames.values())
+            segmented_video_data_list.append(segmented_data)
+        merged_segmented_data = sum(segmented_video_data_list, [])
+        labeled_clips = [
+            LabeledClip(frames=example_frames)
+            for example_frames in merged_segmented_data
+        ]
+        return labeled_clips

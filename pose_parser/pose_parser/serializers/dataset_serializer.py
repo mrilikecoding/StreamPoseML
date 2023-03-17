@@ -40,6 +40,10 @@ class DatasetSerializer:
                 A list of serialized labeled clips
         """
         # TODO raise error if segmented data isn't set on dataset
+        if dataset.segmented_data is None:
+            raise DatasetSerializerError(
+                "There is no segmented data to serialize on this dataset."
+            )
         segmented_dataset = dataset.segmented_data
         rows = []
         clip_serializer = LabeledClipSerializer()
@@ -66,6 +70,7 @@ class DatasetSerializer:
             for i, row in enumerate(sorted_rows):
                 if i + 1 == len(sorted_rows):
                     break
+                # TODO get this hardcoding out of here
                 if row["step_type"] == "NULL" and row["weight_transfer_type"] == "NULL":
                     row["step_frame_id"] = "NULL"
                 else:
@@ -77,4 +82,9 @@ class DatasetSerializer:
                 clip_frame_counter += 1
 
             return sorted_rows
-        e
+
+
+class DatasetSerializerError(Exception):
+    """Raise when there's a problem with the DatasetSerializer"""
+
+    pass

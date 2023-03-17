@@ -55,23 +55,28 @@ class LabeledClipSerializer:
         clip_data = {"frame_length": len(labeled_clip.frames)}
         frame_rows = []
 
-        frame_serializer = LabeledFrameSerializer(
-            include_angles=self.include_angles
-        )
+        frame_serializer = LabeledFrameSerializer(include_angles=self.include_angles)
         for frame in labeled_clip.frames:
             frame_rows.append(frame_serializer.serialize(frame=frame))
+
         if pool_rows:
+            # If pooling data, clips should be labeled according to their last frame
+            # Clips should always have a label on the last frame
+            # TODO remove hard coding here
+            meta_keys = ["video_id", "weight_transfer_type", "step_type"]
+            for key in meta_keys:
+                clip_data[key] = frame_rows[-1][key]
             # if self.include_distances:
             # distances = self.serialize_distances(frame["data"]["distances"])
             # joints = self.serialize_joints(frame["data"]["joints"])
             if self.include_angles:
-                angles = [self.serialize_angles(frame['data']['angles']) for frame in frame_rows]
+                angles = [frame["angles"] for frame in frame_rows]
                 if self.pool_avg:
                     clip_data["angles_avg"] = tfp.compute_average_value(angles)
                 if self.pool_max:
                     clip_data["angles_max"] = tfp.compute_max(angles)
                 if self.pool_std:
-                    clip_data["angles_std"] = tfp.compute_std(angles)
+                    clip_data["angles_std"] = tfp.compute_standard_deviation(angles)
             return clip_data
         else:
             return frame_rows
