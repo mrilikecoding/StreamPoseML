@@ -2,11 +2,14 @@ import pandas as pd
 import pickle
 import time
 import json
+import numpy as np
 
 # Modeling
 from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import cross_val_score
 from scipy.stats import randint
 
 # Reporting
@@ -136,6 +139,7 @@ class ModelBuilder:
             rand_search.fit(X_train, y_train)
             # Create a variable for the best model
             best_rf = rand_search.best_estimator_
+            self.feature_importances = best_rf.feature_importances_
             self.model = best_rf
 
             # Print the best hyperparameters
@@ -147,8 +151,19 @@ class ModelBuilder:
             rf = RandomForestClassifier(
                 **params,
             )
+            cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+            # evaluate model
+            scores = cross_val_score(
+                rf, self.X, self.y, scoring="roc_auc", cv=cv, n_jobs=-1
+            )
+            # summarize performance
+            self.auc_cv = np.mean(scores)
+            print("Mean ROC AUC from cross validation: %.3f" % self.auc_cv)
+            print("Min ROC AUC from cross validation: %.3f" % min(scores))
+            print("Max ROC AUC from cross validation: %.3f" % max(scores))
             rf.fit(X_train, y_train)
             y_pred = rf.predict(X_test)
+            self.feature_importances = rf.feature_importances_
             self.model = rf
 
         self.model_type = "Random Forest"
@@ -238,7 +253,7 @@ if __name__ == "__main__":
     # data_file = "./data/annotated_videos/dataset_1678732901064497000.csv"
 
     # this one includes more pooled stats (max)
-    data_file = "./data/annotated_videos/dataset_1679002854718304000.csv"
+    # data_file = "./data/annotated_videos/dataset_1679002854718304000.csv"
 
     # this one is 45 frame window pooled
     # data_file = "./data/annotated_videos/dataset_1679015606654767000.csv"
@@ -246,8 +261,11 @@ if __name__ == "__main__":
     # this one is 25 frame window pooled
     # data_file = "./data/annotated_videos/dataset_1679016147487099000.csv"
 
-    # # this one is a flat column representation frame by frame angles of a labeled 10 frame window
+    # this one is a flat column representation frame by frame angles of a labeled 10 frame window
     # data_file = "./data/annotated_videos/dataset_1679087888313443000.csv"
+
+    # this one is a flat column representation frame by frame angles of a labeled 25 frame window
+    data_file = "./data/annotated_videos/dataset_1679103956737220000.csv"
 
     value_map = {
         "weight_transfer_type": {
@@ -290,14 +308,19 @@ if __name__ == "__main__":
         drop_list=drop_list,
     )
     # mb.run_pca(num_components=5)
-    mb.set_train_test_split(random_state=123)
+    mb.set_train_test_split(random_state=1203)
 
     param_dist = {
         "n_estimators": randint(50, 500),
         "max_depth": randint(1, 20),
         "max_features": randint(3, 20),
     }
-    rf_params = {"class_weight": "balanced", "n_estimators": 500, "max_depth": 25}
+    rf_params = {
+        # "class_weight": "balanced_subsample",
+        "class_weight": "balanced",
+        "n_estimators": 500,
+        "max_depth": 25,
+    }
 
     mb.train_random_forest(
         use_random_search=False, params=rf_params, param_dist=param_dist
