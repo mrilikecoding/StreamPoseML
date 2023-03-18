@@ -11,6 +11,7 @@ class SegmentationStrategy(Enum):
     """This class enumerates different strategies for segmenting video frame data"""
 
     SPLIT_ON_LABEL = "split_on_label"
+    FLATTEN_INTO_COLUMNS = "flatten_into_columns"
     WINDOW = "window"
     NONE = "none"
 
@@ -65,7 +66,7 @@ class SegmentationService:
         self.merged_data = []
 
     def segment_dataset(self, dataset: "Dataset") -> "Dataset":
-        """ Segment the data in a dataset into various training examples.
+        """Segment the data in a dataset into various training examples.
 
         Using the a specified strategy on the class instance, generate LabeledClips to store on the dataset.
 
@@ -82,8 +83,98 @@ class SegmentationService:
             dataset.segmented_data = self.split_on_label(dataset=dataset)
         elif self.segemetation_strategy == SegmentationStrategy.WINDOW:
             dataset.segmented_data = self.split_on_window(dataset=dataset)
+        elif self.segemetation_strategy == SegmentationStrategy.FLATTEN_INTO_COLUMNS:
+            dataset.segmented_data = self.flatten_into_columns(dataset=dataset)
 
         return dataset
+
+    def flatten_into_columns(self, dataset: "Dataset") -> list[LabeledClip]:
+        """Segment video frame data based on a fixed window size and flatten the data into frame columns
+
+        NOTE you'll likely want to keep the frame window small, otherwise there will be MANY columns of data.
+
+        For each video, find a specified number of frames where the last frame has a certain label
+        and use as a training example. Then flatten the frame data into frame specific columns.
+        This is very similar to the frame window, except rather than the list of clips representing
+        all frames, here the "clip" is a single representation where top level data keys like
+        "angles", "joints", and "distances" internally have the metrics keyed off every frame in the
+        segment. This allows for a single high-dimensional representation of the data within a
+        fixed sequence of frames.
+
+        Args:
+            dataset: Dataset
+                a Dataset with frame data
+        Returns:
+            labeled_clips: list[LabeledClip]
+                a list of one LabeledClip object where the clip represents
+                a window of data where the last frame is labeled and internal data
+                stores keys for each invidual frame in the sequence
+
+        """
+        if self.segmentation_window is None or self.segmentation_window_label is None:
+            raise SegmentationServiceError(
+                'Both segmentation window and segmentation window label is required for segmentation strategy "flatten_into_columns".'
+            )
+        segment_window_size = self.segmentation_window
+        segment_window_label = self.segmentation_window_label
+        all_frame_videos = dataset.all_frames
+        segmented_video_data_list = []
+        for video in all_frame_videos:
+            segmented_frames = {}
+            segment_counter = 0
+            for i, frame in enumerate(video):
+                if i < segment_window_size:
+                    continue
+                elif (
+                    i % segment_window_size == 0
+                    and video[i][segment_window_label] is not None
+                ):
+                    frame_segment = []
+                    for j in range(1 + i - segment_window_size, i + 1):
+                        frame_segment.append(video[j])
+
+                    # NOTE
+                    # For this scheme want to store nested joint / angle / distance data per frame
+                    # in top level keys for consistent serialization
+                    # so here, restructuring frame list data into a flattened
+                    # column representation where original shape is preserved but internally
+                    # new keys are created for each individual frame
+
+                    # NOTE - this will get large if the frame window is high!
+
+                    # Set top level keys from last frame
+                    flattened = {
+                        key: value
+                        for key, value in frame_segment[-1].items()
+                        if (isinstance(value, str) or value is None)
+                    }
+                    flattened["data"] = {}
+                    # Set internal data keys to the same top level keys
+                    for i, frame in enumerate(frame_segment):
+                        frame_data = frame["data"]
+                        for key, value in frame_data.items():
+                            if key not in flattened["data"]:
+                                flattened["data"][key] = {}
+                            # Merge all frame data for this segment into frame specific keys
+                            if isinstance(value, dict):
+                                for k, v in value.items():
+                                    flattened["data"][key][f"frame-{i+1}-{k}"] = v
+                            else:
+                                # Let the last frame set the top level value here
+                                # when we don't have nested data
+                                flattened["data"][key] = value
+
+                    segmented_frames[segment_counter] = [flattened]
+                    segment_counter += 1
+
+            segmented_data = list(segmented_frames.values())
+            segmented_video_data_list.append(segmented_data)
+        merged_segmented_data = sum(segmented_video_data_list, [])
+        labeled_clips = [
+            LabeledClip(frames=example_frames)
+            for example_frames in merged_segmented_data
+        ]
+        return labeled_clips
 
     def segment_all_frames(self, dataset: "Dataset") -> list[LabeledClip]:
         """This method creates a list of where every frame is its own LabeledClip.
@@ -125,6 +216,10 @@ class SegmentationService:
                 is a sequence of data sharing the same segment_splitter_label.
                 this means that each LabeledClip represents an example of training data
         """
+        if self.segmentation_splitter_label is None:
+            raise SegmentationServiceError(
+                'segmentation_spliiter_label must be present for segmentation strategy "split_on_label".'
+            )
         labeled_frame_videos = dataset.labeled_frames
         segment_splitter_label = self.segmentation_splitter_label
         segmented_video_data_list = []
@@ -177,6 +272,10 @@ class SegmentationService:
                 a window of data where the last frame is labeled
 
         """
+        if self.segmentation_window is None or self.segmentation_window_label is None:
+            raise SegmentationServiceError(
+                'Both segmentation window and segmentation window label is required for segmentation strategy "split_on_window".'
+            )
         segment_window_size = self.segmentation_window
         segment_window_label = self.segmentation_window_label
         all_frame_videos = dataset.all_frames
@@ -205,3 +304,9 @@ class SegmentationService:
             for example_frames in merged_segmented_data
         ]
         return labeled_clips
+
+
+class SegmentationServiceError(Exception):
+    """Raise when there's an issue in the Segmentation Service"""
+
+    pass

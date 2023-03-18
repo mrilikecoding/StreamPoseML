@@ -38,9 +38,9 @@ class TestBuildAndFormatDatasetJob(unittest.TestCase):
             pool_frame_data_by_clip=True,
             decimal_precision=4,
             include_unlabeled_data=True,
-            segmentation_strategy="window",
-            segmentation_splitter_label=None,
-            segmentation_window=25,
+            segmentation_strategy="flatten_into_columns",
+            segmentation_splitter_label="step_type",
+            segmentation_window=10,
             segmentation_window_label="weight_transfer_type",
         )
         data_builder.write_dataset_to_csv(
