@@ -12,6 +12,10 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
 from scipy.stats import randint
 
+# upsampling / downsampling
+from sklearn.utils import resample
+from imblearn.over_sampling import SMOTE
+
 # Reporting
 from sklearn.metrics import (
     accuracy_score,
@@ -19,17 +23,26 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     roc_auc_score,
+    classification_report,
 )
 
 
 class ModelBuilder:
     """This class is to aid in setting up training data and training various models to compare performance."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
         pass
 
     def set_train_test_split(
-        self, test_size: float = 0.2, random_state: int | None = None
+        self,
+        test_size: float = 0.2,
+        random_state: int | None = None,
+        balance_off_target: bool = False,
+        upsample_minority: bool = False,
+        downsample_majority: bool = False,
+        use_SMOTE: bool = False,
     ) -> None:
         """Set the train test split based on test size (80/20 by default)
 
@@ -43,6 +56,52 @@ class ModelBuilder:
         X_train, X_test, y_train, y_test = train_test_split(
             self.X, self.y, test_size=test_size, random_state=random_state
         )
+        if balance_off_target:
+            majority_class = X_train[X_train[self.target] == 1]
+            minority_class = X_train[X_train[self.target] == 0]
+            if upsample_minority:
+                if use_SMOTE:
+                    smote = SMOTE(random_state=random_state)
+                    X_train_balanced, y_train_balanced = smote.fit_resample(
+                        X_train, y_train
+                    )
+                    X_train_balanced = pd.DataFrame(X_train_balanced)
+                    y_train_balanced = pd.DataFrame(y_train_balanced)
+                    X_train = X_train_balanced
+                    y_train = y_train_balanced
+                else:
+                    minority_upsampled = resample(
+                        minority_class,
+                        replace=True,
+                        n_samples=len(majority_class),
+                        random_state=random_state,
+                    )
+                    X_train_balanced = pd.concat([majority_class, minority_upsampled])
+                    X_train = X_train_balanced
+                    y_train = X_train[self.target]
+            elif downsample_majority:
+                majority_downsampled = resample(
+                    majority_class,
+                    replace=False,
+                    n_samples=len(minority_class),
+                    random_state=random_state,
+                )
+                X_train_balanced = pd.concat([majority_downsampled, minority_class])
+                X_train_balanced = X_train_balanced.sample(
+                    frac=1, random_state=random_state
+                ).reset_index(drop=True)
+                X_train = X_train_balanced
+                y_train = X_train[self.target]
+
+        # Report training balance and drop target value
+        print(
+            f"Training Balance for {self.target}:\n{X_train[self.target].value_counts()}"
+        )
+
+        # drop target column
+        X_train.drop([self.target], axis=1, inplace=True)
+        X_test.drop([self.target], axis=1, inplace=True)
+
         self.X_train = X_train
         self.X_test = X_test
         self.y_train = y_train
@@ -68,31 +127,31 @@ class ModelBuilder:
                 according to the passed value map
             column_whitelist: list
                 only keep these columns in the dataset
+            naively_balance_off_target: bool
+                If True, take the target var and subsample the majority class so that the dataset it balanced.
         """
         self.data_file = path
-        self.X = pd.read_csv(path, index_col=0)
+        self.target = target
+        X = pd.read_csv(path, index_col=0)
 
         # Rewrite values based on passed map
         if bool(value_map):
             for key in value_map.keys():
-                self.X[key] = self.X[key].map(value_map[key])
+                X[key] = X[key].map(value_map[key])
 
         # Drop empty values
-        self.X.dropna(thresh=self.X.shape[1], inplace=True)
-
-        # Report training balance and drop target value
-        print(f"Training Balance for {target}:\n{self.X[target].value_counts()}")
-        self.y = self.X[target]
-        self.X.drop([target], axis=1, inplace=True)
+        X.dropna(thresh=X.shape[1], inplace=True)
 
         # Preserve whitelist and drop droplist columns
         if bool(column_whitelist):
-            self.X = self.X[column_whitelist]
+            X = X[column_whitelist]
         if bool(drop_list):
             for col in drop_list:
-                if col in self.X.columns:
-                    self.X.drop([col], axis=1, inplace=True)
+                if col in X.columns:
+                    X.drop([col], axis=1, inplace=True)
 
+        self.y = X[target]
+        self.X = X
         return True
 
     def run_pca(self, num_components: int = 5):
@@ -180,6 +239,7 @@ class ModelBuilder:
         print("Accuracy:", self.accuracy)
         print("Precision:", self.precision)
         print("Recall:", self.recall)
+        print(classification_report(y_test, y_pred))
 
     def save_model_and_datasets(self, notes: str):
         """Save the current model and metadata to a pickle / json file.
@@ -244,87 +304,3 @@ class ModelBuilder:
             "Feature_importances",
             self.feature_importances if hasattr(self, "feature_importances") else None,
         )
-
-
-if __name__ == "__main__":
-    # TODO move this exploration into a Jupyter Notebook
-
-    # this one is the original "avg dataset used"
-    # data_file = "./data/annotated_videos/dataset_1678732901064497000.csv"
-
-    # this one includes more pooled stats (max)
-    # data_file = "./data/annotated_videos/dataset_1679002854718304000.csv"
-
-    # this one is 45 frame window pooled
-    # data_file = "./data/annotated_videos/dataset_1679015606654767000.csv"
-
-    # this one is 25 frame window pooled
-    # data_file = "./data/annotated_videos/dataset_1679016147487099000.csv"
-
-    # this one is a flat column representation frame by frame angles of a labeled 10 frame window
-    # data_file = "./data/annotated_videos/dataset_1679087888313443000.csv"
-
-    # this one is a flat column representation frame by frame angles of a labeled 25 frame window
-    data_file = "./data/annotated_videos/dataset_1679103956737220000.csv"
-
-    value_map = {
-        "weight_transfer_type": {
-            "Failure Weight Transfer": 0,
-            "Successful Weight Transfer": 1,
-        },
-        "step_type": {
-            "Left Step": 0,
-            "Right Step": 1,
-        },
-    }
-    drop_list = ["video_id"]
-    column_whitelist = [
-        # "angles_max.line_5_6__line_6_7_angle_2d_degrees",
-        # "angles_std.line_5_6__line_25_26_angle_2d_degrees",
-        # "angles_avg.line_5_6__line_6_7_angle_2d_degrees",
-        # "angles_avg.line_8_9__line_9_10_angle_2d_degrees",
-        # "angles_max.line_5_6__line_25_26_angle_2d_degrees",
-        # "angles_max.line_2_3__line_25_26_angle_2d_degrees",
-        # "angles_avg.line_1_5__line_5_6_angle_2d_degrees",
-        # "angles_avg.line_2_3__line_25_26_angle_2d_degrees",
-        # "angles_std.line_1_5__line_5_6_angle_2d_degrees",
-    ]
-
-    """ WRITE NOTES ON THIS RUN HERE """
-    notes = """
-    Dataset notes:
-    Flat column representation of 10 windows of frame data angles
-
-    Model notes:
-    PCA on a rand search Random Forest. 
-    """
-
-    mb = ModelBuilder()
-    mb.load_and_prep_dataset_from_csv(
-        path=data_file,
-        target="weight_transfer_type",
-        value_map=value_map,
-        column_whitelist=column_whitelist,
-        drop_list=drop_list,
-    )
-    # mb.run_pca(num_components=5)
-    mb.set_train_test_split(random_state=1203)
-
-    param_dist = {
-        "n_estimators": randint(50, 500),
-        "max_depth": randint(1, 20),
-        "max_features": randint(3, 20),
-    }
-    rf_params = {
-        # "class_weight": "balanced_subsample",
-        "class_weight": "balanced",
-        "n_estimators": 500,
-        "max_depth": 25,
-    }
-
-    mb.train_random_forest(
-        use_random_search=False, params=rf_params, param_dist=param_dist
-    )
-    mb.report()
-    if False:
-        mb.save_model_and_datasets(notes=notes)
