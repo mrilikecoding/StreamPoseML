@@ -16,6 +16,8 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
 from scipy.stats import randint
 
+import xgboost as xgb
+
 # upsampling / downsampling
 from sklearn.utils import resample
 from imblearn.over_sampling import SMOTE
@@ -205,7 +207,7 @@ class ModelBuilder:
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred)
-        auc = roc_auc_score(y_test, y_pred_proba)
+        auc = roc_auc_score(y_test, y_pred_proba, average="weighted")
 
         cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
         scores = cross_val_score(
@@ -217,7 +219,7 @@ class ModelBuilder:
         print("Min ROC AUC from cross validation: %.3f" % min(scores))
         print("Max ROC AUC from cross validation: %.3f" % max(scores))
 
-        if not self.run_PCA:
+        if not self.run_PCA and hasattr(self, "feature_importances"):
             print("Top 5 features")
             for feature in self.feature_importances[:5]:
                 print(feature)
@@ -275,6 +277,15 @@ class ModelBuilder:
             output.append({feature: f"{importance * 100}%"})
         return output
 
+    def train_gradient_boost(self):
+        X_train = self.X_train
+        y_train = self.y_train
+        gradient_booster = xgb.XGBClassifier(
+            use_label_encoder=False, eval_metric="mlogloss"
+        )
+        gradient_booster.fit(X_train, y_train)
+        self.model = gradient_booster
+
     def train_random_forest(
         self,
         use_random_search: bool = False,
@@ -294,19 +305,22 @@ class ModelBuilder:
                 params for various hyperparameters to direct the random search
             iterations: int
                 if we're using a random search, how many iterations should we run?
+            random_state: int
+                if we're using a random search, pass in a random see to keep the same randomness across runs
 
         """
         X_train = self.X_train
         y_train = self.y_train
 
         if use_random_search:
-            rf = RandomForestClassifier(class_weight="balanced")
+            rf = RandomForestClassifier()
             rand_search = RandomizedSearchCV(
                 rf,
                 param_distributions=param_dist,
                 n_iter=iterations,
                 cv=5,
                 random_state=random_state,
+                scoring="roc_auc",
             )
 
             # # Fit the random search object to the data
@@ -332,13 +346,6 @@ class ModelBuilder:
             self.model = rf
 
         self.model_type = "Random Forest"
-
-        # print("Confusion matrix:")
-        # print(self.confusion_matrix)
-        # print("Accuracy:", self.accuracy)
-        # print("Precision:", self.precision)
-        # print("Recall:", self.recall)
-        # print(classification_report(y_test, y_pred))
 
     def run_recursive_feature_estimation(self, num_features):
         if num_features:
