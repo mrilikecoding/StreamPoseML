@@ -9,9 +9,8 @@ from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class BlazePoseFrame:
-    """Object representation of video frame.
+    """A single video frame's BlazePose joint positions and various frame data.
 
-    This class represents a single frame of BlazePose joint positions
     It stores meta-data related to the frame and also computes angle measurements if joint positions are present
     """
 
@@ -61,51 +60,44 @@ class BlazePoseFrame:
                 specialized joints and vectors for translating between BlazePose model and OpenPose
 
         """
-        try:
-            self.joint_position_names = [joint.name for joint in BlazePoseJoints]
-            self.joints = {}
-            self.vectors = {}
-            self.angles = {}
-            self.distances = {}
+        self.joint_position_names = [joint.name for joint in BlazePoseJoints]
+        self.joints = {}
+        self.vectors = {}
+        self.angles = {}
+        self.distances = {}
 
-            self.frame_number = frame_data["frame_number"]
-            self.has_joint_positions = bool(frame_data["joint_positions"])
-            self.image_dimensions = frame_data["image_dimensions"]
-            self.sequence_id = frame_data["sequence_id"]
-            self.sequence_source = frame_data["sequence_source"]
+        self.frame_number = frame_data["frame_number"]
+        self.has_joint_positions = bool(frame_data["joint_positions"])
+        self.image_dimensions = frame_data["image_dimensions"]
+        self.sequence_id = frame_data["sequence_id"]
+        self.sequence_source = frame_data["sequence_source"]
 
-            # if we have joint positions, validate them
-            # and instantiate joint objects into dictionary
-            if self.has_joint_positions:
-                self.validate_joint_position_data(frame_data["joint_positions"])
-                self.joint_positions_raw = frame_data["joint_positions"]
-                self.joints = self.set_joint_positions()
+        # if we have joint positions, validate them
+        # and instantiate joint objects into dictionary
+        if self.has_joint_positions:
+            self.validate_joint_position_data(frame_data["joint_positions"])
+            self.joint_positions_raw = frame_data["joint_positions"]
+            self.joints = self.set_joint_positions()
 
-            # By default, we don't have new joints / vectors calculated
-            # using openpose specifications...
-            self.has_openpose_joints_and_vectors = False
-            # So here, if desired, generate angles and distance measures based on
-            # OpenPose Body 25 angle / distance measures
-            if self.has_joint_positions and (generate_angles or generate_distances):
-                self.has_openpose_joints_and_vectors = (
-                    OpenPoseMediapipeTransformer.create_openpose_joints_and_vectors(
-                        self
-                    )
-                )
-                if self.has_openpose_joints_and_vectors and generate_angles:
-                    angle_map = (
-                        OpenPoseMediapipeTransformer.open_pose_angle_definition_map()
-                    )
-                    self.angles = self.generate_angle_measurements(angle_map)
-                if self.has_openpose_joints_and_vectors and generate_distances:
-                    distance_map = (
-                        OpenPoseMediapipeTransformer.open_pose_distance_definition_map()
-                    )
-                    self.distances = self.generate_distance_measurements(distance_map)
-        except:
-            raise BlazePoseFrameError(
-                "There was an issue instantiating the BlazePoseFrame"
+        # By default, we don't have new joints / vectors calculated
+        # using openpose specifications...
+        self.has_openpose_joints_and_vectors = False
+        # So here, if desired, generate angles and distance measures based on
+        # OpenPose Body 25 angle / distance measures
+        if self.has_joint_positions and (generate_angles or generate_distances):
+            self.has_openpose_joints_and_vectors = (
+                OpenPoseMediapipeTransformer.create_openpose_joints_and_vectors(self)
             )
+            if self.has_openpose_joints_and_vectors and generate_angles:
+                angle_map = (
+                    OpenPoseMediapipeTransformer.open_pose_angle_definition_map()
+                )
+                self.angles = self.generate_angle_measurements(angle_map)
+            if self.has_openpose_joints_and_vectors and generate_distances:
+                distance_map = (
+                    OpenPoseMediapipeTransformer.open_pose_distance_definition_map()
+                )
+                self.distances = self.generate_distance_measurements(distance_map)
 
     def set_joint_positions(self) -> dict:
         """Take raw joint data and create Joint object.

@@ -5,31 +5,14 @@ from pose_parser.services.video_data_dataloop_merge_service import (
     VideoDataDataloopMergeService,
 )
 
+from pose_parser.utils.utils import round_nested_dict
 from pose_parser.services.segmentation_service import SegmentationService
 from pose_parser.learning.dataset import Dataset
 from pose_parser.serializers.dataset_serializer import DatasetSerializer
 
 
-def round_nested_dict(item: dict, precision: int = 4):
-    """This method takes a dictionary and recursively rounds float values to the indicated precision
-
-    Args:
-        item: dict
-            A dictionary with nested keys and floats that need to be rounded
-        precision: int
-            How many decimals to round to
-    """
-    if isinstance(item, dict):
-        return type(item)(
-            (key, round_nested_dict(value, precision)) for key, value in item.items()
-        )
-    if isinstance(item, float):
-        return round(item, precision)
-    return item
-
-
 class BuildAndFormatDatasetJob:
-    """This class works through json sequence data and annotation data to compile a dataset"""
+    """Work through json sequence data and annotation data to compile a dataset"""
 
     @staticmethod
     def build_dataset_from_data_files(
@@ -37,7 +20,7 @@ class BuildAndFormatDatasetJob:
         sequence_data_directory: str,
         limit: int | None = None,
     ):
-        """This method builds a dataset from pre-processed video data and annotations.
+        """Build a dataset from pre-processed video data and annotations.
 
         Args:
             annotations_data_directory: str
@@ -68,7 +51,7 @@ class BuildAndFormatDatasetJob:
         video_directory: str,
         limit: int | None = None,
     ):
-        """This method builds a dataset and also does the video processing for all videos within a directory.
+        """Builds a dataset while also doing the video processing for all videos within a directory.
 
         Use this when you want to go directly from source videos and annotations to a dataset.
 
@@ -98,6 +81,10 @@ class BuildAndFormatDatasetJob:
         pool_frame_data_by_clip: bool = True,
         decimal_precision: int | None = None,
         include_unlabeled_data: bool = False,
+        include_angles: bool = True,
+        include_distances: bool = True,
+        include_normalized: bool = True,
+        include_z_axis: bool = False,
         segmentation_strategy: str | None = None,
         segmentation_splitter_label: str | None = None,
         segmentation_window: int | None = None,
@@ -118,10 +105,12 @@ class BuildAndFormatDatasetJob:
                 using a temporal window, likely you'll want segments that include unlabeled frames as long as the last frame is labeled
             segmentation_strategy: str | None
                 one of "split_on_label", "window", "none"
-            segmentation_window: int | None
-                if segmentation strategy is "window" this will be the frame window size
             segmentation_splitter_label: str | None
                 if segmentation strategy is "split_on_label" this will be the label used to segment data into training examples.
+            segmentation_window: int | None
+                if segmentation strategy is "window" this will be the frame window size
+            segmentation_window_label: str | None
+                if segmentation strategy is "window" this will be the label used to segment data into training examples.
 
         """
         segmentation_service = SegmentationService(
@@ -132,7 +121,13 @@ class BuildAndFormatDatasetJob:
             segmentation_window_label=segmentation_window_label,
         )
         segmented_dataset = segmentation_service.segment_dataset(dataset)
-        dataset_serializer = DatasetSerializer(pool_rows=pool_frame_data_by_clip)
+        dataset_serializer = DatasetSerializer(
+            pool_rows=pool_frame_data_by_clip,
+            include_normalized=include_normalized,
+            include_angles=include_angles,
+            include_distances=include_distances,
+            include_z_axis=include_z_axis,
+        )
         formatted_data = dataset_serializer.serialize(segmented_dataset)
 
         if decimal_precision is not None:

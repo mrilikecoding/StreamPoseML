@@ -19,13 +19,14 @@ class VideoDataService:
     def process_video(
         input_filename: str,
         video_input_path: str,
-        output_keypoint_data_path: str | None = None,
-        include_geometry: bool = True,
-        id: int | None = None,
         write_keypoints_to_file: bool = False,
+        output_keypoint_data_path: str | None = None,
         write_serialized_sequence_to_file: bool = False,
         output_sequence_data_path: str | None = None,
+        include_geometry: bool = True,
         configuration: dict = {},
+        preprocess_video: bool = False,
+        id: int | None = None,
         key_off_frame_number: bool = True,
     ) -> dict:
         """Process keypoints from video and use them to model sequence and frame objects.
@@ -80,6 +81,7 @@ class VideoDataService:
             video_output_prefix=output_keypoint_data_path,
             id=id,
             configuration=configuration,
+            preprocess_video=preprocess_video,
         ).process_video()
 
         if output_keypoint_data_path is None and write_keypoints_to_file:

@@ -1,13 +1,17 @@
 class LabeledFrameSerializer:
-    """ This class is responsible for serializing frame data for a dataset. """
+    """This class is responsible for serializing frame data for a dataset."""
+
     include_angles: bool
     include_distances: bool
     include_joints: bool
+
     def __init__(
         self,
         include_angles: bool = True,
-        include_distances: bool = False,
+        include_distances: bool = True,
         include_joints: bool = False,
+        include_normalized: bool = True,
+        include_z_axis: bool = False,
     ) -> None:
         """Init a LabeledFrameSerializer with options.
         Args:
@@ -24,6 +28,8 @@ class LabeledFrameSerializer:
         self.include_angles = include_angles
         self.include_distances = include_distances
         self.include_joints = include_joints
+        self.include_normalized = include_normalized
+        self.include_z_axis = include_z_axis
 
     def serialize(self, frame: dict):
         """
@@ -48,6 +54,13 @@ class LabeledFrameSerializer:
         if self.include_angles:
             angles = self.serialize_angles(frame["data"]["angles"])
             row["angles"] = angles
+        if self.include_distances:
+            distances = self.serialize_distances(
+                distances=frame["data"]["distances"],
+                include_normalized=self.include_normalized,
+                include_z_axis=self.include_z_axis,
+            )
+            row["distances"] = distances
 
         return row
 
@@ -67,15 +80,15 @@ class LabeledFrameSerializer:
         return angle_dictionary
 
     @staticmethod
-    def serialize_distance(
-        distances: dict, include_3d: bool = False, include_normalized: bool = False
+    def serialize_distances(
+        distances: dict, include_z_axis: bool = False, include_normalized: bool = False
     ):
         """This method serializes a distances object
 
         Args:
             distances: dict
                 a dictionary of raw distance data
-            include_3d: bool
+            include_z_axis: bool
                 whether to include z axis
             include_normalized: bool
                 whether to include the normalized data in the dictionary
@@ -91,7 +104,7 @@ class LabeledFrameSerializer:
                 distance_dictionary[f"{distance}_2d_normalized"] = data[
                     "distance_2d_normalized"
                 ]
-            if include_3d:
+            if include_z_axis:
                 distance_dictionary[f"{distance}_3d"] = data["distance_3d"]
                 if include_normalized:
                     distance_dictionary[f"{distance}_3d_normalized"] = data[
@@ -102,7 +115,7 @@ class LabeledFrameSerializer:
 
     @staticmethod
     def serialize_joints(
-        joints, include_3d: bool = False, include_normalized: bool = False
+        joints, include_z_axis: bool = False, include_normalized: bool = False
     ):
         """TODO complete"""
         joints_dictionary = {}

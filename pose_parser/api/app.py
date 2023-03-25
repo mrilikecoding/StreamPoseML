@@ -1,3 +1,4 @@
+""" Here is the beginning of an API layer... """
 from flask import Flask
 
 app = Flask(__name__)

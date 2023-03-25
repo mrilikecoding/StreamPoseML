@@ -48,14 +48,14 @@ class TestProcessVideosJob(unittest.TestCase):
         # TODO prob want a nice way to do this outside this test :)
         # To run the real vids uncomment this to override
         # limit = None
-        # src_videos_path = CONFIG["source_video_directory"]
-        # folder = f"run-{time.time_ns()}"  # give a timestamped folder to not overwrite
-        # output_keypoints_data_path = (
-        #     f'{CONFIG["keypoints_data_output_directory"]}/{folder}'
-        # )
-        # output_sequence_data_path = (
-        #     f'{CONFIG["sequence_data_output_directory"]}/{folder}'
-        # )
+        src_videos_path = CONFIG["source_video_directory"]
+        folder = f"run-{time.time_ns()}"  # give a timestamped folder to not overwrite
+        output_keypoints_data_path = (
+            f'{CONFIG["keypoints_data_output_directory"]}/{folder}'
+        )
+        output_sequence_data_path = (
+            f'{CONFIG["sequence_data_output_directory"]}/{folder}'
+        )
 
         results = ProcessVideosJob().process_videos(
             src_videos_path=src_videos_path,
@@ -65,6 +65,7 @@ class TestProcessVideosJob(unittest.TestCase):
             write_serialized_sequence_to_file=True,
             limit=limit,
             configuration={},
+            preprocess_video=True,
         )
         if limit:
             self.assertEqual(len(results), limit)

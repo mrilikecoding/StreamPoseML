@@ -1,5 +1,6 @@
 import os
 import time
+import numpy as np
 from pathlib import Path
 import json
 import mediapipe as mp
@@ -21,14 +22,17 @@ class MediaPipeClient:
     video_output_prefix: str
     id: int
     joints: list  # an ordered list of joints corresponding to MediaPipe BlazePose model
+    configuration: dict  # options to pass into mediapipe pose
+    preprocess_video: bool  # whether to preprocess the video frame
 
     def __init__(
         self,
         video_input_filename: str = None,
         video_input_path: str = ".pose_parser/test_videos",
         video_output_prefix: str = ".tmp/data/keypoints",
-        id=int(time.time_ns()),
-        configuration={},
+        id: int = int(time.time_ns()),
+        configuration: dict = {},
+        preprocess_video: bool = False,
     ) -> None:
         """Initalize a mediapipe client object.
 
@@ -139,17 +143,67 @@ class MediaPipeClient:
                 file_path = f"{self.json_output_path}/keypoints-{frame_data['frame_number']:04d}.json"
                 with open(file_path, "w") as f:
                     json.dump(frame_data, f)
-                    print(
-                        f"Successfully wrote keypoints from {self.video_input_filename} to {file_path}"
-                    )
+                    # print(
+                    #     f"Successfully wrote keypoints from {self.video_input_filename} to {file_path}"
+                    # )
         except:
             raise MediaPipeClientError("There was a problem writing pose data to json")
+
+    @staticmethod
+    def get_joint_coordinates(
+        joints: list[str], reference_joint_name: str, pose_landmarks: list
+    ) -> list[float]:
+        """
+        Get the x and y coordinates of the specified joint.
+
+        Args:
+            joints: List of joint names.
+            reference_joint_name: Name of the reference joint.
+            pose_landmarks: List of pose landmarks.
+
+        Returns:
+            List containing the x and y coordinates of the specified joint.
+        """
+        joint_index = joints.index(reference_joint_name)
+        return [pose_landmarks[joint_index].x, pose_landmarks[joint_index].y]
+
+    @staticmethod
+    def calculate_reference_point_distance(
+        joint_1: list[float], joint_2: list[float]
+    ) -> float:
+        """
+        Calculate the Euclidean distance between two joint coordinates.
+
+        Args:
+            joint_1: List containing the x and y coordinates of the first joint.
+            joint_2: List containing the x and y coordinates of the second joint.
+
+        Returns:
+            Euclidean distance between the two joint coordinates.
+        """
+        return np.linalg.norm(np.array(joint_1) - np.array(joint_2))
+
+    @staticmethod
+    def calculate_reference_point_midpoint(
+        joint_1: list[float], joint_2: list[float]
+    ) -> dict[str, float]:
+        """
+        Calculate the midpoint of two joint coordinates.
+
+        Args:
+            joint_1: List containing the x and y coordinates of the first joint.
+            joint_2: List containing the x and y coordinates of the second joint.
+
+        Returns:
+            Dictionary containing the x and y coordinates of the midpoint.
+        """
+        return {"x": (joint_1[0] + joint_2[0]) / 2, "y": (joint_1[1] + joint_2[1]) / 2}
 
     def serialize_pose_landmarks(self, pose_landmarks: list):
         """Get a formatted list of video data coordinates.
 
         This method take a list of pose landmarks (casted from the mediapipe pose_landmarks.landmark object)
-        and extracts x, y, z data, performs a normalization, then stores all the data in a dictionary
+        and extracts x, y, z data, performs a normalization of reference joints, then stores all the data in a dictionary
 
         Note: according to MediaPipe docs "z" uses roughly same scale as x. May not be very accurate.
 
@@ -167,20 +221,39 @@ class MediaPipeClient:
                 dictionary containing x, y, z and x_normalized, y_normalized, z_normalized
         """
         landmarks = {}
+
         if pose_landmarks:
-            h, w, _ = self.image_dimensions
+            # TODO @mrilikecoding pass the reference joints in
+            reference_joint_1 = "left_hip"
+            reference_joint_2 = "right_hip"
+            joint_1_coordinates = self.get_joint_coordinates(
+                self.joints, reference_joint_1, pose_landmarks
+            )
+            joint_2_coordinates = self.get_joint_coordinates(
+                self.joints, reference_joint_2, pose_landmarks
+            )
+            reference_point_distance = self.calculate_reference_point_distance(
+                joint_1_coordinates, joint_2_coordinates
+            )
+            reference_point_midpoint = self.calculate_reference_point_midpoint(
+                joint_1_coordinates, joint_2_coordinates
+            )
             for i, joint in enumerate(self.joints):
+                x_normed = (
+                    pose_landmarks[i].x / reference_point_distance
+                ) - reference_point_midpoint["x"]
+                y_normed = (
+                    pose_landmarks[i].y / reference_point_distance
+                ) - reference_point_midpoint["y"]
+                # Not normalizing z here, as the coordinate is not accurate
+                # according to docs, z uses "roughly the same scale as x"
                 landmarks[joint] = {
-                    "x": (pose_landmarks[i].x),
-                    "y": (pose_landmarks[i].y),
-                    "z": (
-                        pose_landmarks[i].z
-                    ),  # according to docs, z uses "roughly the same scale as x"
-                    "x_normalized": (pose_landmarks[i].x * w),
-                    "y_normalized": (pose_landmarks[i].y * h),
-                    "z_normalized": (
-                        pose_landmarks[i].z * w
-                    ),  # according to docs, z uses "roughly the same scale as x"
+                    "x": pose_landmarks[i].x,
+                    "y": pose_landmarks[i].y,
+                    "z": pose_landmarks[i].z,
+                    "x_normalized": x_normed,
+                    "y_normalized": y_normed,
+                    "z_normalized": pose_landmarks[i].z,
                 }
         return landmarks
 

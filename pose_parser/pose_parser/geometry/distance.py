@@ -5,7 +5,7 @@ from pose_parser.geometry.joint import Joint
 
 
 class Distance:
-    """This is a data structure representing distance between a joint and midpoint of vector."""
+    """2D and 3D representations of distance between a joint and midpoint of vector."""
 
     name: str  # name of this distance
     joint: Joint
@@ -33,31 +33,28 @@ class Distance:
             exception: DistanceError
 
         """
-        try:
-            self.name = name
-            self.joint = joint
-            self.vector = vector
+        self.name = name
+        self.joint = joint
+        self.vector = vector
 
-            vector_tuple = self.vector.get_coord_tuple()
-            vector_tuple_normalized = self.vector.get_coord_tuple(normalized=True)
-            self.distance_2d = self.distance_from_joint_to_vector_midpoint(
-                self.joint.get_coord_tuple()[:2],
-                (vector_tuple[0][:2], vector_tuple[1][:2]),
-            )
-            self.distance_3d = self.distance_from_joint_to_vector_midpoint(
-                self.joint.get_coord_tuple()[:3],
-                (vector_tuple[0][:3], vector_tuple[1][:3]),
-            )
-            self.distance_2d_normalized = self.distance_from_joint_to_vector_midpoint(
-                self.joint.get_coord_tuple(normalized=True)[:2],
-                (vector_tuple_normalized[0][:2], vector_tuple_normalized[1][:2]),
-            )
-            self.distance_3d_normalized = self.distance_from_joint_to_vector_midpoint(
-                self.joint.get_coord_tuple(normalized=True)[:3],
-                (vector_tuple_normalized[0][:3], vector_tuple_normalized[1][:3]),
-            )
-        except:
-            raise DistanceError("Error initializing Distance object")
+        vector_tuple = self.vector.get_coord_tuple()
+        vector_tuple_normalized = self.vector.get_coord_tuple(normalized=True)
+        self.distance_2d = self.distance_from_joint_to_vector_midpoint(
+            self.joint.get_coord_tuple()[:2],
+            (vector_tuple[0][:2], vector_tuple[1][:2]),
+        )
+        self.distance_3d = self.distance_from_joint_to_vector_midpoint(
+            self.joint.get_coord_tuple()[:3],
+            (vector_tuple[0][:3], vector_tuple[1][:3]),
+        )
+        self.distance_2d_normalized = self.distance_from_joint_to_vector_midpoint(
+            self.joint.get_coord_tuple(normalized=True)[:2],
+            (vector_tuple_normalized[0][:2], vector_tuple_normalized[1][:2]),
+        )
+        self.distance_3d_normalized = self.distance_from_joint_to_vector_midpoint(
+            self.joint.get_coord_tuple(normalized=True)[:3],
+            (vector_tuple_normalized[0][:3], vector_tuple_normalized[1][:3]),
+        )
 
     def distance_from_joint_to_vector_midpoint(
         self, joint_coords: tuple, vector: tuple
@@ -80,24 +77,18 @@ class Distance:
                 Also see:
                 https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html
 
-        Raises:
-            exception: DistanceError
-
         """
-        try:
-            if len(joint_coords) == 3:
-                x1, y1, z1 = vector[0]
-                x2, y2, z2 = vector[1]
-                midpoint = ((x1 + x2 / 2), (y1 + y2 / 2), (z1 + z2) / 2)
-            else:
-                x1, y1 = vector[0]
-                x2, y2 = vector[1]
-                midpoint = ((x1 + x2 / 2), (y1 + y2 / 2))
+        if len(joint_coords) == 3:
+            x1, y1, z1 = vector[0]
+            x2, y2, z2 = vector[1]
+            midpoint = ((x1 + x2 / 2), (y1 + y2 / 2), (z1 + z2) / 2)
+        else:
+            x1, y1 = vector[0]
+            x2, y2 = vector[1]
+            midpoint = ((x1 + x2 / 2), (y1 + y2 / 2))
 
-            dist = np.linalg.norm(np.array(joint_coords) - np.array(midpoint))
-            return dist
-        except:
-            raise DistanceError("Error computing joint to vector distance")
+        dist = np.linalg.norm(np.array(joint_coords) - np.array(midpoint))
+        return dist
 
 
 class DistanceError(Exception):

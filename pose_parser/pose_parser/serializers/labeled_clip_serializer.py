@@ -15,23 +15,35 @@ class LabeledClipSerializer:
     joint_whitelist: list
     distance_whitelist: list
 
-    def __init__(self):
-        self.include_joints = False
-        self.include_angles = True
-        self.include_distances = False
-        self.include_non_normalized_points = True
-        self.include_normalized_points = False
-        self.include_z_axis = False
+    def __init__(
+        self,
+        include_joints: bool = False,
+        include_angles: bool = True,
+        include_distances: bool = True,
+        include_non_normalized_points: bool = True,
+        include_normalized: bool = True,
+        include_z_axis: bool = False,
         # TODO angles / distances / joints to include (NOT IMPLEMENTED)
-        self.angle_whitelist = []
-        self.distance_whitelist = []
-        self.joint_whitelist = []
+        angle_whitelist: list = [],
+        distance_whitelist: list = [],
+        joint_whitelist: list = [],
         # pooling options if pooling the temporal data
-        self.pool_avg = True
-        self.pool_std = True
-        self.pool_max = True
-        # report the std of the frame values
-        self.include_std = True
+        pool_avg: bool = True,
+        pool_std: bool = True,
+        pool_max: bool = True,
+    ):
+        self.include_joints = include_joints
+        self.include_angles = include_angles
+        self.include_distances = include_distances
+        self.include_non_normalized_points = include_non_normalized_points
+        self.include_normalized = include_normalized
+        self.include_z_axis = include_z_axis
+        self.angle_whitelist = angle_whitelist
+        self.distance_whitelist = distance_whitelist
+        self.joint_whitelist = joint_whitelist
+        self.pool_avg = pool_avg
+        self.pool_std = pool_std
+        self.pool_max = pool_max
 
     def serialize(
         self, labeled_clip: LabeledClip, pool_rows: bool = True
@@ -55,7 +67,13 @@ class LabeledClipSerializer:
         clip_data = {"frame_length": len(labeled_clip.frames)}
         frame_rows = []
 
-        frame_serializer = LabeledFrameSerializer(include_angles=self.include_angles)
+        frame_serializer = LabeledFrameSerializer(
+            include_angles=self.include_angles,
+            include_distances=self.include_distances,
+            include_joints=self.include_joints,
+            include_normalized=self.include_normalized,
+            include_z_axis=self.include_z_axis,
+        )
         for frame in labeled_clip.frames:
             frame_rows.append(frame_serializer.serialize(frame=frame))
 
@@ -66,9 +84,6 @@ class LabeledClipSerializer:
             meta_keys = ["video_id", "weight_transfer_type", "step_type"]
             for key in meta_keys:
                 clip_data[key] = frame_rows[-1][key]
-            # if self.include_distances:
-            # distances = self.serialize_distances(frame["data"]["distances"])
-            # joints = self.serialize_joints(frame["data"]["joints"])
             if self.include_angles:
                 angles = [frame["angles"] for frame in frame_rows]
                 if self.pool_avg:
@@ -77,6 +92,16 @@ class LabeledClipSerializer:
                     clip_data["angles_max"] = tfp.compute_max(angles)
                 if self.pool_std:
                     clip_data["angles_std"] = tfp.compute_standard_deviation(angles)
+            if self.include_distances:
+                distances = [frame["distances"] for frame in frame_rows]
+                if self.pool_avg:
+                    clip_data["distances_avg"] = tfp.compute_average_value(distances)
+                if self.pool_max:
+                    clip_data["distances_max"] = tfp.compute_max(distances)
+                if self.pool_std:
+                    clip_data["distances_std"] = tfp.compute_standard_deviation(
+                        distances
+                    )
             return clip_data
         else:
             return frame_rows

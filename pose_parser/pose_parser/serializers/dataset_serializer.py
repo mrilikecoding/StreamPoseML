@@ -17,6 +17,10 @@ class DatasetSerializer:
     def __init__(
         self,
         pool_rows: bool = True,
+        include_angles: bool = True,
+        include_distances: bool = True,
+        include_normalized: bool = True,
+        include_z_axis: bool = False,
     ):
         """Initialize the serializer with options
 
@@ -29,6 +33,10 @@ class DatasetSerializer:
         """
 
         self.pool_rows = pool_rows
+        self.include_angles = include_angles
+        self.include_distances = include_distances
+        self.include_normalized = include_normalized
+        self.include_z_axis = include_z_axis
 
     def serialize(self, dataset: "Dataset") -> list[dict]:
         """
@@ -46,7 +54,12 @@ class DatasetSerializer:
             )
         segmented_dataset = dataset.segmented_data
         rows = []
-        clip_serializer = LabeledClipSerializer()
+        clip_serializer = LabeledClipSerializer(
+            include_angles=self.include_angles,
+            include_distances=self.include_distances,
+            include_normalized=self.include_normalized,
+            include_z_axis=self.include_z_axis,
+        )
         for clip in segmented_dataset:
             if self.pool_rows:
                 # append pooled frame data to rows

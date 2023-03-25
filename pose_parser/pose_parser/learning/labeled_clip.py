@@ -1,5 +1,5 @@
 class LabeledClip:
-    """Object represeting a collection of frames"""
+    """A collection frames that represent a labeled sequence"""
 
     frames: list[dict]
     sequence_length: int

@@ -1,6 +1,6 @@
 class Joint:
     """
-    This is a data structure representing the attributes of a joint
+    Coordinates of a joint represented in 2D and 3D, normalized and not normalized
     """
 
     # the name of this joint
@@ -17,7 +17,7 @@ class Joint:
     image_dimensions: dict
 
     def __init__(self, name, joint_data: dict) -> None:
-        """This initializes a Joint object with required data.
+        """ Init a Joint object with required data.
 
         Args:
             name: str
@@ -63,8 +63,8 @@ class Joint:
         except:
             raise JointError("There was an error instantiating the Joint object")
 
-    def get_coord_tuple(self, normalized=False):
-        """This method returns a tuple representation of the joint.
+    def get_coord_tuple(self, normalized=False) -> tuple:
+        """Get a tuple representation of the joint.
 
         Args:
             normalized: bool

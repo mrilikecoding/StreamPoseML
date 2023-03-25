@@ -1,5 +1,5 @@
 class LabeledFrame:
-    """TODO use this instead of the dict in the LabeledClip"""
+    """Labeled frame data"""
 
     def __init__(
         self,

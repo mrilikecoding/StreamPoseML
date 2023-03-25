@@ -3,7 +3,7 @@ from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 
 
 class BlazePoseSequence:
-    """This class represents a sequence of BlazePoseFrames.
+    """A sequence of BlazePoseFrames.
 
     It validates they have the right shape and then creates a BlazePoseFrame for each pass frame
 
@@ -99,7 +99,7 @@ class BlazePoseSequence:
             )
 
     def serialize_sequence_data(self):
-        """ This method returns a list of serialized frame data.
+        """This method returns a list of serialized frame data.
 
         Returns:
             frames_json: list[dict]

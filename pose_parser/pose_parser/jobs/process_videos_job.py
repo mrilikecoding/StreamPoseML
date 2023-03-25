@@ -1,9 +1,5 @@
-import yaml
-
-CONFIG = yaml.safe_load(open("./config.yaml"))
-
 from pose_parser.utils import path_utility
-from pose_parser.jobs.process_video_job import ProcessVideoJob, ProcessVideoJobError
+from pose_parser.jobs.process_video_job import ProcessVideoJob
 
 
 class ProcessVideosJob:
@@ -21,7 +17,9 @@ class ProcessVideosJob:
         write_serialized_sequence_to_file: bool = False,
         configuration: dict | None = None,
         limit: int | None = None,
-    ):
+        preprocess_video: bool = False,
+        return_output: bool = True,
+    ) -> list | dict:
         """
         This method runs subroutine to process each video in source directory
 
@@ -44,6 +42,11 @@ class ProcessVideosJob:
         Returns:
             results: list
                 List of serialized video data dictionaries
+                OR
+            path_map: dict
+                Location of keypoints and sequences
+
+
 
         Raises:
             exception: ProcessVideosJobError
@@ -54,7 +57,7 @@ class ProcessVideosJob:
         results = []
         video_files = []
         # TODO better way to enforce filetypes?
-        for extension in CONFIG["supported_filetypes"]:
+        for extension in ["webm", "mp4"]:
             video_files += path_utility.get_file_paths_in_directory(
                 src_videos_path, extension
             )
@@ -72,11 +75,18 @@ class ProcessVideosJob:
                 write_keypoints_to_file=write_keypoints_to_file,
                 write_serialized_sequence_to_file=write_serialized_sequence_to_file,
                 configuration=configuration,
+                preprocess_video=preprocess_video,
             )
             results.append(result)
             job_count += 1
             print(f"{job_count}/{number_to_process} completed: {filename}.")
-        return results
+        if return_output:
+            return results
+        else:
+            return {
+                "keypoints_path": output_keypoints_data_path,
+                "sequence_path": output_sequence_data_path,
+            }
 
 
 class ProcessVideosJobError(Exception):

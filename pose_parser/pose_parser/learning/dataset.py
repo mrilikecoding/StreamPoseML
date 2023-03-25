@@ -1,9 +1,8 @@
 class Dataset:
-    """ This class represents a Dataset """
+    """ All data for a dataset as well as a segmented representation of the data. """
     def __init__(self, all_frames: list = [], labeled_frames: list = [], unlabeled_frames: list = []) -> None:
         """ Init a Dataset object.
 
-        This class holds all data for a dataset as well as a segmented representation of the data
 
         Args:
             all_frames: list
