@@ -140,7 +140,9 @@ class BuildAndFormatDatasetJob:
         return formatted_data
 
     @staticmethod
-    def write_dataset_to_csv(csv_location: str, formatted_dataset: list):
+    def write_dataset_to_csv(
+        csv_location: str, formatted_dataset: list, filename: str = None
+    ):
         """Write the passed serialized dataset to a csv.
 
         This method will flatten the passed json and save to a timestamped file.
@@ -150,13 +152,16 @@ class BuildAndFormatDatasetJob:
                 path to where file should be saved
             formatted_dataset: list[dict]
                 list of serialized data dicts
+            filename: str
+                if a custom filename is desired, pass in here. otherwise this will be a timestamp
         Returns:
             success: bool
                 True if successful
         """
         df = pd.json_normalize(data=formatted_dataset)
-        filename = f"dataset_{time.time_ns()}.csv"
-        output_path = f"{csv_location}/{filename}"
+        if filename is None:
+            filename = f"dataset_{time.time_ns()}"
+        output_path = f"{csv_location}/{filename}.csv"
         df.to_csv(output_path)
         return True
 
