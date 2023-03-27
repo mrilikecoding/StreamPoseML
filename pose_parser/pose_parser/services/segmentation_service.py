@@ -12,6 +12,7 @@ class SegmentationStrategy(Enum):
 
     SPLIT_ON_LABEL = "split_on_label"
     FLATTEN_INTO_COLUMNS = "flatten_into_columns"
+    FLATTEN_ON_EXAMPLE = "flatten_on_example"
     WINDOW = "window"
     NONE = "none"
 
@@ -85,8 +86,72 @@ class SegmentationService:
             dataset.segmented_data = self.split_on_window(dataset=dataset)
         elif self.segemetation_strategy == SegmentationStrategy.FLATTEN_INTO_COLUMNS:
             dataset.segmented_data = self.flatten_into_columns(dataset=dataset)
+        elif self.segemetation_strategy == SegmentationStrategy.FLATTEN_ON_EXAMPLE:
+            dataset.segmented_data = self.flatten_on_example(dataset=dataset)
 
         return dataset
+
+    def flatten_segment_into_row(self, frame_segment: list):
+        """Flatten a list of frames into a single row object
+
+        For this scheme want to store nested joint / angle / distance data per frame
+        in top level keys for consistent serialization
+        so here, restructuring frame list data into a flattened
+        column representation where original shape is preserved but internally
+        new keys are created for each individual frame
+
+        Args:
+            frame_segment: list
+                A list of video frames
+
+        Returns:
+            flattened_segment: dict
+                a single object representing the flattened frames
+
+        """
+        # Set top level keys from last frame
+        flattened = {
+            key: value
+            for key, value in frame_segment[-1].items()
+            if (isinstance(value, str) or value is None)
+        }
+        flattened["data"] = {}
+        # Set internal data keys to the same top level keys
+        for i, frame in enumerate(frame_segment):
+            frame_data = frame["data"]
+            for key, value in frame_data.items():
+                if key not in flattened["data"]:
+                    flattened["data"][key] = {}
+                # Merge all frame data for this segment into frame specific keys
+                if isinstance(value, dict):
+                    for k, v in value.items():
+                        flattened["data"][key][f"frame-{i+1}-{k}"] = v
+                else:
+                    # Let the last frame set the top level value here
+                    # when we don't have nested data
+                    flattened["data"][key] = value
+
+        return flattened
+
+    def flatten_on_example(self, dataset: "Dataset") -> list[LabeledClip]:
+        """Segment video frame data based on a fixed window size from the end of a complete labeled example and flatten the data into frame columns
+
+        NOTE you'll likely want to keep the frame window small, otherwise there will be MANY columns of data.
+
+        This is basically a combo of flatten into columns and split on label.
+        The clip is split on label and then based on the window size the frames within the segment are flattened into a single row of frame-based columns
+
+        Args:
+            dataset: Dataset
+                a Dataset with frame data
+        Returns:
+            labeled_clips: list[LabeledClip]
+                a list of one LabeledClip object where the clip represents
+                a window of data where the last frame is labeled and internal data
+                stores keys for each invidual frame in the sequence
+
+        """
+        return self.split_on_label(dataset=dataset, flatten_into_columns=True)
 
     def flatten_into_columns(self, dataset: "Dataset") -> list[LabeledClip]:
         """Segment video frame data based on a fixed window size and flatten the data into frame columns
@@ -133,36 +198,10 @@ class SegmentationService:
                     for j in range(1 + i - segment_window_size, i + 1):
                         frame_segment.append(video[j])
 
-                    # NOTE
-                    # For this scheme want to store nested joint / angle / distance data per frame
-                    # in top level keys for consistent serialization
-                    # so here, restructuring frame list data into a flattened
-                    # column representation where original shape is preserved but internally
-                    # new keys are created for each individual frame
-
-                    # NOTE - this will get large if the frame window is high!
-
                     # Set top level keys from last frame
-                    flattened = {
-                        key: value
-                        for key, value in frame_segment[-1].items()
-                        if (isinstance(value, str) or value is None)
-                    }
-                    flattened["data"] = {}
-                    # Set internal data keys to the same top level keys
-                    for i, frame in enumerate(frame_segment):
-                        frame_data = frame["data"]
-                        for key, value in frame_data.items():
-                            if key not in flattened["data"]:
-                                flattened["data"][key] = {}
-                            # Merge all frame data for this segment into frame specific keys
-                            if isinstance(value, dict):
-                                for k, v in value.items():
-                                    flattened["data"][key][f"frame-{i+1}-{k}"] = v
-                            else:
-                                # Let the last frame set the top level value here
-                                # when we don't have nested data
-                                flattened["data"][key] = value
+                    flattened = self.flatten_segment_into_row(
+                        frame_segment=frame_segment
+                    )
 
                     segmented_frames[segment_counter] = [flattened]
                     segment_counter += 1
@@ -198,7 +237,9 @@ class SegmentationService:
                 segmented_data.append(LabeledClip(frames=[frame]))
         return segmented_data
 
-    def split_on_label(self, dataset: "Dataset") -> list[LabeledClip]:
+    def split_on_label(
+        self, dataset: "Dataset", flatten_into_columns: bool = False
+    ) -> list[LabeledClip]:
         """Split a Datasets labeled_frame list into a list of lists of dicts representing segments of data.
 
         The Dataset object should have a list of lists of frames where each list is separated by source video.
@@ -210,6 +251,8 @@ class SegmentationService:
                 start a new segment when there's a change in this label's value from frame to frame
             dataset: Dataset
                 a Dataset object
+            flatten_into_columns: bool
+                whether to flatten the frames into a single row of frame-based feature columns
         Returns:
             labeled_clips: list[LabeledClip]
                 a list of LabelClip objects where each LabeledClip
@@ -249,6 +292,17 @@ class SegmentationService:
                         segmented_frames[segment_counter] = [frame]
 
             segmented_data = list(segmented_frames.values())
+            # if there's a segmentation window, use it to only use the last x frames from each example
+            if self.segmentation_window:
+                segmented_data = [
+                    segment[-self.segmentation_window :] for segment in segmented_data
+                ]
+                if flatten_into_columns:
+                    segmented_data = [
+                        [self.flatten_segment_into_row(segment)]
+                        for segment in segmented_data
+                    ]
+
             segmented_video_data_list.append(segmented_data)
         merged_segmented_data = sum(segmented_video_data_list, [])
         labeled_clips = [
