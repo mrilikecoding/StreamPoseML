@@ -47,7 +47,8 @@ class MediaPipeClient:
                 The id for this client - this will be used to set the output sub-directory
 
         """
-        self.configuration = {}
+        self.configuration = configuration
+        self.preprocess_video = preprocess_video
         self._results_raw = []
         self.joints = [joint.name for joint in BlazePoseJoints]
         self.frame_count = 0
@@ -98,11 +99,13 @@ class MediaPipeClient:
             )
         while cap.isOpened():
             # bail if we go over processing limit
-            if limit and self.frame_count >= limit:
+            if limit is not None and self.frame_count >= limit:
                 return
             ret, image = cap.read()
             if not ret:
                 break
+            if self.preprocess_video:
+                image = self.run_preprocess_video(image=image)
             # build data object for this frame
             self.frame_count += 1
             self.image_dimensions = image.shape
@@ -148,6 +151,32 @@ class MediaPipeClient:
                     # )
         except:
             raise MediaPipeClientError("There was a problem writing pose data to json")
+
+    @staticmethod
+    def run_preprocess_video(image: np.ndarray) -> np.ndarray:
+        """Run some basic image preprocessing steps.
+
+        Enhance contrast
+
+        Args:
+            image: np.ndarray
+                an image
+        Returns:
+            the image run through preprocessing steps
+
+        """
+        # Denoising
+        # denoised_img = cv2.fastNlMeansDenoisingColored(image, None, 10, 10, 7, 21)
+
+        # Contrast Enhancement
+        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        l, a, b = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        cl = clahe.apply(l)
+        enhanced_img = cv2.merge((cl, a, b))
+        enhanced_img = cv2.cvtColor(enhanced_img, cv2.COLOR_LAB2BGR)
+
+        return enhanced_img
 
     @staticmethod
     def get_joint_coordinates(

@@ -5,18 +5,29 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from copy import copy
+
 
 # Modeling
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import cross_val_score
-from scipy.stats import randint
+
+# Unsupervised
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from kneed import KneeLocator
 
 import xgboost as xgb
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 # upsampling / downsampling
 from sklearn.utils import resample
@@ -36,6 +47,7 @@ from sklearn.metrics import (
     roc_curve,
     roc_auc_score,
     classification_report,
+    matthews_corrcoef,
 )
 
 
@@ -170,6 +182,42 @@ class ModelBuilder:
         self.X = X
         return True
 
+    @staticmethod
+    def validate_string(candidate_string: str, filters: dict[str, list[str]]) -> bool:
+        """
+        Determines whether a string meets multiple filter criteria.
+
+        Usage: can be used to filter down the columns in a dataframe. i.e.
+        filtered = [col for col in columns if validate_string(col, filters)]
+        X = X[filtered]
+
+        TODO move to a utility file
+
+        Args:
+            col: str
+                a string to compare againt
+            filters: dict
+                a filter dictionary with this structure
+                    {
+                        "WHITELIST": [any of these substrings within tested string should return True],
+                        "BLACKLIST": [any of these substrings within tested string should return False],
+                        "OR": [if ANY of these substrings are within the string, return True],
+                        "AND": [if ALL of these substrings are within the string, return True]
+                    }
+
+        Returns:
+            True if the column name meets the filter criteria within the passed dictionary
+
+        """
+        whitelist_match = any(item in candidate_string for item in filters["WHITELIST"])
+        blacklist_match = any(item in candidate_string for item in filters["BLACKLIST"])
+        or_filters_match = any(filter in candidate_string for filter in filters["OR"])
+        and_filters_match = all(filter in candidate_string for filter in filters["AND"])
+
+        return (
+            whitelist_match or (or_filters_match and and_filters_match)
+        ) and not blacklist_match
+
     def run_pca(self, num_components: int = 5):
         """Use PCA (Principle Component Analysis) to transform the
         dataset into a certain number of components
@@ -231,6 +279,10 @@ class ModelBuilder:
         print(f"Recall: {recall:.4f}")
         print(f"F1 Score: {f1:.4f}")
         print(f"ROC AUC: {auc:.4f}")
+        # Calculate the Matthews correlation coefficient
+        mcc = matthews_corrcoef(y_test, y_pred)
+        print(f"Matthews correlation coefficient (-1 to 1): {mcc}")
+
         print("\nClassification Report:")
         print(classification_report(y_test, y_pred))
 
@@ -280,11 +332,30 @@ class ModelBuilder:
     def train_gradient_boost(self):
         X_train = self.X_train
         y_train = self.y_train
-        gradient_booster = xgb.XGBClassifier(
-            use_label_encoder=False, eval_metric="mlogloss"
-        )
+        gradient_booster = xgb.XGBClassifier(eval_metric="mlogloss")
         gradient_booster.fit(X_train, y_train)
         self.model = gradient_booster
+
+    def train_logistic_regression(self):
+        X_train = self.X_train
+        y_train = self.y_train
+        logisitic_regression = LogisticRegression(
+            solver="saga", max_iter=1000, random_state=42
+        )
+        # logisitic_regression.fit(X_train, y_train)
+        pipeline = Pipeline(
+            [("scaler", StandardScaler()), ("logreg", logisitic_regression)]
+        )
+        param_grid = {
+            "logreg__tol": [1e-4, 1e-5, 1e-6],
+            "logreg__C": [0.1, 1, 10],
+            "logreg__penalty": ["l1", "l2"],
+        }
+        grid_search = GridSearchCV(
+            pipeline, param_grid=param_grid, scoring="accuracy", cv=5, n_jobs=-1
+        )
+        grid_search.fit(X_train, y_train)
+        self.model = grid_search.best_estimator_
 
     def train_random_forest(
         self,
@@ -429,3 +500,147 @@ class ModelBuilder:
             pickle.dump(model_data, f, pickle.HIGHEST_PROTOCOL)
 
         print("Saved model to pickle!")
+
+    def find_k_means_clusters(
+        self,
+        X: pd.DataFrame = None,
+        n_clusters: int = 3,
+        random_state: int = None,
+        cluster_range: tuple[int, int] = None,
+    ) -> KMeans:
+        """Trains a Kmeans algorithm based on passed number of clusters.
+        Or finds optimal number of clusters based on passed range
+
+            Args:
+                n_clusters: int
+                    How many clusters in the kmeans
+                random_state: int
+                    preserve state
+                cluster_range: tuple[int, int]
+                    a start and end number for the range of cluster numbers to try
+            Returns:
+                the KMeans classifer fit to the data
+        """
+
+        if X is None:
+            X = self.X
+
+        if cluster_range is not None:
+            # within cluster sum of squares - smaller is better
+            # how close are the points within the cluster?
+            wcss = {}
+            for n in range(cluster_range[0], cluster_range[1]):
+                kmeans = KMeans(n_init="auto", n_clusters=n, random_state=random_state)
+                kmeans.fit(X)
+                wcss[n] = kmeans.inertia_
+            plt.plot(
+                range(cluster_range[0], cluster_range[1]), wcss.values(), marker="o"
+            )
+            plt.xlabel("Number of Clusters")
+            plt.ylabel("Within-Cluster Sum of Squares (WCSS)")
+            plt.title("Elbow Curve")
+            plt.grid()
+            plt.show()
+            knee_locator = KneeLocator(
+                range(cluster_range[0], cluster_range[1]),
+                list(wcss.values()),
+                curve="convex",
+                direction="decreasing",
+            )
+            optimal_clusters = knee_locator.knee
+            print("Optimal Number of Clusters:", optimal_clusters)
+            kmeans_optimal = KMeans(
+                n_init="auto", n_clusters=optimal_clusters, random_state=random_state
+            )
+            kmeans_optimal.fit(X)
+            print("Optimal K-means Scores:")
+            self.k_means_metrics(X=X, kmeans=kmeans_optimal)
+            return kmeans_optimal
+        else:
+            kmeans = KMeans(X=X, n_clusters=n_clusters, random_state=random_state)
+            kmeans.fit(X)
+            self.k_means_metrics(
+                X=X,
+                kmeans=kmeans,
+            )
+            return kmeans
+
+    def k_means_metrics(self, kmeans: KMeans, X: pd.DataFrame = None) -> None:
+        print("K Means Evaluation")
+        if X is None:
+            X = self.X
+        # Silhouette Score
+        sil_score = silhouette_score(X, kmeans.labels_)
+        print("Silhouette Score:", sil_score)
+
+        # Between Clusters Sum of Squares (BCSS)
+        WCSS = kmeans.inertia_
+        total_sum_of_squares = np.sum(np.var(X, axis=0) * (X.shape[0] - 1))
+        BCSS = total_sum_of_squares - WCSS
+        print("")
+        print("Between Clusters Sum of Squares (BCSS):", BCSS)
+
+        # Sum of Squares Error (SSE)
+        print("")
+        print("Sum of Squares Error (SSE):", WCSS)
+
+        # Maximum Radius
+        clusters = kmeans.cluster_centers_
+        distances = np.linalg.norm(X - clusters[kmeans.labels_], axis=1)
+        max_radius = np.max(distances)
+        print("")
+        print("Maximum Radius:", max_radius)
+
+        # Average Radius
+        avg_radius = np.sum(distances) / X.shape[0]
+        print("")
+        print("Average Radius:", avg_radius)
+
+        # Assuming kmeans is your trained KMeans model
+        labels = kmeans.labels_
+        # Count the occurrences of each label
+        unique_labels, counts = np.unique(labels, return_counts=True)
+
+        # Create a bar plot
+        plt.bar(unique_labels, counts)
+
+        # Set x-axis labels and a title for the plot
+        plt.xticks(unique_labels, [f"Cluster {label}" for label in unique_labels])
+        plt.xlabel("Cluster")
+        plt.ylabel("Count")
+        plt.title("Distribution of K-means Labels")
+
+        # Show the plot
+        plt.show()
+
+    @staticmethod
+    def get_cluster_subset(
+        kmeans: KMeans, X: pd.DataFrame, cluster_list: list
+    ) -> pd.DataFrame:
+        """
+        Get the subset of data corresponding to the specified clusters.
+
+        Args:
+            kmeans (KMeans): A trained KMeans classifier.
+            X (pd.DataFrame): The original feature matrix.
+            cluster_list (list): A list of cluster numbers you want to include in the subset.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the subset of data for the specified clusters.
+        """
+        # Get the cluster assignments
+        cluster_assignments = kmeans.labels_
+
+        # Combine the features and cluster assignments into a single DataFrame
+        data_with_clusters = X.copy()
+        data_with_clusters["cluster"] = cluster_assignments
+
+        # Get the subset of data for the specified clusters
+        cluster_subset = data_with_clusters[
+            data_with_clusters["cluster"].isin(cluster_list)
+        ]
+
+        # Drop the "cluster" column to return only the original features
+        cluster_subset = cluster_subset.drop("cluster", axis=1)
+
+        return cluster_subset
