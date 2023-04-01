@@ -23,7 +23,12 @@ Notebooks can be found by navigating to `pose_parser/notebooks`
 Tests work for some of the modules but have fallen behind... 
 If you run them you'll see some failures. Additionally, tests are not well isolated just because before building notebooks I was building datasets by running through tests... ick. So.. I'd recommend avoiding the tests for right now.
 
+## Citing 
+
+If you use this, please cite me. But this is not ready for use. Please don't use this yet lol.
+
 ## TODOs
+* add citation file
 * Finish testing modules - use test doubles
 * Refactor object creation - some complicated init anti-patterns are here
 * Build out an ETL wrapper and simplify job logic - there are some parameter sinkholes in the current flow
