@@ -11,12 +11,14 @@ function App() {
       .catch((err) => console.log(err));
   };
 
+  const apiUrl = JSON.stringify(process.env);
+
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Hello World!
+          API: {apiUrl}
         </p>
         <button onClick={processVideo}>
           Process Videos

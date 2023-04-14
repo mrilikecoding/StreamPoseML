@@ -18,6 +18,20 @@ Notebooks can be found by navigating to `pose_parser/notebooks`
 1. Set up a python environment via conda or pyenv or other preferred tool.
 2. Install via `requirements.txt` located in the `pose_parser` folder.
 
+To run the web app, you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5000` and should be accessible from the web app.
+
+## Workflow
+
+Locally I've been running experiments, training models, testing, and writing notebooks outside of docker. The purpose of the dockerized container is to facilitate a deployed ML Model accessbile via API from the React front end. Therefore if you are working on the back end and make environment dependency changes, you'll need to rebuild the docker container with the updated dependencies if you want to use the web app. This is done by following these steps:
+
+1. Make sure your local isolated python environment is activated.
+2. `cd pose_parser` (enter into the pose_parser directory)
+3. `pip list --format=freeze > requirements.txt` -- generate the list of dependencies from your local environment. Note, this format is necessary because otherwise pip tends to create strange `file://` paths - we just want to specify package versions.
+4. From the root directory run `docker-compose build pose_parser_api`. 
+
+NOTE - you may need to futz with dependencies / versions from errors that are generated.
+
+
 ## Tests
 
 Tests work for some of the modules but have fallen behind... 

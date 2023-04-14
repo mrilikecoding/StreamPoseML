@@ -1,7 +1,12 @@
 """ Here is the beginning of an API layer... """
 from flask import Flask
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Enable CORS for all routes and origins
+# TODO - restrict only to react app
+CORS(app)
 
 
 @app.route("/")

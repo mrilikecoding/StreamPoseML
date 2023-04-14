@@ -5,7 +5,7 @@ export default class Api {
   constructor() {
     this.api_token = null;
     this.client = null;
-    this.api_url = process.env.POSE_PARSER_API_ENDPOINT;
+    this.api_url = process.env.REACT_APP_POSE_PARSER_API_ENDPOINT;
   }
 
   init = () => {
@@ -30,6 +30,6 @@ export default class Api {
 
   processVideo = (params) => {
     console.log(this.api_url);
-    return this.init().get("/process_video", { params: params });
+    return this.init().get("/process_videos", { params: params });
   };
 }
