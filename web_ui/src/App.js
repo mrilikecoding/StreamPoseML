@@ -1,6 +1,6 @@
-import logo from './logo.svg';
 import './App.css';
 import Api from "./helpers/api"
+import VideoStream from './VideoStream';
 
 function App() {
   const api = new Api();
@@ -16,7 +16,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
+        <VideoStream />
         <p>
           API: {apiUrl}
         </p>
