@@ -21,6 +21,8 @@ function VideoStream() {
         if (frameRate >= 30) {
             frameRate = 30;
         }
+        // TODO remove this - experimenting with frame rate
+        frameRate = 1
         // Calculate the interval between frames in milliseconds
         const frameInterval = 1000 / frameRate;
 

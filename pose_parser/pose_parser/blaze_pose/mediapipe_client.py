@@ -33,6 +33,7 @@ class MediaPipeClient:
         id: int = int(time.time_ns()),
         configuration: dict = {},
         preprocess_video: bool = False,
+        dummy_client: bool = False,
     ) -> None:
         """Initalize a mediapipe client object.
 
@@ -45,6 +46,8 @@ class MediaPipeClient:
                 "where/to/put/keypoints"
             id: int
                 The id for this client - this will be used to set the output sub-directory
+            dummy_client: bool
+                If true, no input file is needed. Use this when only calling static methods
 
         """
         self.configuration = configuration
@@ -63,7 +66,7 @@ class MediaPipeClient:
             self.video_input_filename = video_input_filename
             pre = Path(self.video_input_filename).stem
             self.json_output_path = f"{self.video_output_prefix}/{pre}-{id}"
-        else:
+        elif not dummy_client:
             raise MediaPipeClientError("No input file specified")
 
     def process_video(self, limit: int = None) -> "MediaPipeClient":
@@ -98,6 +101,7 @@ class MediaPipeClient:
                 f"Error opening file: {self.video_input_path}/{self.video_input_filename}"
             )
         while cap.isOpened():
+            # TODO refactor this into stages
             # bail if we go over processing limit
             if limit is not None and self.frame_count >= limit:
                 return
@@ -118,7 +122,8 @@ class MediaPipeClient:
                 "joint_positions": {},
             }
             # mediapipe does its thing
-            results = pose.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = self.process_frame(image, pose)
             # store the pose object for introspection
             self._results_raw.append(results)
             if not results.pose_landmarks:
@@ -133,6 +138,11 @@ class MediaPipeClient:
             # add frame to client pose list
             self.frame_data_list.append(frame_data)
         return self
+
+    @staticmethod
+    def process_frame(image, pose):
+        # set up mediapipe
+        return pose.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
     def write_pose_data_to_file(self):
         """Write this object's video pose data to file.
