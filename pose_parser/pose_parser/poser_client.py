@@ -1,4 +1,5 @@
 import base64
+import typing
 import time
 import numpy as np
 import mediapipe as mp
@@ -9,14 +10,20 @@ from pose_parser.serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
 )
 
+if typing.TYPE_CHECKING:
+    from pose_parser.blaze_pose.mediapipe_client import MediaPipeClient
+    from pose_parser.learning.trained_model import TrainedModel
+
 
 class PoserClient:
     def __init__(
         self,
         frame_window: int = 25,
         mediapipe_client_instance: type["MediaPipeClient"] = None,
+        trained_model: type["TrainedModel"] = None,
     ):
         self.frame_window = frame_window
+        self.model = trained_model
         self.mpc = mediapipe_client_instance
         self.frames = deque([], maxlen=self.frame_window)
         mp_pose = mp.solutions.pose
@@ -51,11 +58,12 @@ class PoserClient:
         current_frames = self.update_frame_data(results)
         sequence = BlazePoseSequence(
             name=f"sequence-{time.time_ns()}",
-            sequence=current_frames,
+            sequence=list(current_frames),
             include_geometry=True,
         ).generate_blaze_pose_frames_from_sequence()
         sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
-
+        if len(current_frames) == self.frame_window:
+            self.model.predict(data=sequence_data)
         return True
 
     def update_frame_data(self, keypoint_results):
