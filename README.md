@@ -20,6 +20,69 @@ Notebooks can be found by navigating to `pose_parser/notebooks`
 
 To run the web app, you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5000` and should be accessible from the web app.
 
+### Debugging the web app / python API via VS Code within docker
+
+Follow this guide if you're using VS Code and wish to debug the python API while running the containerized web app. 
+
+This setup may be helpful within the `.vscode` folder:
+
+In tasks.json:
+
+```
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Docker: Compose Up",
+        "type": "shell",
+        "command": "docker-compose up -d && sleep 15",
+        "options": {
+          "cwd": "${workspaceFolder}"
+        },
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      }
+    ]
+  }
+  ```
+
+  Note - the `sleep 15` there is to give docker-compose time to spin up everything, otherwise the debugger fails to attach. If you notice the debugger still failing to attach you may need to increase this time.
+
+In `launch.json`:
+```
+    "configurations": [
+        {
+            "name": "Python: Remote Attach",
+            "type": "python",
+            "request": "attach",
+            "port": 5678,
+            "host": "localhost",
+            "pathMappings": [
+              {
+                "localRoot": "${workspaceFolder}/pose_parser",
+                "remoteRoot": "/usr/src/app"
+              }
+            ],
+            "preLaunchTask": "Docker: Compose Up",
+            "postDebugTask": "Docker: Compose Down"
+          }
+    ],
+    "compounds": [
+        {
+          "name": "Docker Compose: Debug",
+          "configurations": ["Python: Remote Attach"]
+        }
+      ]
+}
+```
+
+Then, after running `docker-compose up`, run the VS debug process "Docker-Compose: Debug" for the app, and you should be able to set breakpoints / debug etc.
+
+Note - within the flow of socketio, you won't be able to see changes reloaded automatically for various annoying reasons. So if you debug and make a change, you'll need to restart the debugger.
+
 ## Workflow
 
 Locally I've been running experiments, training models, testing, and writing notebooks outside of docker. The purpose of the dockerized container is to facilitate a deployed ML Model accessbile via API from the React front end. Therefore if you are working on the back end and make environment dependency changes, you'll need to rebuild the docker container with the updated dependencies if you want to use the web app. This is done by following these steps:

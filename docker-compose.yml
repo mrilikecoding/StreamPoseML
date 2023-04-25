@@ -15,13 +15,20 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
+      - "5678:5678"
     depends_on:
       - redis
     networks:
       - app-tier
     volumes:
       - ./pose_parser:/usr/src/app
-    command: python run.py
+    environment:
+      - FLASK_APP=run.py
+      - FLASK_DEBUG=development
+    command: >
+      bash -c "pip install ptvsd &&
+            python -m ptvsd --host 0.0.0.0 --port 5678 --wait run.py"
+
   
   web_ui:
     build:
