@@ -13,6 +13,7 @@ from pose_parser.serializers.blaze_pose_sequence_serializer import (
 if typing.TYPE_CHECKING:
     from pose_parser.blaze_pose.mediapipe_client import MediaPipeClient
     from pose_parser.learning.trained_model import TrainedModel
+    from pose_parser.learning.sequence_transformer import SequenceTransformer
 
 
 class PoserClient:
@@ -21,15 +22,18 @@ class PoserClient:
         frame_window: int = 25,
         mediapipe_client_instance: type["MediaPipeClient"] = None,
         trained_model: type["TrainedModel"] = None,
+        data_transformer: type["SequenceTransformer"] = None,
     ):
         self.frame_window = frame_window
         self.model = trained_model
+        self.transformer = data_transformer
         self.mpc = mediapipe_client_instance
         self.frames = deque([], maxlen=self.frame_window)
         mp_pose = mp.solutions.pose
         self.pose = mp_pose.Pose(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         )
+        self.current_classification = None
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Run some basic image preprocessing steps. Currently just contrast enhance
@@ -56,14 +60,15 @@ class PoserClient:
     def run_frame_pipeline(self, image: np.ndarray):
         results = self.get_keypoints(image)
         current_frames = self.update_frame_data(results)
-        sequence = BlazePoseSequence(
-            name=f"sequence-{time.time_ns()}",
-            sequence=list(current_frames),
-            include_geometry=True,
-        ).generate_blaze_pose_frames_from_sequence()
-        sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
         if len(current_frames) == self.frame_window:
-            self.model.predict(data=sequence_data)
+            sequence = BlazePoseSequence(
+                name=f"sequence-{time.time_ns()}",
+                sequence=list(current_frames),
+                include_geometry=True,
+            ).generate_blaze_pose_frames_from_sequence()
+            sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
+            data = self.transformer.transform(data=sequence_data)
+            self.current_classification = self.model.predict(data=data)
         return True
 
     def update_frame_data(self, keypoint_results):

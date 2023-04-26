@@ -22,6 +22,7 @@ services:
       - app-tier
     volumes:
       - ./pose_parser:/usr/src/app
+      - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
     environment:
       - FLASK_APP=run.py
       - FLASK_DEBUG=development

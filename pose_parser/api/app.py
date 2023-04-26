@@ -8,25 +8,39 @@ from pose_parser import poser_client
 from pose_parser.blaze_pose import mediapipe_client
 from pose_parser.learning import trained_model
 from pose_parser.learning import sequence_transformer
+from pose_parser.learning import model_builder
 
+### Set the model ###
+# Load trained model into TrainedModel instance - note, models in local folder were saved
+# via model builder, so use the retrieve_model_from_pickle method in the model_builder.
+# Otherwise, any model with a "predict" method can be set on the trained_model instance.
+mb = model_builder.ModelBuilder()
+# TODO grab this path from config
+trained_model_pickle_path = (
+    "./data/trained_models/gradient-boost-1682537625047215000.pickle"
+)
+trained_model = trained_model.TrainedModel()
+trained_model.set_model(
+    mb.retrieve_model_from_pickle(file_path=trained_model_pickle_path),
+    notes="Gradient Boost trained on 10 frame window, flat columns, all angles",
+)
+
+### Set the trained_models data transformer ###
+transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
+trained_model.set_data_transformer(transformer)
+
+### Set the pose estimation client ###
 mpc = mediapipe_client.MediaPipeClient(dummy_client=True)
 
-# TODO
-# 1) Load trained model into TrainedModel instance
-# model = trained_model.Trained_Model()
-# model = model.load_trained_model(path/to/model)
-# transformer = SomeConcreteSequenceTransformerCorrespondingToModel()
-# model.set_data_transformer(transformer)
-# pc = poser_client.PoserClient(mediapipe_client_instance=mpc, trained_model=model)
-pc = poser_client.PoserClient(mediapipe_client_instance=mpc)
+### Init the Poser Client ###
+pc = poser_client.PoserClient(
+    mediapipe_client_instance=mpc,
+    trained_model=trained_model,
+    data_transformer=transformer,
+    frame_window=10,
+)
 
-
-# 2) Figure out data transformation layer
-#    - this is I think writing a separate transformer class for different kidns of models
-#    - pass into TrainedModel - then the data is transformed before #predict
-# 3) call predict
-
-# Flask
+### Init Flask API ###
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.debug = True
@@ -55,15 +69,18 @@ def handle_frame(payload: str) -> None:
             The payload of the 'frame' event, containing the base64 encoded frame data.
     """
     image = pc.convert_base64_to_image_array(payload)
+    # image = pc.preprocess_image(image)
 
-    # Do stuff - send to mediapipe client etc...
     start_time = time.time()
     results = pc.run_frame_pipeline(image)
     speed = time.time() - start_time
 
     # Emit the results back to the client
-    if True:  # if we get some classification
+    if (
+        results and pc.current_classification is not None
+    ):  # if we get some classification
         return_payload = {
+            "classification": pc.current_classification,
             "timestamp": f"{time.time_ns()}",
             "processing time (s)": speed,
             "frame rate capacity (hz)": 1.0 / speed,

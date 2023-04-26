@@ -451,20 +451,23 @@ class ModelBuilder:
             rfecv.fit(self.X_train, self.y_train)
             pass
 
-    def save_model_and_datasets(self, notes: str):
+    def save_model_and_datasets(self, notes: str, model_type: str = None):
         """Save the current model and metadata to a pickle / json file.
 
         Args:
             notes: str
                 notes to explain things about this particular dataset/model
         """
-        model_id = f"{self.model_type}-{time.time_ns()}"
-        model_path = "./data/trained_models"
+        if hasattr(self, "model_type"):
+            model_type = self.model_type
+
+        model_id = f"{model_type}-{time.time_ns()}"
+        model_path = "../../data/trained_models"
         model_file = f"{model_id}.pickle"
         saved_model_path = f"{model_path}/{model_file}"
         meta = json.dumps(
             {
-                "type": self.model_type,
+                "type": model_type,
                 "notes": notes,
                 "data_file": self.data_file,
                 "accuracy": self.accuracy,
@@ -478,7 +481,7 @@ class ModelBuilder:
             indent=4,
         )
         model_data = {
-            "type": self.model_type,
+            "type": model_type,
             "feature_importances": self.feature_importances
             if hasattr(self, "feature_importances")
             else None,
@@ -500,6 +503,39 @@ class ModelBuilder:
             pickle.dump(model_data, f, pickle.HIGHEST_PROTOCOL)
 
         print("Saved model to pickle!")
+
+    def retrieve_model_from_pickle(self, file_path: str):
+        """Load a model and metadata from a pickle file.
+
+        Args:
+            file_path: str
+                The location of the pickle file to load.
+
+        Returns:
+            model: object
+                The loaded model.
+        """
+        with open(file_path, "rb") as f:
+            model_data = pickle.load(f)
+
+        # Set the model builder class attributes from the loaded model data
+        self.model_type = model_data["type"]
+        self.feature_importances = model_data["feature_importances"]
+        self.data_file = model_data["data_file"]
+        self.auc = model_data["auc-roc"]
+        self.accuracy = model_data["accuracy"]
+        self.precision = model_data["precision"]
+        self.recall = model_data["recall"]
+        self.confusion_matrix = model_data["confusion_matrix"]
+        self.model = model_data["classifier"]
+        self.X_train = model_data["X_train"]
+        self.X_test = model_data["X_test"]
+        self.y_train = model_data["y_train"]
+        self.y_test = model_data["y_test"]
+
+        print("Loaded model from pickle!")
+
+        return self.model
 
     def find_k_means_clusters(
         self,
