@@ -91,7 +91,8 @@ class SegmentationService:
 
         return dataset
 
-    def flatten_segment_into_row(self, frame_segment: list):
+    @staticmethod
+    def flatten_segment_into_row(frame_segment: list):
         """Flatten a list of frames into a single row object
 
         For this scheme want to store nested joint / angle / distance data per frame

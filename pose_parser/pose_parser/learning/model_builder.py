@@ -502,7 +502,7 @@ class ModelBuilder:
         with open(saved_model_path, "wb") as f:
             pickle.dump(model_data, f, pickle.HIGHEST_PROTOCOL)
 
-        print("Saved model to pickle!")
+        print(f"Saved model to pickle! {saved_model_path}")
 
     def retrieve_model_from_pickle(self, file_path: str):
         """Load a model and metadata from a pickle file.
