@@ -8,7 +8,8 @@ import pose_parser.services.segmentation_service as ss
 
 class SequenceTransformer(ABC):
     @abstractmethod
-    def transform(self, data: any) -> any:
+    def transform(self, data: any, columns: list) -> any:
+        """Transform the passed data into a row with the passed columns"""
         pass
 
 
@@ -25,7 +26,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
 
     """
 
-    def transform(self, data: any) -> any:
+    def transform(self, data: any, columns: list) -> any:
         # TODO -
         # take the data and pass into segmentation service
         # may need to alter some SegService strategy to
@@ -41,4 +42,35 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
         # transform the input video data for use in classification
         #
         # ss.SegmentationService.flatten_into_columns()
-        return []
+        # Set top level keys from last frame
+        frame_segment = data["frames"]
+        flattened = {
+            key: value
+            for key, value in frame_segment[-1].items()
+            if (isinstance(value, str) or value is None)
+        }
+        flattened["data"] = {}
+        # Set internal data keys to the same top level keys
+        for i, frame in enumerate(frame_segment):
+            for key, value in frame.items():
+                if key not in flattened["data"]:
+                    flattened["data"][key] = {}
+                # Merge all frame data for this segment into frame specific keys
+                if isinstance(value, dict):
+                    for k, v in value.items():
+                        flattened["data"][key][f"frame-{i+1}-{k}"] = v
+                else:
+                    # Let the last frame set the top level value here
+                    # when we don't have nested data
+                    flattened["data"][key] = value
+
+        data = flattened["data"]
+        output_dict = {"angles": data["angles"], "distances": data["distances"]}
+        meta_keys = ["type", "sequence_id", "sequence_source", "image_dimensions"]
+        # TODO Grab columns to match against keys
+        output_meta = {}
+        for key in meta_keys:
+            output_meta[key] = flattened[key]
+        output_flattened = pd.json_normalize(data=output_dict)
+        output_flattened_filtered = output_flattened.filter(columns)
+        return (output_flattened_filtered, output_meta)

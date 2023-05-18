@@ -17,11 +17,14 @@ from pose_parser.learning import model_builder
 mb = model_builder.ModelBuilder()
 # TODO grab this path from config
 trained_model_pickle_path = (
-    "./data/trained_models/gradient-boost-1683824097745362000.pickle"
+    "./data/trained_models/gradient-boost-1684429421050538000.pickle"
 )
 trained_model = trained_model.TrainedModel()
+model, model_data = mb.retrieve_model_from_pickle(file_path=trained_model_pickle_path)
+
 trained_model.set_model(
-    mb.retrieve_model_from_pickle(file_path=trained_model_pickle_path),
+    model=model,
+    model_data=model_data,
     notes="Gradient Boost trained on 10 frame window, flat columns, all angles + distances",
 )
 

@@ -70,13 +70,19 @@ class LabeledFrameSerializer:
 
         TODO include options for 2d/3d/normalized
 
+        Note: the data for angles is combined with a "." in the key name to be consistent with
+        the way pandas handles hierarchical column names and nested dictionaries. This is a convention
+        that will make it easier to translate between data serialized here and ultimately output to csv
+        and then read back into a dataframe. TODO - make this a consistent format between the model
+        builder, the csv I/O, the way the web app loads in the right columns
+
         Args:
             angles: dict
                 a dictionary of computed angles
         """
         angle_dictionary = {}
         for angle, data in angles.items():
-            angle_dictionary[f"{angle}_angle_2d_degrees"] = data["angle_2d_degrees"]
+            angle_dictionary[f"{angle}.angle_2d_degrees"] = data["angle_2d_degrees"]
         return angle_dictionary
 
     @staticmethod
@@ -84,6 +90,11 @@ class LabeledFrameSerializer:
         distances: dict, include_z_axis: bool = False, include_normalized: bool = False
     ):
         """This method serializes a distances object
+
+        Note: the data for distances is combined with a "." in the key name to be consistent with
+        the way pandas handles hierarchical column names and nested dictionaries. This is a convention
+        that will make it easier to translate between data serialized here and ultimately output to csv
+        and then read back into a dataframe.
 
         Args:
             distances: dict
@@ -99,15 +110,15 @@ class LabeledFrameSerializer:
         """
         distance_dictionary = {}
         for distance, data in distances.items():
-            distance_dictionary[f"{distance}_2d"] = data["distance_2d"]
+            distance_dictionary[f"{distance}.distance_2d"] = data["distance_2d"]
             if include_normalized:
-                distance_dictionary[f"{distance}_2d_normalized"] = data[
+                distance_dictionary[f"{distance}.distance_2d_normalized"] = data[
                     "distance_2d_normalized"
                 ]
             if include_z_axis:
-                distance_dictionary[f"{distance}_3d"] = data["distance_3d"]
+                distance_dictionary[f"{distance}.distance_3d"] = data["distance_3d"]
                 if include_normalized:
-                    distance_dictionary[f"{distance}_3d_normalized"] = data[
+                    distance_dictionary[f"{distance}.distance_3d_normalized"] = data[
                         "distance_3d_normalized"
                     ]
 

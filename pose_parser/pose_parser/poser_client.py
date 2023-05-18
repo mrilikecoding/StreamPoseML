@@ -6,6 +6,7 @@ import mediapipe as mp
 import cv2
 from collections import deque
 from pose_parser.blaze_pose.blaze_pose_sequence import BlazePoseSequence
+from pose_parser.services import segmentation_service as ss
 from pose_parser.serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
 )
@@ -67,8 +68,11 @@ class PoserClient:
                 include_geometry=True,
             ).generate_blaze_pose_frames_from_sequence()
             sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
-            data = self.transformer.transform(data=sequence_data)
-            self.current_classification = self.model.predict(data=data)
+            # TODO why is the target showing up in the 'columns' array here?
+            # Pulling off X_test instead...
+            columns = self.model.model_data["X_test"].columns.tolist()
+            data, meta = self.transformer.transform(data=sequence_data, columns=columns)
+            self.current_classification = bool(self.model.predict(data=data)[0])
         return True
 
     def update_frame_data(self, keypoint_results):

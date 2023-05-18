@@ -492,8 +492,9 @@ class ModelBuilder:
             "recall": self.recall,
             "confusion_matrix": self.confusion_matrix,
             "classifier": self.model,
+            "columns": self.X_test.columns.tolist(),
             "X_train": self.X_train,
-            "X_test": self.X_train,
+            "X_test": self.X_test,
             "y_train": self.y_train,
             "y_test": self.y_test,
         }
@@ -512,8 +513,8 @@ class ModelBuilder:
                 The location of the pickle file to load.
 
         Returns:
-            model: object
-                The loaded model.
+            tuple: model, model_data
+                The loaded model and associated model data in the pickle
         """
         with open(file_path, "rb") as f:
             model_data = pickle.load(f)
@@ -528,6 +529,7 @@ class ModelBuilder:
         self.recall = model_data["recall"]
         self.confusion_matrix = model_data["confusion_matrix"]
         self.model = model_data["classifier"]
+        self.columns = model_data["columns"]
         self.X_train = model_data["X_train"]
         self.X_test = model_data["X_test"]
         self.y_train = model_data["y_train"]
@@ -535,7 +537,7 @@ class ModelBuilder:
 
         print("Loaded model from pickle!")
 
-        return self.model
+        return self.model, model_data
 
     def find_k_means_clusters(
         self,

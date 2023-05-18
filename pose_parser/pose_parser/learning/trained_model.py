@@ -9,9 +9,9 @@ class TrainedModel:
 
     def __init__(self):
         self.model = None
+        self.model_data = None
         self.data_transformer = None
         self.notes = "There are no notes for this model saved."
-
 
     def transform_data(self, data: any) -> any:
         if self.data_transformer is not None and hasattr("transform"):
@@ -38,12 +38,10 @@ class TrainedModel:
             )
 
     def set_data_transformer(self, transformer):
-        """Transform passed sequence data into the right format for the loaded model
-
-        """
+        """Transform passed sequence data into the right format for the loaded model"""
         self.data_transformer = transformer
 
-    def set_model(self, model: any, notes: str = None) -> None:
+    def set_model(self, model: any, model_data: any, notes: str = None) -> None:
         """Sets the passed model as this instance's mdoel if it has a predict method
 
         Args:
@@ -58,6 +56,7 @@ class TrainedModel:
         """
         if hasattr(model, "predict"):
             self.model = model
+            self.model_data = model_data
             self.notes = notes
         else:
             raise ValueError("The loaded model does not implement a 'predict' function")
