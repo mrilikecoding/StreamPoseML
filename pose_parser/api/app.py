@@ -52,11 +52,17 @@ app.debug = True
 whitelist = [
     "http://localhost:3000",
     "http://localhost:5000",
+    "https://cdn.jsdelivr.net",
 ]
 CORS(app, origins=whitelist)
 
 # Web Socket
 socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
+
+
+@socketio.on("keypoints")
+def handle_keypoints(payload: str) -> None:
+    emit("frame_result", {"keypoints": payload})
 
 
 @socketio.on("frame")

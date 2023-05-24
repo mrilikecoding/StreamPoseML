@@ -1,5 +1,25 @@
 import React, { useEffect, useRef, useState } from "react";
+import {Pose, POSE_CONNECTIONS} from '@mediapipe/pose';
 import io from "socket.io-client";
+
+// TODO move this flag into UI - here for easy testing right now
+const USE_CLIENTSIDE_POSE_ESTIMATION = false;
+
+
+/**
+ * Process the results from the pose estimation.
+ *
+ * @param {object} results - The results from the pose estimation.
+ */
+function onResults(results) {
+    console.log(results.poseLandmarks);  // You can replace this line with any processing or handling you need.
+}
+const pose = new Pose({locateFile: (file) => {
+    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.2/${file}`;
+  }});
+pose.onResults(onResults);
+
+
 
 function VideoStream() {
   const localVideoRef = useRef();
@@ -22,14 +42,21 @@ function VideoStream() {
             frameRate = 30;
         }
         // TODO remove this - experimenting with frame rate
-        frameRate = 1
+        // frameRate = 1
         // Calculate the interval between frames in milliseconds
         const frameInterval = 1000 / frameRate;
 
         // Set up an interval to send frames periodically
-        const intervalId = setInterval(() => {
-            sendFrame();
-        }, frameInterval);
+        let intervalId;
+        if (USE_CLIENTSIDE_POSE_ESTIMATION) {
+            intervalId = setInterval(async () => {
+                await sendKeypoints();
+            }, frameInterval);
+        } else {
+            intervalId = setInterval(() => {
+                sendFrame();
+            }, frameInterval);
+       }
 
 
         // Clean up the interval when the component is unmounted
@@ -61,6 +88,23 @@ function VideoStream() {
     }
 
     /**
+     * Capture a frame from a video element and extract keypoints.
+     *
+     * @param {HTMLVideoElement} video - The video element to capture the frame from.
+     */
+    async function captureFrameKeypoints(video) {
+        // Perform pose estimation on the captured frame
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const frame = canvas.toDataURL("image/jpeg", 0.8);
+
+        await pose.send({image: frame});
+    }
+
+    /**
      * Send a captured frame to the server via a Socket.IO event.
      */
     function sendFrame() {
@@ -70,6 +114,18 @@ function VideoStream() {
             socketRef.current.emit("frame", frameData);
         }
     }
+
+    /**
+     * Send frame keypoints generated client-side to the server via a Socket.IO event.
+     */
+    async function sendKeypoints() {
+        const video = document.getElementById("localVideo");
+        if (video) {
+            const frameData = await captureFrameKeypoints(video);
+            socketRef.current.emit("keypoints", frameData);
+        }
+    }
+
 
     // Clean up the Socket.IO connection when the component is unmounted
     return () => {
