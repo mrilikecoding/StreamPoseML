@@ -1,24 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
-import {Pose, POSE_CONNECTIONS} from '@mediapipe/pose';
+import React, { useEffect, useRef, useState } from 'react';
 import io from "socket.io-client";
+import {
+  PoseLandmarker,
+  FilesetResolver,
+  DrawingUtils
+} from "https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0";
+
+// Check if webcam access is supported.
+const hasGetUserMedia = () => !!navigator.mediaDevices?.getUserMedia;
+
+let poseLandmarker = undefined;
+const createPoseLandmarker = async () => {
+    const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
+    );
+    poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+        },
+        runningMode: "VIDEO"
+        
+    });
+};
 
 // TODO move this flag into UI - here for easy testing right now
-const USE_CLIENTSIDE_POSE_ESTIMATION = false;
-
-
-/**
- * Process the results from the pose estimation.
- *
- * @param {object} results - The results from the pose estimation.
- */
-function onResults(results) {
-    console.log(results.poseLandmarks);  // You can replace this line with any processing or handling you need.
-}
-const pose = new Pose({locateFile: (file) => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.2/${file}`;
-  }});
-pose.onResults(onResults);
-
+const USE_CLIENTSIDE_POSE_ESTIMATION = true;
 
 
 function VideoStream() {
@@ -27,6 +33,8 @@ function VideoStream() {
   const [results, setResults] = useState(null);
 
   useEffect(() => {
+    createPoseLandmarker();
+
     // Initialize the WebRTC connection
     async function initWebRTC() {
         const localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
@@ -50,7 +58,7 @@ function VideoStream() {
         let intervalId;
         if (USE_CLIENTSIDE_POSE_ESTIMATION) {
             intervalId = setInterval(async () => {
-                await sendKeypoints();
+                sendKeypoints();
             }, frameInterval);
         } else {
             intervalId = setInterval(() => {
@@ -92,16 +100,29 @@ function VideoStream() {
      *
      * @param {HTMLVideoElement} video - The video element to capture the frame from.
      */
-    async function captureFrameKeypoints(video) {
+    let lastVideoTime = -1;
+    let currentResults = {};
+    function captureFrameKeypoints(video) {
         // Perform pose estimation on the captured frame
         const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = canvas.toDataURL("image/jpeg", 0.8);
 
-        await pose.send({image: frame});
+        if (canvas.height > 0 && canvas.width > 0) {
+            let startTimeMs = performance.now(); 
+            if (lastVideoTime !== video.currentTime) {
+                lastVideoTime = video.currentTime;
+                poseLandmarker.detectForVideo( video, startTimeMs, (result) => {
+                    console.log("success");
+                    currentResults = result.landmarks
+                })
+                
+            }
+        }
+
+
     }
 
     /**
@@ -118,11 +139,11 @@ function VideoStream() {
     /**
      * Send frame keypoints generated client-side to the server via a Socket.IO event.
      */
-    async function sendKeypoints() {
+    function sendKeypoints() {
         const video = document.getElementById("localVideo");
         if (video) {
-            const frameData = await captureFrameKeypoints(video);
-            socketRef.current.emit("keypoints", frameData);
+            captureFrameKeypoints(video);
+            socketRef.current.emit("keypoints", currentResults);
         }
     }
 
@@ -142,5 +163,4 @@ function VideoStream() {
     </div>
   );
 }
-
 export default VideoStream;
