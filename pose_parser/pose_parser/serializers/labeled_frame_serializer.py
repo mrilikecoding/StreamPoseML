@@ -33,8 +33,6 @@ class LabeledFrameSerializer:
 
     def serialize(self, frame: dict):
         """
-        TODO - refactor this to be use in the LabeledClip serializer
-        TODO - add options for including angles etc... returning some specific hard coded stuff for now
         TODO - get the white list from ClipSerializer
 
         """
@@ -50,9 +48,19 @@ class LabeledFrameSerializer:
             "step_type": frame["step_type"] if frame["step_type"] else "NULL",
         }
 
-        # TODO include joints / distances
+        if self.include_joints:
+            joints = self.serialize_joints(
+                frame["data"]["joint_positions"],
+                include_z_axis=self.include_z_axis,
+                include_normalized=self.include_normalized,
+            )
+            row["joints"] = joints
         if self.include_angles:
-            angles = self.serialize_angles(frame["data"]["angles"])
+            angles = self.serialize_angles(
+                frame["data"]["angles"],
+                include_z_axis=self.include_z_axis,
+                include_normalized=self.include_normalized,
+            )
             row["angles"] = angles
         if self.include_distances:
             distances = self.serialize_distances(
@@ -128,6 +136,35 @@ class LabeledFrameSerializer:
     def serialize_joints(
         joints, include_z_axis: bool = False, include_normalized: bool = False
     ):
-        """TODO complete"""
+        """This method serializes a joint positions object
+
+        Note: the data for joints is combined with a "." in the key name to be consistent with
+        the way pandas handles hierarchical column names and nested dictionaries. This is a convention
+        that will make it easier to translate between data serialized here and ultimately output to csv
+        and then read back into a dataframe.
+
+        Args:
+            distances: dict
+                a dictionary of raw joint position data
+            include_z_axis: bool
+                whether to include z axis
+            include_normalized: bool
+                whether to include the normalized data in the dictionary
+
+        Returns:
+            joints_dictionary: dict
+                data serialized according to input params
+        """
         joints_dictionary = {}
+        for joint, data in joints.items():
+            joints_dictionary[f"{joint}.x"] = data["x"]
+            joints_dictionary[f"{joint}.y"] = data["y"]
+            if include_normalized:
+                joints_dictionary[f"{joint}.x_normalized"] = data["x_normalized"]
+                joints_dictionary[f"{joint}.y_normalized"] = data["y_normalized"]
+            if include_z_axis:
+                joints_dictionary[f"{joint}.z"] = data["z"]
+                if include_normalized:
+                    joints_dictionary[f"{joint}.z_normalized"] = data["z_normalized"]
+
         return joints_dictionary

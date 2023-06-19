@@ -17,6 +17,7 @@ class DatasetSerializer:
     def __init__(
         self,
         pool_rows: bool = True,
+        include_joints: bool = False,
         include_angles: bool = True,
         include_distances: bool = True,
         include_normalized: bool = True,
@@ -33,6 +34,7 @@ class DatasetSerializer:
         """
 
         self.pool_rows = pool_rows
+        self.include_joints = include_joints
         self.include_angles = include_angles
         self.include_distances = include_distances
         self.include_normalized = include_normalized
@@ -56,6 +58,7 @@ class DatasetSerializer:
         rows = []
         clip_serializer = LabeledClipSerializer(
             include_angles=self.include_angles,
+            include_joints=self.include_joints,
             include_distances=self.include_distances,
             include_normalized=self.include_normalized,
             include_z_axis=self.include_z_axis,
