@@ -84,6 +84,7 @@ class BuildAndFormatDatasetJob:
         include_angles: bool = True,
         include_distances: bool = True,
         include_normalized: bool = True,
+        include_joints: bool = False,
         include_z_axis: bool = False,
         segmentation_strategy: str | None = None,
         segmentation_splitter_label: str | None = None,
@@ -126,6 +127,7 @@ class BuildAndFormatDatasetJob:
             include_normalized=include_normalized,
             include_angles=include_angles,
             include_distances=include_distances,
+            include_joints=include_joints,
             include_z_axis=include_z_axis,
         )
         formatted_data = dataset_serializer.serialize(segmented_dataset)
