@@ -13,9 +13,10 @@ class SequenceTransformer(ABC):
         pass
 
 
+from collections import defaultdict
+
+
 # TODO create concrete classes for different schemes
-
-
 class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
     """This is the first transformer I'm writing here, so maybe a little more
     hard coded than I'd prefer. Just getting this working to close the interaction loop for now.
@@ -49,28 +50,22 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
             for key, value in frame_segment[-1].items()
             if (isinstance(value, str) or value is None)
         }
-        flattened["data"] = {}
-        # Set internal data keys to the same top level keys
+        flattened["data"] = defaultdict(dict)
         for i, frame in enumerate(frame_segment):
-            for key, value in frame.items():
-                if key not in flattened["data"]:
-                    flattened["data"][key] = {}
-                # Merge all frame data for this segment into frame specific keys
+            frame_items = frame.items()
+            for key, value in frame_items:
+                flattened_data_key = flattened["data"][key]
                 if isinstance(value, dict):
-                    for k, v in value.items():
-                        flattened["data"][key][f"frame-{i+1}-{k}"] = v
+                    value_items = value.items()
+                    for k, v in value_items:
+                        flattened_data_key[f"frame-{i+1}-{k}"] = v
                 else:
-                    # Let the last frame set the top level value here
-                    # when we don't have nested data
-                    flattened["data"][key] = value
+                    flattened_data_key = value
 
         data = flattened["data"]
         output_dict = {"angles": data["angles"], "distances": data["distances"]}
         meta_keys = ["type", "sequence_id", "sequence_source", "image_dimensions"]
-        # TODO Grab columns to match against keys
-        output_meta = {}
-        for key in meta_keys:
-            output_meta[key] = flattened[key]
+        output_meta = {key: flattened[key] for key in meta_keys}
         output_flattened = pd.json_normalize(data=output_dict)
         output_flattened_filtered = output_flattened.filter(columns)
         return (output_flattened_filtered, output_meta)

@@ -51,7 +51,7 @@ app.debug = True
 # TODO - make env dependent from config
 whitelist = [
     "http://localhost:3000",
-    "http://localhost:5000",
+    "http://localhost:5001",
     "https://cdn.jsdelivr.net",
 ]
 CORS(app, origins=whitelist)
@@ -62,7 +62,21 @@ socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
 
 @socketio.on("keypoints")
 def handle_keypoints(payload: str) -> None:
-    emit("frame_result", {"keypoints": payload})
+    start_time = time.time()
+    results = pc.run_keypoint_pipeline(payload)
+    speed = time.time() - start_time
+
+    # Emit the results back to the client
+    if (
+        results and pc.current_classification is not None
+    ):  # if we get some classification
+        return_payload = {
+            "classification": pc.current_classification,
+            "timestamp": f"{time.time_ns()}",
+            "processing time (s)": speed,
+            "frame rate capacity (hz)": 1.0 / speed,
+        }
+        emit("frame_result", return_payload)
 
 
 @socketio.on("frame")

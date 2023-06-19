@@ -2,7 +2,8 @@ import base64
 import typing
 import time
 import numpy as np
-import mediapipe as mp
+
+# import mediapipe as mp
 import cv2
 from collections import deque
 from pose_parser.blaze_pose.blaze_pose_sequence import BlazePoseSequence
@@ -30,10 +31,10 @@ class PoserClient:
         self.transformer = data_transformer
         self.mpc = mediapipe_client_instance
         self.frames = deque([], maxlen=self.frame_window)
-        mp_pose = mp.solutions.pose
-        self.pose = mp_pose.Pose(
-            min_detection_confidence=0.5, min_tracking_confidence=0.5
-        )
+        # mp_pose = mp.solutions.pose
+        # self.pose = mp_pose.Pose(
+        #     min_detection_confidence=0.5, min_tracking_confidence=0.5
+        # )
         self.current_classification = None
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
@@ -58,6 +59,22 @@ class PoserClient:
 
         return enhanced_img
 
+    def run_keypoint_pipeline(self, keypoints):
+        current_frames = self.update_frame_data_from_js_client_keypoints(keypoints)
+        if len(current_frames) == self.frame_window:
+            sequence = BlazePoseSequence(
+                name=f"sequence-{time.time_ns()}",
+                sequence=list(current_frames),
+                include_geometry=True,
+            ).generate_blaze_pose_frames_from_sequence()
+            sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
+            # TODO why is the target showing up in the 'columns' array here?
+            # Pulling off X_test instead...
+            columns = self.model.model_data["X_test"].columns.tolist()
+            data, meta = self.transformer.transform(data=sequence_data, columns=columns)
+            self.current_classification = bool(self.model.predict(data=data)[0])
+        return True
+
     def run_frame_pipeline(self, image: np.ndarray):
         results = self.get_keypoints(image)
         current_frames = self.update_frame_data(results)
@@ -74,6 +91,21 @@ class PoserClient:
             data, meta = self.transformer.transform(data=sequence_data, columns=columns)
             self.current_classification = bool(self.model.predict(data=data)[0])
         return True
+
+    def update_frame_data_from_js_client_keypoints(self, keypoint_results):
+        frame_data = {
+            "sequence_id": None,
+            "sequence_source": "web",
+            "frame_number": None,
+            "image_dimensions": None,
+        }
+        if "landmarks" in keypoint_results:
+            frame_data["joint_positions"] = self.mpc.serialize_pose_landmarks(
+                pose_landmarks=keypoint_results["landmarks"][0]
+            )
+
+            self.frames.append(frame_data)
+        return self.frames
 
     def update_frame_data(self, keypoint_results):
         frame_data = {

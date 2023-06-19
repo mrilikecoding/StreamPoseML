@@ -14,7 +14,7 @@ services:
       context: ./pose_parser
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
       - "5678:5678"
     depends_on:
       - redis
@@ -38,6 +38,9 @@ services:
     ports:
       - "3000:3000"
     stdin_open: true
+    command: >
+      bash -c "npm install &&
+            npm start"
     volumes:
       - ./web_ui:/usr/src/app/my-app
       - ./web_ui/node_modules:/usr/src/app/my-app/node_modules

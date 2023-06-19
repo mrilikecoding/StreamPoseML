@@ -3,7 +3,6 @@ import time
 import numpy as np
 from pathlib import Path
 import json
-import mediapipe as mp
 import cv2
 
 from pose_parser.blaze_pose.enumerations import BlazePoseJoints
@@ -68,6 +67,12 @@ class MediaPipeClient:
             self.json_output_path = f"{self.video_output_prefix}/{pre}-{id}"
         elif not dummy_client:
             raise MediaPipeClientError("No input file specified")
+
+    def import_mediapipe(self) -> None:
+        if self.dummy_client:
+            return
+        else:
+            import mediapipe as mp
 
     def process_video(self, limit: int = None) -> "MediaPipeClient":
         """This method runs mediapipe on a video referenced by this object.
@@ -204,7 +209,10 @@ class MediaPipeClient:
             List containing the x and y coordinates of the specified joint.
         """
         joint_index = joints.index(reference_joint_name)
-        return [pose_landmarks[joint_index].x, pose_landmarks[joint_index].y]
+        try:
+            return [pose_landmarks[joint_index].x, pose_landmarks[joint_index].y]
+        except:
+            return [pose_landmarks[joint_index]["x"], pose_landmarks[joint_index]["y"]]
 
     @staticmethod
     def calculate_reference_point_distance(
@@ -278,22 +286,40 @@ class MediaPipeClient:
                 joint_1_coordinates, joint_2_coordinates
             )
             for i, joint in enumerate(self.joints):
-                x_normed = (
-                    pose_landmarks[i].x / reference_point_distance
-                ) - reference_point_midpoint["x"]
-                y_normed = (
-                    pose_landmarks[i].y / reference_point_distance
-                ) - reference_point_midpoint["y"]
-                # Not normalizing z here, as the coordinate is not accurate
-                # according to docs, z uses "roughly the same scale as x"
-                landmarks[joint] = {
-                    "x": pose_landmarks[i].x,
-                    "y": pose_landmarks[i].y,
-                    "z": pose_landmarks[i].z,
-                    "x_normalized": x_normed,
-                    "y_normalized": y_normed,
-                    "z_normalized": pose_landmarks[i].z,
-                }
+                try:
+                    x_normed = (
+                        pose_landmarks[i].x / reference_point_distance
+                    ) - reference_point_midpoint["x"]
+                    y_normed = (
+                        pose_landmarks[i].y / reference_point_distance
+                    ) - reference_point_midpoint["y"]
+                    # Not normalizing z here, as the coordinate is not accurate
+                    # according to docs, z uses "roughly the same scale as x"
+                    landmarks[joint] = {
+                        "x": pose_landmarks[i].x,
+                        "y": pose_landmarks[i].y,
+                        "z": pose_landmarks[i].z,
+                        "x_normalized": x_normed,
+                        "y_normalized": y_normed,
+                        "z_normalized": pose_landmarks[i].z,
+                    }
+                except:
+                    x_normed = (
+                        pose_landmarks[i]["x"] / reference_point_distance
+                    ) - reference_point_midpoint["x"]
+                    y_normed = (
+                        pose_landmarks[i]["y"] / reference_point_distance
+                    ) - reference_point_midpoint["y"]
+                    # Not normalizing z here, as the coordinate is not accurate
+                    # according to docs, z uses "roughly the same scale as x"
+                    landmarks[joint] = {
+                        "x": pose_landmarks[i]["x"],
+                        "y": pose_landmarks[i]["y"],
+                        "z": pose_landmarks[i]["z"],
+                        "x_normalized": x_normed,
+                        "y_normalized": y_normed,
+                        "z_normalized": pose_landmarks[i]["z"],
+                    }
         return landmarks
 
 

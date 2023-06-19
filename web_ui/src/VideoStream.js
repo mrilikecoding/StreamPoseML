@@ -74,7 +74,7 @@ function VideoStream() {
     initWebRTC();
 
     // Set up the Socket.IO connection and event listeners
-    socketRef.current = io.connect("http://localhost:5000");
+    socketRef.current = io.connect("http://localhost:5001");
     socketRef.current.on("frame_result", (data) => {
         setResults(data);
     });
@@ -114,9 +114,8 @@ function VideoStream() {
             let startTimeMs = performance.now(); 
             if (lastVideoTime !== video.currentTime) {
                 lastVideoTime = video.currentTime;
-                poseLandmarker.detectForVideo( video, startTimeMs, (result) => {
-                    console.log("success");
-                    currentResults = result.landmarks
+                poseLandmarker.detectForVideo( video, startTimeMs, (results) => {
+                    currentResults = results
                 })
                 
             }
