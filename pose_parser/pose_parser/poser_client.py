@@ -99,7 +99,7 @@ class PoserClient:
             "frame_number": None,
             "image_dimensions": None,
         }
-        if "landmarks" in keypoint_results:
+        if "landmarks" in keypoint_results and len(keypoint_results["landmarks"]):
             frame_data["joint_positions"] = self.mpc.serialize_pose_landmarks(
                 pose_landmarks=keypoint_results["landmarks"][0]
             )

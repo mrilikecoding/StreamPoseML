@@ -1,8 +1,9 @@
 import time
 
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
+from engineio.payload import Payload
 
 from pose_parser import poser_client
 from pose_parser.blaze_pose import mediapipe_client
@@ -15,33 +16,24 @@ from pose_parser.learning import model_builder
 # via model builder, so use the retrieve_model_from_pickle method in the model_builder.
 # Otherwise, any model with a "predict" method can be set on the trained_model instance.
 mb = model_builder.ModelBuilder()
-# TODO grab this path from config
-trained_model_pickle_path = (
-    "./data/trained_models/gradient-boost-1684429421050538000.pickle"
-)
+model_location = "./data/trained_models"
 trained_model = trained_model.TrainedModel()
-model, model_data = mb.retrieve_model_from_pickle(file_path=trained_model_pickle_path)
 
-trained_model.set_model(
-    model=model,
-    model_data=model_data,
-    notes="Gradient Boost trained on 10 frame window, flat columns, all angles + distances",
-)
-
-### Set the trained_models data transformer ###
-transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
-trained_model.set_data_transformer(transformer)
 
 ### Set the pose estimation client ###
 mpc = mediapipe_client.MediaPipeClient(dummy_client=True)
 
-### Init the Poser Client ###
-pc = poser_client.PoserClient(
-    mediapipe_client_instance=mpc,
-    trained_model=trained_model,
-    data_transformer=transformer,
-    frame_window=10,
-)
+
+### Create poser client wrapper to instantiate from front end ###
+class PoserApp:
+    def __init__(self):
+        self.poser_client = None
+
+    def set_poser_client(self, poser_client):
+        self.poser_client = poser_client
+
+
+pc = PoserApp()
 
 ### Init Flask API ###
 app = Flask(__name__)
@@ -54,24 +46,69 @@ whitelist = [
     "http://localhost:5001",
     "https://cdn.jsdelivr.net",
 ]
-CORS(app, origins=whitelist)
+# CORS(app, origins=whitelist)
+CORS(app, origins="*")
 
-# Web Socket
-socketio = SocketIO(app, async_mode="eventlet", cors_allowed_origins="*")
+
+### Application Routes ###
+@app.route("/set_model", methods=["POST"])
+def set_model():
+    data = request.get_json()
+    if "filename" not in data:
+        return {"error": "No filename"}, 400
+
+    trained_model_pickle_path = data["filename"]
+    model, model_data = mb.retrieve_model_from_pickle(
+        file_path=f"{model_location}/{trained_model_pickle_path}"
+    )
+    trained_model.set_model(model=model, model_data=model_data)
+
+    ### Set the trained_models data transformer ###
+    # TODO replace this with some kind of schema
+    transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
+    trained_model.set_data_transformer(transformer)
+
+    pc.set_poser_client(
+        poser_client.PoserClient(
+            mediapipe_client_instance=mpc,
+            trained_model=trained_model,
+            data_transformer=transformer,
+            frame_window=10,
+        )
+    )
+
+    return {"result": f"Ready: classification model set to {trained_model_pickle_path}"}
+
+
+### SocketIO Listeners ###
+
+# Web Socket - TODO there is some optimization to be done here - need to look at these options
+Payload.max_decode_packets = 500
+socketio = SocketIO(
+    app,
+    async_mode="eventlet",
+    ping_timeout=5,
+    ping_interval=1,
+    cors_allowed_origins="*",
+)
 
 
 @socketio.on("keypoints")
 def handle_keypoints(payload: str) -> None:
+    if pc.poser_client is None:
+        emit("frame_result", {"error": "No model set"})
+        return
+
     start_time = time.time()
-    results = pc.run_keypoint_pipeline(payload)
+    results = pc.poser_client.run_keypoint_pipeline(payload)
     speed = time.time() - start_time
 
     # Emit the results back to the client
     if (
-        results and pc.current_classification is not None
+        results and pc.poser_client.current_classification is not None
     ):  # if we get some classification
         return_payload = {
-            "classification": pc.current_classification,
+            "classification": pc.poser_client.current_classification,
             "timestamp": f"{time.time_ns()}",
             "processing time (s)": speed,
             "frame rate capacity (hz)": 1.0 / speed,
@@ -91,7 +128,11 @@ def handle_frame(payload: str) -> None:
         payload: str
             The payload of the 'frame' event, containing the base64 encoded frame data.
     """
-    image = pc.convert_base64_to_image_array(payload)
+    if pc.poser_client is None:
+        emit("frame_result", {"error": "No model set"})
+        return
+
+    image = pc.poser_client.convert_base64_to_image_array(payload)
     # image = pc.preprocess_image(image)
 
     start_time = time.time()
@@ -100,10 +141,10 @@ def handle_frame(payload: str) -> None:
 
     # Emit the results back to the client
     if (
-        results and pc.current_classification is not None
+        results and pc.poser_client.current_classification is not None
     ):  # if we get some classification
         return_payload = {
-            "classification": pc.current_classification,
+            "classification": pc.poser_client.current_classification,
             "timestamp": f"{time.time_ns()}",
             "processing time (s)": speed,
             "frame rate capacity (hz)": 1.0 / speed,
