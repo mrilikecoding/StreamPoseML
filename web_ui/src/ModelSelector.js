@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 
-function ModelSelector() {
+function ModelSelector({ setModel }) {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [result, setResult] = useState('');
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0].name);
@@ -21,9 +20,9 @@ function ModelSelector() {
 
     if (response.ok) {
       const jsonResponse = await response.json();
-      setResult(jsonResponse.result);
+      setModel(jsonResponse.result);
     } else {
-      console.error('Upload failed');
+      console.error('Setting the model failed');
     }
   };
 
@@ -40,7 +39,6 @@ function ModelSelector() {
         Set Model
       </button>
       {selectedFile && <p>Selected model: {selectedFile}</p>}
-      {result && <p>Server model status: {result}</p>}
     </div>
   );
 }

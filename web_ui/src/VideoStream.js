@@ -31,7 +31,6 @@ function VideoStream({ isOn = false }) {
 
   useEffect(() => {
     if (isOn) {
-
         createPoseLandmarker();
 
         // Initialize the WebRTC connection
@@ -150,7 +149,9 @@ function VideoStream({ isOn = false }) {
         };
 
     } else {
-        socketRef.current.disconnect();
+        if (socketRef.current !== undefined && socketRef.current !== null) {
+            socketRef.current.disconnect();
+        }
     }
   }, [isOn]);
 
