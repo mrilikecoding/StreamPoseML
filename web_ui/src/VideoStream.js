@@ -47,15 +47,24 @@ function VideoStream({ isOn = false }) {
             if (frameRate >= 30) {
                 frameRate = 30;
             }
+
             // TODO remove this - experimenting with frame rate
             // frameRate = 1
             // Calculate the interval between frames in milliseconds
-            const frameInterval = 1000 / frameRate;
+            // const frameInterval = 1000 / frameRate;
+
+            // TODO this is a rate limit based on processing time in the backend
+            // if this interval (in ms) is too low, the backend will not be able to keep up
+            // and the socket connection will hang and reset
+            const frameInterval = 250;
 
             // Set up an interval to send frames periodically
             let intervalId;
             if (USE_CLIENTSIDE_POSE_ESTIMATION) {
                 intervalId = setInterval(async () => {
+                    // send current time in console
+                    console.log("Sending keypoints @", localVideoRef.current.currentTime)
+
                     sendKeypoints();
                 }, frameInterval);
             } else {

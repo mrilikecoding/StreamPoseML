@@ -21,21 +21,21 @@ function App() {
       <div className="container">
         <div className='column'>
           <ModelSelector setModel={setModel} /> 
-          <hr />
-          <hr />
         </div>
         <div className='column'>
-          <hr />
           {/* Render VideoStream only if a model is selected */}
           {model && 
             <div>
-              {model}
-              <button onClick={toggleVideoStream}>
+              <span className="green">
+                {model}
+              </span>
+              <button className='button' onClick={toggleVideoStream}>
                 {isVideoStreamOn ? 'Turn off keypoint classification' : 'Turn on keypoint classification'} 
               </button>
               <VideoStream isOn={isVideoStreamOn} />
             </div>
           }
+          {!model && <h2>Select a model to get started</h2>}
         </div>
       </div>
     </div>

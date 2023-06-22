@@ -77,7 +77,9 @@ def set_model():
         )
     )
 
-    return {"result": f"Ready: classification model set to {trained_model_pickle_path}"}
+    return {
+        "result": f"Server Ready: classifier set to {trained_model_pickle_path}. {model_data}"
+    }
 
 
 ### SocketIO Listeners ###
@@ -87,8 +89,8 @@ Payload.max_decode_packets = 500
 socketio = SocketIO(
     app,
     async_mode="eventlet",
-    ping_timeout=5,
-    ping_interval=1,
+    ping_timeout=10,
+    ping_interval=2,
     cors_allowed_origins="*",
 )
 

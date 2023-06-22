@@ -50,3 +50,39 @@
   padding: 20px;
   border: 1px solid #000;
 }
+p {
+  text-align: left;
+}
+
+.left {
+  text-align: left;
+}
+
+.green {
+  color: green;
+}
+
+button, ::file-selector-button {
+  margin: 1em;
+  background-color: #797979; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+button:hover, ::file-selector-button:hover {
+  margin: 1em;
+  background-color: #bebdbd; /* Green */
+  border: none;
+  cursor: pointer;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
