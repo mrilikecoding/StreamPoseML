@@ -50,6 +50,11 @@ whitelist = [
 CORS(app, origins="*")
 
 
+@app.route("/")
+def status():
+    return "Server Ready"
+
+
 ### Application Routes ###
 @app.route("/set_model", methods=["POST"])
 def set_model():
@@ -77,9 +82,7 @@ def set_model():
         )
     )
 
-    return {
-        "result": f"Server Ready: classifier set to {trained_model_pickle_path}. {model_data}"
-    }
+    return {"result": f"Server Ready: classifier set to {trained_model_pickle_path}."}
 
 
 ### SocketIO Listeners ###

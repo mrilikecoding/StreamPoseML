@@ -1,5 +1,15 @@
 # Pose Parser aka Poser
 
+
+## June 2023
+
+TODO Update... 
+
+Get a docker account, download docker for desktop, and make sure you're logged in.
+Running sh start.sh should download everything needed. It'll take a while to boot the first time,
+Then it should launch browser. Follow instructions to add trained model to the right directory.
+Then run sh stop.sh to stop everything and exit gracefully.
+
 ## Work in progress
 
 
@@ -115,4 +125,7 @@ If you use this, please cite me. But this is not ready for use. Please don't use
 * Model builder methods are cumbersome and untests - need to split up model creation from grid search / random search logic
    
 
-  
+# Building Dockerfiles
+
+cd pose_parser && docker build -t myuser/pose_parser_api:latest -f Dockerfile .
+cd web_ui && docker build -t mrilikecoding/web_ui:latest -f Dockerfile .

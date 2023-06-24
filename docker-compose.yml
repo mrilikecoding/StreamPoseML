@@ -1,43 +1,40 @@
-# https://www.dabbleofdevops.com/blog/setup-a-redis-python-docker-dev-stack
 version: '3'
 
 services:
-  redis:
-    image: redis
-    ports:
-      - 6379
-    networks:
-      - app-tier
+  # https://www.dabbleofdevops.com/blog/setup-a-redis-python-docker-dev-stack
+  # redis:
+  #   image: redis
+  #   ports:
+  #     - 6379
+  #   networks:
+  #     - app-tier
 
   pose_parser_api:
-    build:
-      context: ./pose_parser
-      dockerfile: Dockerfile
+    image: mrilikecoding/pose_parser_api:latest
     ports:
       - "5001:5000"
-      - "5678:5678"
-    depends_on:
-      - redis
+      - "5678:5678" # For debugger
     networks:
       - app-tier
     volumes:
       - ./pose_parser:/usr/src/app
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
     environment:
+      - DEBUG=FALSE # This will overridden by VSCode tasks.json
       - FLASK_APP=run.py
       - FLASK_DEBUG=development
     command: >
-      bash -c "pip install ptvsd &&
-            python -m ptvsd --host 0.0.0.0 --port 5678 --wait run.py"
+      bash -c "pip install ptvsd && python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
 
-  
   web_ui:
-    build:
-      context: ./web_ui
-      dockerfile: Dockerfile
+    image: mrilikecoding/web_ui:latest
+    depends_on:
+      - pose_parser_api
     ports:
       - "3000:3000"
     stdin_open: true
+    networks:
+      - app-tier
     command: >
       bash -c "npm install &&
             npm start"
@@ -45,20 +42,20 @@ services:
       - ./web_ui:/usr/src/app/my-app
       - ./web_ui/node_modules:/usr/src/app/my-app/node_modules
     
-  db:
-    image: postgres:latest
-    environment:
-      POSTGRES_USER: super_admin
-      POSTGRES_PASSWORD: password
-      PGDATA: /data/postgres
-    volumes:
-       - postgres-db:/data/postgres
-    ports:
-      - "5432:5432"
+#   db:
+#     image: postgres:latest
+#     environment:
+#       POSTGRES_USER: super_admin
+#       POSTGRES_PASSWORD: password
+#       PGDATA: /data/postgres
+#     volumes:
+#        - postgres-db:/data/postgres
+#     ports:
+#       - "5432:5432"
 
-volumes:
-  postgres-db:
-    driver: local
+# volumes:
+#   postgres-db:
+#     driver: local
 
 networks:
   app-tier:
