@@ -28,7 +28,7 @@ Notebooks can be found by navigating to `pose_parser/notebooks`
 1. Set up a python environment via conda or pyenv or other preferred tool.
 2. Install via `requirements.txt` located in the `pose_parser` folder.
 
-To run the web app, you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5000` and should be accessible from the web app.
+To run the web app, you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app.
 
 ### Debugging the web app / python API via VS Code within docker
 
