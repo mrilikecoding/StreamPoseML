@@ -2,7 +2,7 @@ import time
 
 from flask import Flask, request
 from flask_cors import CORS
-from flask_socketio import SocketIO, send, emit
+from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 
 from pose_parser import poser_client
@@ -46,8 +46,7 @@ whitelist = [
     "http://localhost:5001",
     "https://cdn.jsdelivr.net",
 ]
-# CORS(app, origins=whitelist)
-CORS(app, origins="*")
+CORS(app, origins=whitelist)
 
 
 @app.route("/")
