@@ -26,8 +26,8 @@ docker pull mrilikecoding/web_ui:latest
 docker-compose up -d && sleep 15 &
 
 # Wait for the services to start
-echo "Waiting 15 seconds for the services to start..."
-sleep 15 
+echo "Waiting 20 seconds for the services to start..."
+sleep 20 
 echo "Launching Poser in Browswer..."
 
 # Check the operating system and open the URL in the browser

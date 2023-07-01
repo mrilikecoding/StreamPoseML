@@ -1,14 +1,6 @@
 version: '3'
 
 services:
-  # https://www.dabbleofdevops.com/blog/setup-a-redis-python-docker-dev-stack
-  # redis:
-  #   image: redis
-  #   ports:
-  #     - 6379
-  #   networks:
-  #     - app-tier
-
   pose_parser_api:
     image: mrilikecoding/pose_parser_api:latest
     ports:
@@ -20,14 +12,19 @@ services:
       - ./pose_parser:/usr/src/app
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
     environment:
-      - DEBUG=FALSE # This will overridden by VSCode tasks.json
+      - DEBUG=${DEBUG:-FALSE} # Defaults to FALSE, but override this if you wish to attach a debugger, e.g. via VSCode tasks.json
       - FLASK_APP=run.py
+      - APP_NAME=${APP_NAME}
       - FLASK_DEBUG=development
+      - BLUETOOTH_DEVICE_MAC=${BLUETOOTH_DEVICE_MAC}
+      - SPP_UUID=${SPP_UUID}
     command: >
       bash -c "pip install ptvsd && python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
 
   web_ui:
     image: mrilikecoding/web_ui:latest
+    environment:
+      - APP_NAME=${APP_NAME}
     depends_on:
       - pose_parser_api
     ports:
@@ -41,21 +38,6 @@ services:
     volumes:
       - ./web_ui:/usr/src/app/my-app
       - ./web_ui/node_modules:/usr/src/app/my-app/node_modules
-    
-#   db:
-#     image: postgres:latest
-#     environment:
-#       POSTGRES_USER: super_admin
-#       POSTGRES_PASSWORD: password
-#       PGDATA: /data/postgres
-#     volumes:
-#        - postgres-db:/data/postgres
-#     ports:
-#       - "5432:5432"
-
-# volumes:
-#   postgres-db:
-#     driver: local
 
 networks:
   app-tier:

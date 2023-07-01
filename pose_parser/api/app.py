@@ -11,6 +11,8 @@ from pose_parser.learning import trained_model
 from pose_parser.learning import sequence_transformer
 from pose_parser.learning import model_builder
 
+from pose_parser.actuators import bluetooth_device
+
 ### Set the model ###
 # Load trained model into TrainedModel instance - note, models in local folder were saved
 # via model builder, so use the retrieve_model_from_pickle method in the model_builder.
@@ -32,6 +34,14 @@ class PoserApp:
     def set_poser_client(self, poser_client):
         self.poser_client = poser_client
 
+    def set_actuator(self, actuator="bluetooth_device"):
+        if actuator == "bluetooth_device":
+            self.actuator = bluetooth_device.BluetoothDevice()
+
+    def actuate(self, data):
+        self.actuator.send(data)
+        return self.actuator.receive()
+
 
 pc = PoserApp()
 
@@ -46,7 +56,8 @@ whitelist = [
     "http://localhost:5001",
     "https://cdn.jsdelivr.net",
 ]
-CORS(app, origins=whitelist)
+# CORS(app, origins=whitelist)
+CORS(app, origins="*")
 
 
 @app.route("/")
@@ -81,6 +92,9 @@ def set_model():
         )
     )
 
+    # TODO - add a separate step for this and make configurable
+    pc.set_actuator()
+
     return {"result": f"Server Ready: classifier set to {trained_model_pickle_path}."}
 
 
@@ -111,12 +125,18 @@ def handle_keypoints(payload: str) -> None:
     if (
         results and pc.poser_client.current_classification is not None
     ):  # if we get some classification
+        classification = pc.poser_client.current_classification
         return_payload = {
-            "classification": pc.poser_client.current_classification,
+            "classification": classification,
             "timestamp": f"{time.time_ns()}",
             "processing time (s)": speed,
             "frame rate capacity (hz)": 1.0 / speed,
         }
+        # TODO update with conditional for actuation
+        pc.actuator.send("a")
+        device_result = pc.actuator.receive()
+        return_payload["actuation"] = device_result
+
         emit("frame_result", return_payload)
 
 

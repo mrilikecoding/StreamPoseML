@@ -1,14 +1,34 @@
-# Pose Parser aka Poser
+# Poser
 
+A realtime video classification web application and python toolkit for building and training models.
+
+This system is meant to run locally on your machine. The web application ships within Docker containers. The model toolkits are best run within your own isolated Python environment, outside of Docker.
+
+## Running the Web Applictaion
+
+First, you'll need a trained classifier saved to a pickle file (in Python). The model should implement a "predict" method that takes an array of examples to classify. For realtime video classification generally you'll want to pass a single example
+
+The pickle object should be shaped like this:
+
+```
+{
+  classifier: <your_trained_model>
+}
+```
+
+Place this pickle file in `data/trained_models`
+
+Then to run the app:
+
+1. Visit docker.com and sign up for an account.
+2. Download the Docker for Desktop client for your your sytem, launch, and log in.
+3. Run `start.sh`
+
+This should install the necessary dependencies and then launch the application in your default browser. 
+
+4. When you're done, run `stop.sh` to gracefully end the application processes.
 
 ## June 2023
-
-TODO Update... 
-
-Get a docker account, download docker for desktop, and make sure you're logged in.
-Running sh start.sh should download everything needed. It'll take a while to boot the first time,
-Then it should launch browser. Follow instructions to add trained model to the right directory.
-Then run sh stop.sh to stop everything and exit gracefully.
 
 ## Work in progress
 
