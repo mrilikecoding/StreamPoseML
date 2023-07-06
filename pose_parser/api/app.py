@@ -133,9 +133,9 @@ def handle_keypoints(payload: str) -> None:
             "frame rate capacity (hz)": 1.0 / speed,
         }
         # TODO update with conditional for actuation
-        pc.actuator.send("a")
-        device_result = pc.actuator.receive()
-        return_payload["actuation"] = device_result
+        # pc.actuator.send("a")
+        # device_result = pc.actuator.receive()
+        # return_payload["actuation"] = device_result
 
         emit("frame_result", return_payload)
 
