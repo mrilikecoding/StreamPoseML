@@ -135,11 +135,16 @@ If you run them you'll see some failures. Additionally, tests are not well isola
 If you use this, please cite me. But this is not ready for use. Please don't use this yet lol.
 
 ## TODOs
+* Pull frontend bluetooth into its own component
+* add a bluetooth mock service
+* fix error that sends keypoints to server when classification is turned off
+* make UI nicer
+* create a nicer scheme for integrating models and their data schema
+  * this probably looks like an abstract class that can wrap models as well as multi-stage classifiers with a single predict method. This abstract class should also incorporate the data schema. There should be a utility that can go from skel data to the schema... this'll be a big feature.
 * add citation file
 * Finish testing modules - use test doubles
 * Refactor object creation - some complicated init anti-patterns are here
 * Build out an ETL wrapper and simplify job logic - there are some parameter sinkholes in the current flow
-* Settle on API and build out web app
 * Build a utility for looking at video and annotations
 * Abstract the annotation layer - we used Dataloop, but what we should do is define a way to load in an annotation schema so that other tools can be dropped in (annotation strategies with json schema)
 * Model builder methods are cumbersome and untests - need to split up model creation from grid search / random search logic
