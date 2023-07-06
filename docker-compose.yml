@@ -3,26 +3,32 @@ version: '3'
 services:
   pose_parser_api:
     image: mrilikecoding/pose_parser_api:latest
+    # build: ./pose_parser
     ports:
       - "5001:5000"
-      - "5678:5678" # For debugger
+      # - "5678:5678" # For debugger
     networks:
       - app-tier
     volumes:
       - ./pose_parser:/usr/src/app
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
+    # privileged: true
+    # network_mode: "host"
     environment:
-      - DEBUG=${DEBUG:-FALSE} # Defaults to FALSE, but override this if you wish to attach a debugger, e.g. via VSCode tasks.json
+      # - DEBUG=${DEBUG:-FALSE} # Defaults to FALSE, but override this if you wish to attach a debugger, e.g. via VSCode tasks.json
+      # - DEBUG=TRUE
       - FLASK_APP=run.py
       - APP_NAME=${APP_NAME}
       - FLASK_DEBUG=development
       - BLUETOOTH_DEVICE_MAC=${BLUETOOTH_DEVICE_MAC}
       - SPP_UUID=${SPP_UUID}
     command: >
-      bash -c "pip install ptvsd && python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
+      # bash -c "pip install ptvsd &&  python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
+      bash -c "python run.py"
 
   web_ui:
     image: mrilikecoding/web_ui:latest
+    # build: ./web_ui
     environment:
       - APP_NAME=${APP_NAME}
     depends_on:
