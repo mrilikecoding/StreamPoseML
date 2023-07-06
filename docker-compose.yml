@@ -22,8 +22,9 @@ services:
       - FLASK_DEBUG=development
       # - BLUETOOTH_DEVICE_MAC=${BLUETOOTH_DEVICE_MAC}
       # - SPP_UUID=${SPP_UUID}
+    # command: >
+    #   bash -c "pip install ptvsd &&  python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
     command: >
-      # bash -c "pip install ptvsd &&  python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
       bash -c "python run.py"
 
   web_ui:

@@ -26,9 +26,16 @@ docker pull mrilikecoding/web_ui:latest
 docker-compose up -d && sleep 15 &
 
 # Wait for the services to start
-echo "Waiting 20 seconds for the services to start..."
-sleep 20 
-echo "Launching Poser in Browswer..."
+echo "Waiting for the services to start..."
+
+# Loop until the React server is up (may require curl to be installed)
+while ! curl -s http://localhost:3000 > /dev/null
+do
+  echo "Waiting for UI to compile and server to start..."
+  sleep 5
+done
+
+echo "UI server is up! Launching Poser application in Browser..."
 
 # Check the operating system and open the URL in the browser
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
