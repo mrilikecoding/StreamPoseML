@@ -40,11 +40,13 @@ services:
     networks:
       - app-tier
     command: >
-      bash -c "npm install &&
-            npm start"
+          bash -c "cd /usr/src/app/my-app &&
+                npm install &&
+                npm_config_loglevel=verbose npm start > logs/container_logs.txt 2>&1 || (ls -al /root/.npm/_logs && false)"
     volumes:
       - ./web_ui:/usr/src/app/my-app
       - ./web_ui/node_modules:/usr/src/app/my-app/node_modules
+      - ./web_ui/logs:/root/.npm/_logs
 
 networks:
   app-tier:

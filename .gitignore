@@ -11,3 +11,5 @@ source_annotations/*
 data/*
 *.pickle
 test.csv
+
+web_ui/logs/*
