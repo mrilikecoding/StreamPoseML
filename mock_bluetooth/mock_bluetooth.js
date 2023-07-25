@@ -5,7 +5,7 @@ const Characteristic = bleno.Characteristic;
 const PrimaryService = bleno.PrimaryService;
 
 const SERVICE_UUID = '0000FFE0-0000-1000-8000-00805F9B34FB';
-const CHARACTERISTIC_UUID = '000FFE1-0000-1000-8000-00805F9B34FB';
+const CHARACTERISTIC_UUID = '0000FFE1-0000-1000-8000-00805F9B34FB';
 const DEVICE_NAME = 'HMSoft';
 
 const EXPECTED_INPUT = 'a';
