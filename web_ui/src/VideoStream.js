@@ -70,7 +70,7 @@ function VideoStream({ isOn = false }) {
                     intervalId = setInterval(async () => {
                         if (isOn) {
                             // send current time in console
-                            console.log("Sending keypoints @", localVideoRef.current.currentTime)
+                            // console.log("Sending keypoints @", localVideoRef.current.currentTime)
                             sendKeypoints();
                         }
                     }, frameInterval);
@@ -91,22 +91,32 @@ function VideoStream({ isOn = false }) {
             socketRef.current = io.connect("http://localhost:5001");
             socketRef.current.on("frame_result", (data) => {
                 setResults(data);
-                if (data["success"] === true && characteristic) {
+                if (data["classification"] === true && characteristic) {
+                    // send time in console
                     let encoder = new TextEncoder('utf-8');
                     let value = encoder.encode('a');
                     characteristic.writeValue(value)
-                        .catch(error => {
-                            console.log(error)
-                            setBluetoothResult(error)
+                        .then(() => {
+                            console.log('Write operation is complete.');
+                            // Now read from the characteristic
+                            return characteristic.readValue();
                         })
                         .then(value => {
                             let decoder = new TextDecoder('utf-8');
                             let result = decoder.decode(value);
-                            console.log(result);
+                            console.log('Read operation result:', result);
                             setBluetoothResult(result);
+                        })
+                        .catch(error => {
+                            console.log(error)
+                            setBluetoothResult("")
                         });
+                } else {
+                    setBluetoothResult("")
                 }
+
             });
+
 
             /**
              * Capture a frame from a video element and convert it to a base64 encoded string.
@@ -220,7 +230,7 @@ function VideoStream({ isOn = false }) {
                 !navigator.bluetooth ? "Bluetooth not supported in this browser. Please try Chrome." :
                     <button onClick={connectToDevice}>{bluetoothStatus}</button>
             }
-            <p>Bluetooth Result: {bluetoothResult}</p>
+            <p>Bluetooth Result (see console for read/write stream): {bluetoothResult}</p>
             <video id="localVideo" ref={localVideoRef} autoPlay muted></video>
             {isOn ? (
                 <div className='container'>
