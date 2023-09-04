@@ -3,7 +3,7 @@ import typing
 import time
 import numpy as np
 
-# import mediapipe as mp
+import mediapipe as mp
 import cv2
 from collections import deque
 from pose_parser.blaze_pose.blaze_pose_sequence import BlazePoseSequence
