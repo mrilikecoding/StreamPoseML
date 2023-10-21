@@ -1,7 +1,7 @@
 import unittest
 import yaml
 
-CONFIG = yaml.safe_load(open("./config.yaml"))
+CONFIG = yaml.safe_load(open("./config.yml"))
 
 from pose_parser.jobs.build_and_format_dataset_job import BuildAndFormatDatasetJob
 

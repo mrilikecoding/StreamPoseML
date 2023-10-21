@@ -9,3 +9,7 @@ You will also need to install XCode.
 Then from the root directory here run `npm start`.
 
 The bluetooth connection details are hardcoded directly into the file for now.
+
+## Alternatives
+
+Admittedly it is difficult to test test a web app with bluetooth. One thing to note is that BLE (Bluetooth Low Energy) is way easier to work with in this context. If running this microservice doesn't work for your implementation, I would suggest working with mobile Bluetooth mocking clients, such as LightBlue. 

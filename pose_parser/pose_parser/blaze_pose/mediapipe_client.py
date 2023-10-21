@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 import json
 import cv2
+import mediapipe as mp
 
 from pose_parser.blaze_pose.enumerations import BlazePoseJoints
 

@@ -127,8 +127,11 @@ NOTE - you may need to futz with dependencies / versions from errors that are ge
 
 ## Tests
 
-Tests work for some of the modules but have fallen behind... 
-If you run them you'll see some failures. Additionally, tests are not well isolated just because before building notebooks I was building datasets by running through tests... ick. So.. I'd recommend avoiding the tests for right now.
+To start run `python setup.py` to set paths correctly. Then simply:
+
+`pytest`
+
+Note: tests work for some of the modules but have fallen behind... contributions wanted! You'll note some failures etc. 
 
 ## Citing 
 

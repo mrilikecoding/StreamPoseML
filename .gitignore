@@ -2,8 +2,9 @@
 __pycache__
 .DS_Store
 *.mp4
+*.egg-info
 
-config.yaml
+config.yml
 
 node_modules/
 source_videos/*
@@ -13,3 +14,6 @@ data/*
 test.csv
 
 web_ui/logs/*
+
+# test ML modules
+pd_dancing/

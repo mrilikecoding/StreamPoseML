@@ -2,8 +2,8 @@ import os
 import json
 from pose_parser.utils import path_utility
 
-from pose_parser.services.dataloop_annotation_transformer_service import (
-    DataloopAnnotationTransformerService,
+from pose_parser.services.annotation_transformer_service import (
+    AnnotationTransformerService,
 )
 
 
@@ -11,11 +11,11 @@ from pose_parser.learning.labeled_clip import LabeledClip
 from pose_parser.services import video_data_service as vds
 
 
-class VideoDataDataloopMergeService:
-    """Merge Dataloop annotations with video data.
+class VideoDataMergeService:
+    """Merge annotations with video data.
 
     This class is responsible for searching an annotations directory to find
-    relevant dataloop annotations for a specified video and combining it with right video data.
+    relevant annotations for a specified video and combining it with right video data.
     """
 
     annotations_data_directory: str
@@ -60,7 +60,7 @@ class VideoDataDataloopMergeService:
         self.process_videos = process_videos
         self.merged_data = []
 
-        self.transformer = DataloopAnnotationTransformerService()
+        self.transformer = AnnotationTransformerService()
 
         self.create_video_annotation_map()
 
@@ -73,11 +73,11 @@ class VideoDataDataloopMergeService:
                 Returns: True if operation completes successfully
 
         Raises:
-            exception: VideoDataDataloopMergeServiceError
+            exception: VideoDataMergeServiceError
                 Raises:d if there's an error creating this map
         """
         if self.process_videos and self.video_directory is None:
-            raise VideoDataDataloopMergeServiceError(
+            raise VideoDataMergeServiceError(
                 "There is no source video directory specified to generate video data from."
             )
 
@@ -133,7 +133,7 @@ class VideoDataDataloopMergeService:
                 If successful return the merged annotated data from all source videos and annotations
                 {"all_frames": [...], "labeled_frames": [...], "unlabeled_frames": [...]}
         Raises:
-            exception: VideoDataDataloopMergeServiceError
+            exception: VideoDataMergeServiceError
 
         """
         if self.process_videos:
@@ -154,7 +154,7 @@ class VideoDataDataloopMergeService:
                 labeled_frames,
                 unlabeled_frames,
             ) = self.transformer.update_video_data_with_annotations(
-                video_data=video_data, dataloop_data=annotation_data
+                video_data=video_data, annotation_data=annotation_data
             )
             merged_all_frames.append(all_frames)
             merged_labeled_frames.append(labeled_frames)
@@ -210,7 +210,7 @@ class VideoDataDataloopMergeService:
         return True
 
 
-class VideoDataDataloopMergeServiceError(Exception):
+class VideoDataMergeServiceError(Exception):
     """Raised when there's a problem in the VideoDataDatloopMergeService class"""
 
     pass

@@ -3,18 +3,18 @@ import shutil
 
 from pose_parser.services.video_data_service import VideoDataService
 
-from pose_parser.services.dataloop_annotation_transformer_service import (
-    DataloopAnnotationTransformerService,
+from pose_parser.services.annotation_transformer_service import (
+    AnnotationTransformerService,
 )
 
 
-class TestDataLoopAnnotationTransformerService(unittest.TestCase):
+class TestAnnotationTransformerService(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
         self.video_input_path = "./pose_parser/test_videos"
         self.output_data_path = "./pose_parser/tmp/data/keypoints"
         self.input_filename = "front.mp4"
-        self.dataloop_data = {
+        self.annotation_data = {
             "id": "63e10d737329c2fe92c8ae0a",
             "datasetId": "63bef4c53775a03d44271475",
             "url": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a",
@@ -231,7 +231,7 @@ class TestDataLoopAnnotationTransformerService(unittest.TestCase):
     def test_segment_video_data_with_annotations(self):
         """
         GIVEN processed video data and corresponding data loop annotation data
-        WHEN passed into DataloopAnnotationTransformer
+        WHEN passed into AnnotationTransformer
         THEN a video annotations object is returned marrying the data annotations with corresponding frame data
         """
         vds = VideoDataService()
@@ -242,13 +242,13 @@ class TestDataLoopAnnotationTransformerService(unittest.TestCase):
             include_geometry=True,
         )
 
-        transformer = DataloopAnnotationTransformerService()
+        transformer = AnnotationTransformerService()
         segmented_video_annotations = transformer.segment_video_data_with_annotations(
-            dataloop_data=self.dataloop_data, video_data=video_data
+            annotation_data=self.annotation_data, video_data=video_data
         )
         # make sure we have the same number of annotations and video clips
         labels = [
-            annotation["label"] for annotation in self.dataloop_data["annotations"]
+            annotation["label"] for annotation in self.annotation_data["annotations"]
         ]
         annotation_count = 0
         for label in labels:
@@ -261,7 +261,7 @@ class TestDataLoopAnnotationTransformerService(unittest.TestCase):
         #         annotation["metadata"]["system"]["endFrame"]
         #         - annotation["metadata"]["system"]["frame"]
         #     )
-        #     for annotation in self.dataloop_data["annotations"]
+        #     for annotation in self.annotation_data["annotations"]
         # ]
         # for l, label in zip(frame_length, labels):
         #     self.assertEqual(l, len(segmented_video_annotations[label]) - 1)

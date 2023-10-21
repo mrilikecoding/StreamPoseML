@@ -5,7 +5,7 @@ import time
 
 import yaml
 
-CONFIG = yaml.safe_load(open("./config.yaml"))
+CONFIG = yaml.safe_load(open("./config.yml"))
 
 from pose_parser.jobs.process_videos_job import ProcessVideosJob
 

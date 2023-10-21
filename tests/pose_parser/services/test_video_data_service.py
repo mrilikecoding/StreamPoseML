@@ -1,10 +1,6 @@
 import unittest
 import shutil
 
-
-from pose_parser.services.video_data_service import VideoDataService
-
-
 class TestVideoDataService(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:

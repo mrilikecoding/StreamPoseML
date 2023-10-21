@@ -3,13 +3,13 @@ import os
 import shutil
 from pathlib import Path
 
-from pose_parser.services.video_data_dataloop_merge_service import (
-    VideoDataDataloopMergeService,
-    VideoDataDataloopMergeServiceError,
+from pose_parser.services.video_data_merge_service import (
+    VideoDataMergeService,
+    VideoDataMergeServiceError,
 )
 
 
-class TestVideoDataDataloopMergeService(unittest.TestCase):
+class TestVideoDataMergeService(unittest.TestCase):
     def setUp(self) -> None:
         self.annotations_directory = "./source_annotations"
         self.source_videos = "./source_videos"
@@ -33,7 +33,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
         WHEN calling to create a map
         THEN a map dict is created where each entry reference the correct matching annotation / video
         """
-        vdms = VideoDataDataloopMergeService(
+        vdms = VideoDataMergeService(
             annotations_directory=self.annotations_directory,
             video_directory=self.source_videos,
             output_data_path=self.output_data_path,
@@ -47,11 +47,11 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
 
     def test_generate_dataset(self):
         """
-        GIVEN a video dataloop merge service instance with a file map
+        GIVEN a video annotation merge service instance with a file map
         WHEN calling to generate a dataset from the file map
         THEN a dictionary object is returned keyed off all labels found in annotation data with culled example clip data for each label
         """
-        vdms = VideoDataDataloopMergeService(
+        vdms = VideoDataMergeService(
             annotations_directory=self.annotations_directory,
             video_directory=self.source_videos,
             output_data_path=self.output_data_path,
@@ -70,7 +70,7 @@ class TestVideoDataDataloopMergeService(unittest.TestCase):
         THEN a file is successfully created in the specified location
         """
         limit = 1
-        vdms = VideoDataDataloopMergeService(
+        vdms = VideoDataMergeService(
             annotations_directory=self.annotations_directory,
             video_directory=self.source_videos,
             output_data_path=self.output_data_path,

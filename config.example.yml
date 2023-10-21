@@ -16,7 +16,6 @@ test_merged_annotation_output_directory: ./pose_parser/tmp/annotated_videos
 
 # data schemas
 annotation_schemas:
-  - dataloop
 
 # for videos
 supported_filetypes:

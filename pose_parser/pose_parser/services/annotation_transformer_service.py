@@ -1,22 +1,22 @@
-class DataloopAnnotationTransformerService:
+class AnnotationTransformerService:
     """
     This class is responsible for marrying video frame data and annotations.
     """
 
     @staticmethod
     def update_video_data_with_annotations(
-        dataloop_data: dict,
+        annotation_data: dict,
         video_data: dict,
     ) -> dict:
         """Merged video and annotation data.
 
-        This method accepts a dictionary of dataloop_data and a serialized video_data dictionary
+        This method accepts a dictionary of anotation_data and a serialized video_data dictionary
         and then extracts the corresponding clip from the video frame data and stores it with the right
         annotation label.
 
         Args:
-            dataloop_data: dict
-                Raw json from dataloop corresponding to the passed video data
+            annotation_data: dict
+                Raw json annotation data matching defined schema corresponding to the passed video data
             video_data: dict
                 Serialized video data for each frame
         Returns:
@@ -29,7 +29,7 @@ class DataloopAnnotationTransformerService:
                 "frame": annotation["metadata"]["system"]["frame"],
                 "endFrame": annotation["metadata"]["system"]["endFrame"],
             }
-            for annotation in dataloop_data["annotations"]
+            for annotation in annotation_data["annotations"]
         ]
 
         # TODO set this in config - this should match annotation ontology
@@ -68,8 +68,8 @@ class DataloopAnnotationTransformerService:
         return (all_frames, labeled_frames, unlabeled_frames)
 
 
-class DataloopAnnotationTransformerServiceError(Exception):
-    """Raised when there's a problem in the DataloopAnnotationTransformerService"""
+class AnnotationTransformerServiceError(Exception):
+    """Raised when there's a problem in the AnnotationTransformerService"""
 
     pass
 

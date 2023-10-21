@@ -1,8 +1,8 @@
 import pandas as pd
 import time
 
-from pose_parser.services.video_data_dataloop_merge_service import (
-    VideoDataDataloopMergeService,
+from pose_parser.services.video_data_merge_service import (
+    VideoDataMergeService,
 )
 
 from pose_parser.utils.utils import round_nested_dict
@@ -30,7 +30,7 @@ class BuildAndFormatDatasetJob:
             limit: int
                 only process data to this limit (useful for testing)
         """
-        vdms = VideoDataDataloopMergeService(
+        vdms = VideoDataMergeService(
             annotations_data_directory=annotations_data_directory,
             sequence_data_directory=sequence_data_directory,
             process_videos=False,
@@ -61,7 +61,7 @@ class BuildAndFormatDatasetJob:
             video_directory: str
                 the location of videos to be processed
         """
-        vdms = VideoDataDataloopMergeService(
+        vdms = VideoDataMergeService(
             annotations_directory=annotations_directory,
             video_directory=video_directory,
             process_videos=True,

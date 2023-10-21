@@ -57,9 +57,7 @@ class LabeledFrameSerializer:
             row["joints"] = joints
         if self.include_angles:
             angles = self.serialize_angles(
-                frame["data"]["angles"],
-                include_z_axis=self.include_z_axis,
-                include_normalized=self.include_normalized,
+                frame["data"]["angles"]
             )
             row["angles"] = angles
         if self.include_distances:
