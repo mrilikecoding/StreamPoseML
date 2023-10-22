@@ -14,8 +14,60 @@ test_keypoints_data_output_directory: ./pose_parser/tmp/test_keypoints
 test_sequence_data_output_directory: ./pose_parser/tmp/test_sequences
 test_merged_annotation_output_directory: ./pose_parser/tmp/annotated_videos
 
-# data schemas
-annotation_schemas:
+# Annotation Schema
+
+# Here define how annotation label taxonomies map to the video data
+# Example Annotation Data:
+# {
+#   "id": "63e10d737329c2fe92c8ae0a",
+#   "datasetId": "63bef4c53775a03d44271475",
+#   "metadata": {
+#     "system": {
+#       "ffmpeg": {
+#         "avg_frame_rate": "30000/1001",
+#         "width": 1920
+#       },
+#       "fps": 29.97002997002997,
+#     },
+#     "fps": 29.97002997002997,
+#     "startTime": 0.007
+#   },
+#   "name": "IKF_8.27_230pm_BW_Front5_P9.webm",
+#   "annotations": [
+#     {
+#       "id": "63fe90715ff162c693fa0f3c",
+#       "datasetId": "63bef4c53775a03d44271475",
+#       "itemId": "63e10d737329c2fe92c8ae0a",
+#       "label": "Left Step",
+#       "metadata": {
+#         "system": {
+#           "startTime": 5.472133333333334,
+#           "endTime": 6.940266666666667,
+#           "frame": 164,
+#           "endFrame": 208,
+#           "openAnnotationVersion": "1.56.0-prod.31",
+#           "recipeId": "63bef4c5223e5c2a0a9e4227"
+#         },
+#         "user": {}
+#       },
+#       "source": "ui"
+#     },
+#     ...
+#   ],
+#   "annotationsCount": 3,
+#   "annotated": true
+# }
+annotation_schema: # assume one annotation file per video where there is a list of annotations
+  annotations_key: "annotations" # the key in the annotation file that contains the list of annotations
+  annotation_fields: # the fields in the annotation file that map to the video data
+    label: label # the label field in the annotation list
+    start_frame: metadata.system.frame # the starting video frame for the annotation
+    end_frame: metadata.system.endFrame # the ending video frame for the annotation
+  label_class_mapping: # for each label (Key), map to a class (Value), i.e. Dog: animal, or Truck: vehicle, or 0: has_something
+    Left Step: step_type
+    Right Step: step_type
+    Successful Weight Transfer: weight_transfer_type
+    Failure Weight Transfer: weight_transfer_type
 
 # for videos
 supported_filetypes:
@@ -25,3 +77,4 @@ supported_filetypes:
 # This is configuration to pass into mediapipe
 # See https://google.github.io/mediapipe/solutions/pose.html
 mediapipe_configuration: {}
+

@@ -1,16 +1,55 @@
+import yaml
+import os
+
+def get_nested_key(data: dict, key: str):
+    """Access nested dictionary keys based on a dot-separated key string."""
+    keys = key.split('.')
+    for k in keys:
+        data = data[k]
+    return data
+
+def find_project_root(identifying_file='config.yml'):
+    """Find the root directory of the project by looking for an identifying file."""
+    current_path = os.path.abspath(os.curdir)
+
+    while True:
+        files_in_current_path = os.listdir(current_path)
+
+        if identifying_file in files_in_current_path:
+            return current_path
+
+        # Move up one directory level
+        parent_path = os.path.dirname(current_path)
+
+        # If we've already reached the root directory, stop
+        if parent_path == current_path:
+            raise Exception(f"Root directory with {identifying_file} not found!")
+        
+        current_path = parent_path
+
 class AnnotationTransformerService:
     """
     This class is responsible for marrying video frame data and annotations.
     """
 
     @staticmethod
+    def load_annotation_schema(schema_filename: str = 'config.yml') -> dict:
+        """Loads the annotation schema from a YAML file."""
+        project_root = find_project_root()
+        schema_path = os.path.join(project_root, schema_filename)
+
+        with open(schema_path, 'r') as ymlfile:
+            return yaml.load(ymlfile, Loader=yaml.FullLoader)['annotation_schema']
+
+    @staticmethod
     def update_video_data_with_annotations(
         annotation_data: dict,
         video_data: dict,
-    ) -> dict:
+        schema: dict = None
+    ) -> tuple:
         """Merged video and annotation data.
 
-        This method accepts a dictionary of anotation_data and a serialized video_data dictionary
+        This method accepts a dictionary of annotation_data and a serialized video_data dictionary
         and then extracts the corresponding clip from the video frame data and stores it with the right
         annotation label.
 
@@ -19,29 +58,30 @@ class AnnotationTransformerService:
                 Raw json annotation data matching defined schema corresponding to the passed video data
             video_data: dict
                 Serialized video data for each frame
+            schema: dict
+                Annotation schema specifying the structure of annotation_data
         Returns:
             frame_lists: tuple[list, list, list]
                 returns a tuple of lists of all_frames, labeled_frames, unlabeled_frames
         """
+        if schema is None:
+            schema = AnnotationTransformerService.load_annotation_schema()
+
+        # Extract annotation information based on provided schema
+        annotations_key = schema['annotations_key']
         clip_annotation_map = [
             {
-                "label": annotation["label"],
-                "frame": annotation["metadata"]["system"]["frame"],
-                "endFrame": annotation["metadata"]["system"]["endFrame"],
+                "label": get_nested_key(annotation, schema['annotation_fields']['label']),
+                "frame": get_nested_key(annotation, schema['annotation_fields']['start_frame']),
+                "endFrame": get_nested_key(annotation, schema['annotation_fields']['end_frame']),
             }
-            for annotation in annotation_data["annotations"]
+            for annotation in annotation_data[annotations_key]
         ]
 
-        # TODO set this in config - this should match annotation ontology
-        # binary label value: label key
-        label_heirarchy = {
-            "Left Step": "step_type",
-            "Right Step": "step_type",
-            "Successful Weight Transfer": "weight_transfer_type",
-            "Failure Weight Transfer": "weight_transfer_type",
-        }
-        # determine top level column names
-        label_columns = set(label_heirarchy.values())
+        label_hierarchy = schema['label_class_mapping']
+        
+        # Determine top level column names
+        label_columns = set(label_hierarchy.values())
         labeled_frames = []
         unlabeled_frames = []
         all_frames = []
@@ -49,9 +89,9 @@ class AnnotationTransformerService:
         video_name = video_data["name"]
         for frame, frame_data in video_data["frames"].items():
             data = {column: None for column in label_columns}
-            # for each frame, assign top level column values to their appropriate labels
+            # For each frame, assign top level column values to their appropriate labels
             for annotation in clip_annotation_map:
-                label_column = label_heirarchy[annotation["label"]]
+                label_column = label_hierarchy[annotation["label"]]
                 start_frame = annotation["frame"]
                 end_frame = annotation["endFrame"]
                 if start_frame <= frame_data["frame_number"] <= end_frame:
@@ -72,212 +112,3 @@ class AnnotationTransformerServiceError(Exception):
     """Raised when there's a problem in the AnnotationTransformerService"""
 
     pass
-
-
-"""
-TODO create a json-schema based on this and validate the passed annotation data
-Schema
-{
-  "id": "63e10d737329c2fe92c8ae0a",
-  "datasetId": "63bef4c53775a03d44271475",
-  "url": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a",
-  "dataset": "https://gate.dataloop.ai/api/v1/datasets/63bef4c53775a03d44271475",
-  "createdAt": "2023-02-06T14:23:47.000Z",
-  "dir": "/IKF/Aug 27 2:30pm/Front",
-  "filename": "/IKF/Aug 27 2:30pm/Front/IKF_8.27_230pm_BW_Front5_P9.webm",
-  "type": "file",
-  "hidden": false,
-  "metadata": {
-    "system": {
-      "originalname": "IKF_8.27_230pm_BW_Front5_P9.webm",
-      "size": 978603,
-      "encoding": "7bit",
-      "taskStatusLog": [],
-      "mimetype": "video/webm",
-      "refs": [],
-      "isBinary": true,
-      "duration": 9.583,
-      "ffmpeg": {
-        "avg_frame_rate": "30000/1001",
-        "chroma_location": "left",
-        "closed_captions": 0,
-        "codec_long_name": "Google VP9",
-        "codec_name": "vp9",
-        "codec_tag": "0x0000",
-        "codec_tag_string": "[0][0][0][0]",
-        "codec_type": "video",
-        "coded_height": 1080,
-        "coded_width": 1920,
-        "color_primaries": "bt709",
-        "color_range": "tv",
-        "color_space": "bt709",
-        "color_transfer": "bt709",
-        "display_aspect_ratio": "16:9",
-        "disposition": {
-          "attached_pic": 0,
-          "clean_effects": 0,
-          "comment": 0,
-          "default": 1,
-          "dub": 0,
-          "forced": 0,
-          "hearing_impaired": 0,
-          "karaoke": 0,
-          "lyrics": 0,
-          "original": 0,
-          "timed_thumbnails": 0,
-          "visual_impaired": 0
-        },
-        "field_order": "progressive",
-        "has_b_frames": 0,
-        "height": 1080,
-        "index": 0,
-        "level": -99,
-        "nb_read_frames": "287",
-        "nb_read_packets": "287",
-        "pix_fmt": "yuv420p",
-        "profile": "Profile 0",
-        "r_frame_rate": "30000/1001",
-        "refs": 1,
-        "sample_aspect_ratio": "1:1",
-        "start_pts": 7,
-        "start_time": "0.007000",
-        "tags": {
-          "DURATION": "00:00:09.583000000",
-          "ENCODER": "Lavc59.37.100 libvpx-vp9",
-          "HANDLER_NAME": "Core Media Video",
-          "VENDOR_ID": "[0][0][0][0]"
-        },
-        "time_base": "1/1000",
-        "width": 1920
-      },
-      "fps": 29.97002997002997,
-      "height": 1080,
-      "nb_streams": 2,
-      "startTime": 0.007,
-      "width": 1920,
-      "thumbnailId": "63e10d7aeb77175585967f38"
-    },
-    "fps": 29.97002997002997,
-    "startTime": 0.007
-  },
-  "name": "IKF_8.27_230pm_BW_Front5_P9.webm",
-  "creator": "trajkovamilka@gmail.com",
-  "stream": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a/stream",
-  "thumbnail": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a/thumbnail",
-  "annotations": [
-    {
-      "id": "63fe90715ff162c693fa0f3c",
-      "datasetId": "63bef4c53775a03d44271475",
-      "itemId": "63e10d737329c2fe92c8ae0a",
-      "url": "https://gate.dataloop.ai/api/v1/annotations/63fe90715ff162c693fa0f3c",
-      "item": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a",
-      "dataset": "https://gate.dataloop.ai/api/v1/datasets/63bef4c53775a03d44271475",
-      "type": "class",
-      "label": "Left Step",
-      "attributes": [],
-      "metadata": {
-        "system": {
-          "startTime": 5.472133333333334,
-          "endTime": 6.940266666666667,
-          "frame": 164,
-          "endFrame": 208,
-          "snapshots_": [],
-          "clientId": "594e78ed-8ea4-42c5-96cd-6757fa730a16",
-          "automated": false,
-          "objectId": "3",
-          "isOpen": false,
-          "isOnlyLocal": false,
-          "attributes": {},
-          "system": false,
-          "itemLinks": [],
-          "openAnnotationVersion": "1.56.0-prod.31",
-          "recipeId": "63bef4c5223e5c2a0a9e4227"
-        },
-        "user": {}
-      },
-      "creator": "trajkovamilka@gmail.com",
-      "createdAt": "2023-02-28T23:38:25.259Z",
-      "updatedBy": "trajkovamilka@gmail.com",
-      "updatedAt": "2023-02-28T23:38:25.259Z",
-      "hash": "126958046adf48aeba68b6a125f7d02812d58dce",
-      "source": "ui"
-    },
-    {
-      "id": "63fe90715ff1623838fa0f3a",
-      "datasetId": "63bef4c53775a03d44271475",
-      "itemId": "63e10d737329c2fe92c8ae0a",
-      "url": "https://gate.dataloop.ai/api/v1/annotations/63fe90715ff1623838fa0f3a",
-      "item": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a",
-      "dataset": "https://gate.dataloop.ai/api/v1/datasets/63bef4c53775a03d44271475",
-      "type": "class",
-      "label": "Right Step",
-      "attributes": [],
-      "metadata": {
-        "system": {
-          "startTime": 0.5005000000000001,
-          "endTime": 1.9352666666666667,
-          "frame": 15,
-          "endFrame": 58,
-          "snapshots_": [],
-          "clientId": "5220cc7a-dccb-4e28-8318-5823a2cf8596",
-          "automated": false,
-          "objectId": "1",
-          "isOpen": false,
-          "isOnlyLocal": false,
-          "attributes": {},
-          "system": false,
-          "itemLinks": [],
-          "openAnnotationVersion": "1.56.0-prod.31",
-          "recipeId": "63bef4c5223e5c2a0a9e4227"
-        },
-        "user": {}
-      },
-      "creator": "trajkovamilka@gmail.com",
-      "createdAt": "2023-02-28T23:38:25.255Z",
-      "updatedBy": "trajkovamilka@gmail.com",
-      "updatedAt": "2023-02-28T23:38:25.255Z",
-      "hash": "67378dc20d711351ce94c279c20bd576b4ef1405",
-      "source": "ui"
-    },
-    {
-      "id": "63fe90715ff1626fe6fa0f3b",
-      "datasetId": "63bef4c53775a03d44271475",
-      "itemId": "63e10d737329c2fe92c8ae0a",
-      "url": "https://gate.dataloop.ai/api/v1/annotations/63fe90715ff1626fe6fa0f3b",
-      "item": "https://gate.dataloop.ai/api/v1/items/63e10d737329c2fe92c8ae0a",
-      "dataset": "https://gate.dataloop.ai/api/v1/datasets/63bef4c53775a03d44271475",
-      "type": "class",
-      "label": "Failure Weight Transfer",
-      "attributes": [],
-      "metadata": {
-        "system": {
-          "startTime": 0.5005000000000001,
-          "endTime": 9.567891666666666,
-          "frame": 15,
-          "endFrame": 286,
-          "snapshots_": [],
-          "clientId": "940ae3f8-4cfd-40a7-be0c-c592aaafcf25",
-          "automated": false,
-          "objectId": "2",
-          "isOpen": false,
-          "isOnlyLocal": false,
-          "attributes": {},
-          "system": false,
-          "itemLinks": [],
-          "openAnnotationVersion": "1.56.0-prod.31",
-          "recipeId": "63bef4c5223e5c2a0a9e4227"
-        },
-        "user": {}
-      },
-      "creator": "trajkovamilka@gmail.com",
-      "createdAt": "2023-02-28T23:38:25.257Z",
-      "updatedBy": "trajkovamilka@gmail.com",
-      "updatedAt": "2023-02-28T23:38:25.257Z",
-      "hash": "954fd42004669684bf673eb4fa4a8f68cc8e3008",
-      "source": "ui"
-    }
-  ],
-  "annotationsCount": 3,
-  "annotated": true
-}
-"""
