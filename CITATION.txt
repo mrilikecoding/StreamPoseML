@@ -1,0 +1,15 @@
+TODO - obtain DOI
+
+If you use this software in your research, please cite it as:
+
+Green, N. (2023). Poser. Version 0.1.0. [DOI:xxx]
+
+BibTeX:
+
+@software{poser-2023,
+  author = {Nathaniel Green},
+  title = {Poser},
+  version = {0.1.0},
+  date = {2023},
+  doi = {xx/xx},
+}

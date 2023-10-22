@@ -293,7 +293,7 @@ Note: tests work for some of the modules but have fallen behind... contributions
 
 ## Citing 
 
-If you use this, please cite me. But this is not ready for use. Please don't use this yet lol.
+See [CITATION.txt](CITATION.txt)
 
 ## Contributions
 
