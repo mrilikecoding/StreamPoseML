@@ -1,12 +1,186 @@
 # Poser
 
-A realtime video classification web application and python toolkit for building and training models.
+Poser is an open-source end-to-end toolkit for creating realtime video-based classification experiments that rely on utilizing labeled data alongside captured body keypoit / pose data. The process for building a real-time video classification application typically looks something like this:
 
-This system is meant to run locally on your machine. The web application ships within Docker containers. The model toolkits are best run within your own isolated Python environment, outside of Docker.
+1. Collect video data
+2. Label video data
+3. Generate body keypoints
+4. Compute features
+5. Merge annotations with keypoints / features into a dataset
+6. Train a model
+7. Run experiments
+8. Deploy the trained the model
+9. Classify real-time video captured via the web
+10. Send results outside the application
+
+Poser aims to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
+
+## Keypoint extraction
+
+Poser currently uses Mediapipe to extract body keypoints. This is because Poser was developed to assist with realtime video classification tasks that could potentially run on relatively ubiquitous devices, perhaps in a therpeutic or live performance setting. The aim is to provide a system to enable anyone with a webcam to be able to classify video in real-time. 
+
+You can certainly incorporate Poser into your own tooling. However, the best way to get started is to work within a Jupyter Notebook environment to bring everything together.
+
+The process for extracting keypoints looks like this:
+
+```
+pv.ProcessVideosJob().process_videos(
+    src_videos_path=source_videos_directory,
+    output_keypoints_data_path=keypoints_path,
+    output_sequence_data_path=sequence_path,
+    write_keypoints_to_file=True,
+    write_serialized_sequence_to_file=True,
+    limit=None,
+    configuration={},
+    preprocess_video=True,
+    return_output=False
+)
+
+```
+
+## Feature engineering
+
+There are currently various options available that take the raw keypoint data and build upon it to generate normalized angle and distance measurements for use in building your dataset. These features are shown more in the examples below.
+
+## Merging annotations with video keypoints / features
+
+A pain point we found in our research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. This work can be tedious on top of the already tedious task of labeling the data. However this task is straightforward with Poser assuming you have structured annotatoin data. First, copy `config.example.yml` into `config.yml`
+
+Then update the annotation schema to match your annotation data. Poser assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently Poser support JSON.
+
+Here's an example of a valid annotation file:
+
+```
+video1-annotations.json
+
+ {
+   "id": "63e10d737329c2fe92c8ae0a",
+   "datasetId": "63bef4c53775a03d44271475",
+   "metadata": {
+     "system": {
+       "ffmpeg": {
+         "avg_frame_rate": "30000/1001",
+         "width": 1920
+       },
+       "fps": 29.97002997002997,
+     },
+     "fps": 29.97002997002997,
+     "startTime": 0.007
+   },
+   "name": "video1.webm",
+   "annotations": [
+     {
+       "id": "63fe90715ff162c693fa0f3c",
+       "datasetId": "63bef4c53775a03d44271475",
+       "itemId": "63e10d737329c2fe92c8ae0a",
+       "label": "Left Step",
+       "metadata": {
+         "system": {
+           "startTime": 5.472133333333334,
+           "endTime": 6.940266666666667,
+           "frame": 164,
+           "endFrame": 208,
+           "openAnnotationVersion": "1.56.0-prod.31",
+           "recipeId": "63bef4c5223e5c2a0a9e4227"
+         },
+         "user": {}
+       },
+       "source": "ui"
+     },
+     ...
+   ],
+   "annotationsCount": 3,
+   "annotated": true
+ }
+```
+
+Then here's what your configuration should look like.
+
+```
+annotation_schema: # assume one annotation file per video where there is a list of annotations
+  annotations_key: "annotations" # the key in the annotation file that contains the list of annotations
+  annotation_fields: # the fields in the annotation file that map to the video data
+    label: label # the label field in the annotation list
+    start_frame: metadata.system.frame # the starting video frame for the annotation
+    end_frame: metadata.system.endFrame # the ending video frame for the annotation
+  label_class_mapping: # for each label (Key), map to a class (Value), i.e. Dog: animal, or Truck: vehicle, or 0: has_something
+    Left Step: step_type
+    Right Step: step_type
+    Successful Weight Transfer: weight_transfer_type
+    Failure Weight Transfer: weight_transfer_type
+```
+
+## Creating datasets with features
+
+Poser was built while conducting studies of Parkinson's Disease patients in dance therapy settings. From these efforts, you can see many Jupyter notebook examples showing how you can use Poser to built your training dataset.
+
+To get a feel for building your dataset using Poser, see `/pose_parser/notebooks/dataset_for_ui.ipynb`
+
+The process looks like this:
+
+```
+# This is the main class that does all the work
+db = data_builder.BuildAndFormatDatasetJob()
+
+# Here you'll specift the path to you annotations and Poser generated sequences
+dataset = db.build_dataset_from_data_files(
+    annotations_data_directory=source_annotations_directory,
+    sequence_data_directory=sequence_data_directory,
+    limit=None,
+)
+
+formatted_dataset = db.format_dataset(
+    dataset=dataset,
+    pool_frame_data_by_clip=False,
+    decimal_precision=4,
+    include_unlabeled_data=True,
+    include_angles=True,
+    include_distances=True,
+    include_normalized=True,
+    segmentation_strategy="flatten_into_columns",
+    segmentation_splitter_label="step_type",
+    segmentation_window=10,
+    segmentation_window_label="weight_transfer_type",
+)
+
+db.write_dataset_to_csv(
+    csv_location=merged_annotation_output_directory,
+    formatted_dataset=formatted_dataset,
+    filename="preprocessed_flatten_on_example_10_frames_5"
+)
+```
+
+For most training tasks you may not want to get too clever with the features and may just want to train on flat representations of raw keypoints. 
+
+The simplest approach is:
+
+```
+formatted_dataset = db.format_dataset(
+    dataset=dataset,
+    pool_frame_data_by_clip=False,
+    decimal_precision=4,
+    include_unlabeled_data=True,
+    include_angles=False,
+    include_distances=False,
+    include_normalized=False,
+    segmentation_strategy="none",
+)
+```
+
+This will give you one row per frame with columns for each x, y, z coordinate in addition to your labeled data. From there you can use pandas or whatever you like to further window or segment your data.
+
+
+## Training models
+
+There are several convenience methods abstracted into a Model Builder class created to speed up iterations and model evaluation. See the notebooks for usage examples. However, once you have your dataset you can use whatever process you like to train models.
+
+## Saving your model
+
+If you want to use your trained model in Poser's web application, you'll need to save it as a "pickle". You may need to wrap it in a class before you do this such that when it is loaded it responds  with a result when the method "predict" is called on it.
 
 ## Running the Web Applictaion
 
-First, you'll need a trained classifier saved to a pickle file (in Python). The model should implement a "predict" method that takes an array of examples to classify. For realtime video classification generally you'll want to pass a single example
+First, as mentioned above, you'll need a trained classifier saved to a pickle file (in Python). The model should implement a "predict" method that takes an array of examples to classify. For realtime video classification generally you'll want to pass a single example
 
 The pickle object should be shaped like this:
 
@@ -27,21 +201,6 @@ Then to run the app:
 This should install the necessary dependencies and then launch the application in your default browser. 
 
 4. When you're done, run `stop.sh` to gracefully end the application processes.
-
-## June 2023
-
-## Work in progress
-
-
-This project aims to simplify running keypoint extraction from Mediapipe (BlazePose), computing commonly used angle and distance measurements and modeling them in memory, and marrying the data with annotation data. Finally this project provides a model builder interface to simplify running machine learning experiments.
-
-You'll also find the beginnings of a web application here - the intention is to eventually have a means to capture video in realtime, pipe the video data to the server layer (via RTC) and then through a pose parsing pipeline that can return the results of a classification.
-
-This is a WIP and not ready for primetime - the classes and methods are well documented but there's no good usage documentation. However, the notebook examples should provide enough guidance for now.
-
-## Notebooks
-
-Notebooks can be found by navigating to `pose_parser/notebooks`
 
 ## Installation
 
@@ -124,7 +283,6 @@ Locally I've been running experiments, training models, testing, and writing not
 
 NOTE - you may need to futz with dependencies / versions from errors that are generated.
 
-
 ## Tests
 
 To start run `python setup.py` to set paths correctly. Then simply:
@@ -137,11 +295,13 @@ Note: tests work for some of the modules but have fallen behind... contributions
 
 If you use this, please cite me. But this is not ready for use. Please don't use this yet lol.
 
-## TODOs
-* Pull frontend bluetooth into its own component
-* add a bluetooth mock service
+## Contributions
+
+Your contributions would be enthusiastically welcomed! While there's not a formal roadmap, there are plenty of TODOs and with more people using this, the hope is that a roadmap will emerge.
+
+### TODOs
 * fix error that sends keypoints to server when classification is turned off
-* make UI nicer
+* make UI nicer and create an easier template to adapt
 * create a nicer scheme for integrating models and their data schema
   * this probably looks like an abstract class that can wrap models as well as multi-stage classifiers with a single predict method. This abstract class should also incorporate the data schema. There should be a utility that can go from skel data to the schema... this'll be a big feature.
 * add citation file
@@ -149,8 +309,7 @@ If you use this, please cite me. But this is not ready for use. Please don't use
 * Refactor object creation - some complicated init anti-patterns are here
 * Build out an ETL wrapper and simplify job logic - there are some parameter sinkholes in the current flow
 * Build a utility for looking at video and annotations
-* Abstract the annotation layer - we used Dataloop, but what we should do is define a way to load in an annotation schema so that other tools can be dropped in (annotation strategies with json schema)
-* Model builder methods are cumbersome and untests - need to split up model creation from grid search / random search logic
+* Model builder methods are cumbersome and untested - need to split up model creation from grid search / random search logic
    
 
 # Building Dockerfiles
