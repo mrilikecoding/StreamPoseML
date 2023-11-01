@@ -1,19 +1,26 @@
 # Poser
 
-Poser is an open-source end-to-end toolkit for creating realtime video-based classification experiments that rely on utilizing labeled data alongside captured body keypoit / pose data. The process for building a real-time video classification application typically looks something like this:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Supported Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-green)
+
+
+Poser is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on utilizing labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
 
 1. Collect video data
 2. Label video data
-3. Generate body keypoints
+3. Generate body keypoints from video
 4. Compute features
-5. Merge annotations with keypoints / features into a dataset
+5. Merge annotations/labels with keypoints/features into a dataset
 6. Train a model
 7. Run experiments
 8. Deploy the trained the model
-9. Classify real-time video captured via the web
-10. Send results outside the application
+9. Classify real-time video captured via the web or some other input source
+10. Actuate or send results outside the application
 
-Poser aims to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
+Poser aspires to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
+
+Additionally, Poser aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a python dev/data-scientist, Poser provides a local laboratory for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable real-time classification / actuation system. 
+
 
 ## Keypoint extraction
 
@@ -24,19 +31,22 @@ You can certainly incorporate Poser into your own tooling. However, the best way
 The process for extracting keypoints looks like this:
 
 ```
+import pose_parser.jobs.process_videos_job as pv
+
 pv.ProcessVideosJob().process_videos(
-    src_videos_path=source_videos_directory,
-    output_keypoints_data_path=keypoints_path,
-    output_sequence_data_path=sequence_path,
+    src_videos_path='/path/to/source/videos',
+    output_keypoints_data_path='/path/to/output/frame/keypoints',
+    output_sequence_data_path='/path/to/output/video/sequences',
     write_keypoints_to_file=True,
     write_serialized_sequence_to_file=True,
     limit=None,
-    configuration={},
+    configuration={}, # mediapipe configuration
     preprocess_video=True,
     return_output=False
 )
-
 ```
+
+You pass a directory containing your videos. Each video will be run through mediapipe. In the keypoints directory, namespaced to each video, json keypoint representations will be saved. Additionally, the entire video's keypoints will be serialized into a video sequence and stored in a parallel directory. These files can be used directly in a training regime, or you can use Poser's dataset building tools to format sequence data into other formats.
 
 ## Feature engineering
 
@@ -44,14 +54,14 @@ There are currently various options available that take the raw keypoint data an
 
 ## Merging annotations with video keypoints / features
 
-A pain point we found in our research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. This work can be tedious on top of the already tedious task of labeling the data. However this task is straightforward with Poser assuming you have structured annotatoin data. First, copy `config.example.yml` into `config.yml`
+A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. However this task is straightforward with Poser assuming you have structured annotation data. First, copy `config.example.yml` into `config.yml`.
 
-Then update the annotation schema to match your annotation data. Poser assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently Poser support JSON.
+Then update the annotation schema to match your annotation data. Poser assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently Poser support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
 
-Here's an example of a valid annotation file:
+Here's an example of a valid annotation file for video named `video1.mov`:
 
 ```
-video1-annotations.json
+video1-annotation.json
 
  {
    "id": "63e10d737329c2fe92c8ae0a",
@@ -94,7 +104,7 @@ video1-annotations.json
  }
 ```
 
-Then here's what your configuration should look like.
+Then here's what your `config.yml` should look like.
 
 ```
 annotation_schema: # assume one annotation file per video where there is a list of annotations
@@ -112,13 +122,15 @@ annotation_schema: # assume one annotation file per video where there is a list 
 
 ## Creating datasets with features
 
-Poser was built while conducting studies of Parkinson's Disease patients in dance therapy settings. From these efforts, you can see many Jupyter notebook examples showing how you can use Poser to built your training dataset.
+Poser was built while conducting studies of Parkinson's Disease patients in dance therapy settings. From these efforts, you can see several Jupyter notebook examples showing how to use Poser to built a training dataset.
 
 To get a feel for building your dataset using Poser, see `/pose_parser/notebooks/dataset_for_ui.ipynb`
 
 The process looks like this:
 
 ```
+import pose_parser.jobs.build_and_format_dataset_job as data_builder 
+
 # This is the main class that does all the work
 db = data_builder.BuildAndFormatDatasetJob()
 
@@ -176,7 +188,7 @@ There are several convenience methods abstracted into a Model Builder class crea
 
 ## Saving your model
 
-If you want to use your trained model in Poser's web application, you'll need to save it as a "pickle". You may need to wrap it in a class before you do this such that when it is loaded it responds  with a result when the method "predict" is called on it.
+If you want to use your trained model in Poser's web application, you'll need to save it as a "pickle" so that it can be loaded into the application server at runtime. You may need to wrap it in a class before you do this such that when it is loaded it responds  with a result when the method "predict" is called on it.
 
 ## Running the Web Applictaion
 
@@ -192,7 +204,9 @@ The pickle object should be shaped like this:
 
 Place this pickle file in `data/trained_models`
 
-Then to run the app:
+Provided is a simple Flask API that sits behind a React UI. The UI was tailored for our specific use case in classifying types of steps captured via webcam, however you can adapt this for your own model classification scheme.
+
+To run the app:
 
 1. Visit docker.com and sign up for an account.
 2. Download the Docker for Desktop client for your your sytem, launch, and log in.
@@ -293,11 +307,11 @@ Note: tests work for some of the modules but have fallen behind... contributions
 
 ## Citing 
 
-See [CITATION.txt](CITATION.txt)
+If you use this code in any research, please cite it so that others may benefit from knowing about this project. See [CITATION.txt](CITATION.txt).
 
 ## Contributions
 
-Your contributions would be enthusiastically welcomed! While there's not a formal roadmap, there are plenty of TODOs and with more people using this, the hope is that a roadmap will emerge.
+Your contributions would be enthusiastically welcomed! While there's not a formal roadmap, there are plenty of TODOs and with more people using this, the hope is that a roadmap will emerge. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### TODOs
 * fix error that sends keypoints to server when classification is turned off
@@ -314,5 +328,10 @@ Your contributions would be enthusiastically welcomed! While there's not a forma
 
 # Building Dockerfiles
 
+You may with to build and push the Dockerfiles to your own registry to deploy an application based on Poser. There are two main components with respect to Poser's web application: the API and the UI. To build each:
+```
 cd pose_parser && docker build -t myuser/pose_parser_api:latest -f Dockerfile .
-cd web_ui && docker build -t mrilikecoding/web_ui:latest -f Dockerfile .
+cd web_ui && docker build -t myuser/web_ui:latest -f Dockerfile .
+```
+
+Then you can push them and deploy them however you see fit, e.g. ECR / K8s.
