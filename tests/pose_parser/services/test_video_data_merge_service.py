@@ -11,8 +11,8 @@ from pose_parser.services.video_data_merge_service import (
 
 class TestVideoDataMergeService(unittest.TestCase):
     def setUp(self) -> None:
-        self.annotations_directory = "./source_annotations"
-        self.source_videos = "./source_videos"
+        self.annotations_directory = "./data/source_annotations"
+        self.source_videos = "./data/source_videos"
         self.output_data_path = "./data/generated_datasets"
         self.output_keypoints_path = "./data/keypoints"
 

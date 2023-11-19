@@ -4,8 +4,8 @@
 keypoints_data_output_directory: ./data/keypoints
 sequence_data_output_directory: ./data/keypoints
 merged_annotation_output_directory: ./data/annotated_videos
-source_video_directory: ./source_videos
-source_annotation_directory: ./source/annotations
+source_video_directory: ./data/source_videos
+source_annotation_directory: ./data/source/annotations
 
 # testing paths - tmp for generated output. Make sure to cleanup!
 test_video_directory: ./pose_parser/test_videos

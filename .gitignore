@@ -7,8 +7,6 @@ __pycache__
 config.yml
 
 node_modules/
-source_videos/*
-source_annotations/*
 data/*
 *.pickle
 test.csv
