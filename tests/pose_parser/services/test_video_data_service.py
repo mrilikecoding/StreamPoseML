@@ -4,8 +4,8 @@ import shutil
 class TestVideoDataService(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
-        self.output_data_path = "./pose_parser/tmp/data/keypoints"
-        self.video_input_path = "./pose_parser/test_videos"
+        self.output_data_path = "./stream_pose_ml/tmp/data/keypoints"
+        self.video_input_path = "./stream_pose_ml/test_videos"
         self.input_filename = "front.mp4"
 
     @classmethod

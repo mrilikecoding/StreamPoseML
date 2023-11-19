@@ -3,7 +3,7 @@ import os
 import shutil
 from pathlib import Path
 
-from pose_parser.services.video_data_merge_service import (
+from stream_pose_ml.services.video_data_merge_service import (
     VideoDataMergeService,
     VideoDataMergeServiceError,
 )

@@ -2,9 +2,9 @@
 docker buildx create --name multiplat_builder --driver docker-container --bootstrap
 docker buildx use multiplat_builder
 
-# Building pose_parser_api
-echo "Building pose_parser_api for multiple platforms..."
-docker buildx build --platform linux/amd64,linux/arm64 -t mrilikecoding/pose_parser_api:latest --push ./pose_parser
+# Building stream_pose_ml_api
+echo "Building stream_pose_ml_api for multiple platforms..."
+docker buildx build --platform linux/amd64,linux/arm64 -t mrilikecoding/stream_pose_ml_api:latest --push ./stream_pose_ml
 
 # Building web_ui
 echo "Building web_ui for multiple platforms..."

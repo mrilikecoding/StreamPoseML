@@ -5,7 +5,7 @@ export default class Api {
   constructor() {
     this.api_token = null;
     this.client = null;
-    this.api_url = process.env.REACT_APP_POSE_PARSER_API_ENDPOINT;
+    this.api_url = process.env.REACT_APP_STREAM_POSE_ML_API_ENDPOINT;
   }
 
   init = () => {

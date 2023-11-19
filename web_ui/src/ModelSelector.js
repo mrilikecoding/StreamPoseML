@@ -9,7 +9,7 @@ function ModelSelector({ setModel }) {
 
     const handleSubmit = async () => {
         // TODO set url from env
-        const response = await fetch(process.env.REACT_APP_POSE_PARSER_API_ENDPOINT + '/set_model', {
+        const response = await fetch(process.env.REACT_APP_STREAM_POSE_ML_API_ENDPOINT + '/set_model', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

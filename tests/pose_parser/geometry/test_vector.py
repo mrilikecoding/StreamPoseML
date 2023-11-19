@@ -1,7 +1,7 @@
 import unittest
 
-from pose_parser.geometry.joint import Joint
-from pose_parser.geometry.vector import Vector
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 
 class TestVector(unittest.TestCase):

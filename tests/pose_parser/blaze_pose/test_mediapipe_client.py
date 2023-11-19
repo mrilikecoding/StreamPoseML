@@ -5,7 +5,7 @@ from pathlib import Path
 import os
 import json
 
-from pose_parser.blaze_pose.mediapipe_client import (
+from stream_pose_ml.blaze_pose.mediapipe_client import (
     MediaPipeClient,
     MediaPipeClientError,
 )
@@ -13,8 +13,8 @@ from pose_parser.blaze_pose.mediapipe_client import (
 
 class TestMediaPipeClient(unittest.TestCase):
     def setUp(self) -> None:
-        self.output_path = "./pose_parser/tmp/data/keypoints"
-        self.video_path = "./pose_parser/test_videos"
+        self.output_path = "./stream_pose_ml/tmp/data/keypoints"
+        self.video_path = "./stream_pose_ml/test_videos"
         return super().setUp()
 
     def tearDown(self) -> None:

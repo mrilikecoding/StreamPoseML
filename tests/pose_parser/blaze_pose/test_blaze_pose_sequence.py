@@ -1,19 +1,19 @@
 import unittest
 import shutil
 
-from pose_parser.blaze_pose.mediapipe_client import MediaPipeClient
-from pose_parser.blaze_pose.blaze_pose_sequence import (
+from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
+from stream_pose_ml.blaze_pose.blaze_pose_sequence import (
     BlazePoseSequence,
     BlazePoseSequenceError,
 )
-from pose_parser.blaze_pose.blaze_pose_frame import BlazePoseFrame
+from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 
 
 class TestBlazePoseSequence(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
-        self.output_path = "./pose_parser/tmp/data/keypoints"
-        self.video_path = "./pose_parser/test_videos"
+        self.output_path = "./stream_pose_ml/tmp/data/keypoints"
+        self.video_path = "./stream_pose_ml/test_videos"
         input_path = self.video_path
         output_path = self.output_path
         mpc = MediaPipeClient(

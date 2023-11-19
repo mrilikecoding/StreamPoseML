@@ -35,7 +35,7 @@ echo "Please enter your Docker Hub credentials:"
 docker login
 
 # Pull the images
-docker pull mrilikecoding/pose_parser_api:latest
+docker pull mrilikecoding/stream_pose_ml_api:latest
 docker pull mrilikecoding/web_ui:latest
 
 # Start the services with Docker Compose

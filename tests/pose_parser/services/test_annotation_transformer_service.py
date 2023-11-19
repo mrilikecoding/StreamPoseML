@@ -1,9 +1,9 @@
 import unittest
 import shutil
 
-from pose_parser.services.video_data_service import VideoDataService
+from stream_pose_ml.services.video_data_service import VideoDataService
 
-from pose_parser.services.annotation_transformer_service import (
+from stream_pose_ml.services.annotation_transformer_service import (
     AnnotationTransformerService,
 )
 
@@ -11,8 +11,8 @@ from pose_parser.services.annotation_transformer_service import (
 class TestAnnotationTransformerService(unittest.TestCase):
     @classmethod
     def setUpClass(self) -> None:
-        self.video_input_path = "./pose_parser/test_videos"
-        self.output_data_path = "./pose_parser/tmp/data/keypoints"
+        self.video_input_path = "./stream_pose_ml/test_videos"
+        self.output_data_path = "./stream_pose_ml/tmp/data/keypoints"
         self.input_filename = "front.mp4"
         self.annotation_data = {
             "id": "63e10d737329c2fe92c8ae0a",

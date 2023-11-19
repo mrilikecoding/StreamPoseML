@@ -3,7 +3,7 @@ import yaml
 
 CONFIG = yaml.safe_load(open("./config.yml"))
 
-from pose_parser.jobs.build_and_format_dataset_job import BuildAndFormatDatasetJob
+from stream_pose_ml.jobs.build_and_format_dataset_job import BuildAndFormatDatasetJob
 
 
 class TestBuildAndFormatDatasetJob(unittest.TestCase):

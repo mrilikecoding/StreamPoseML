@@ -31,7 +31,7 @@ You can certainly incorporate StreamPoseML into your own tooling. However, the b
 The process for extracting keypoints looks like this:
 
 ```
-import pose_parser.jobs.process_videos_job as pv
+import stream_pose_ml.jobs.process_videos_job as pv
 
 pv.ProcessVideosJob().process_videos(
     src_videos_path='/path/to/source/videos',
@@ -114,12 +114,12 @@ annotation_schema: # assume one annotation file per video where there is a list 
 
 StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see several Jupyter notebook examples showing how to use StreamPoseML to build a training dataset.
 
-To get a feel for building your dataset using StreamPoseML, see `/pose_parser/notebooks/dataset_for_ui.ipynb`
+To get a feel for building your dataset using StreamPoseML, see `/stream_pose_ml/notebooks/dataset_for_ui.ipynb`
 
 The process looks like this:
 
 ```
-import pose_parser.jobs.build_and_format_dataset_job as data_builder 
+import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder 
 
 # This is the main class that does all the work
 db = data_builder.BuildAndFormatDatasetJob()
@@ -209,7 +209,7 @@ This should install the necessary dependencies and then launch the application i
 ## Installation
 
 1. Set up a python environment via conda or pyenv or other preferred tool.
-2. Install via `requirements.txt` located in the `pose_parser` folder.
+2. Install via `requirements.txt` located in the `stream_pose_ml` folder.
 
 To run the web app, you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app.
 
@@ -255,7 +255,7 @@ In `launch.json`:
             "host": "localhost",
             "pathMappings": [
               {
-                "localRoot": "${workspaceFolder}/pose_parser",
+                "localRoot": "${workspaceFolder}/stream_pose_ml",
                 "remoteRoot": "/usr/src/app"
               }
             ],
@@ -281,9 +281,9 @@ Note - within the flow of socketio, you won't be able to see changes reloaded au
 Locally I've been running experiments, training models, testing, and writing notebooks outside of docker. The purpose of the dockerized container is to facilitate a deployed ML Model accessbile via API from the React front end. Therefore if you are working on the back end and make environment dependency changes, you'll need to rebuild the docker container with the updated dependencies if you want to use the web app. This is done by following these steps:
 
 1. Make sure your local isolated python environment is activated.
-2. `cd pose_parser` (enter into the pose_parser directory)
+2. `cd stream_pose_ml` (enter into the stream_pose_ml directory)
 3. `pip list --format=freeze > requirements.txt` -- generate the list of dependencies from your local environment. Note, this format is necessary because otherwise pip tends to create strange `file://` paths - we just want to specify package versions.
-4. From the root directory run `docker-compose build pose_parser_api`. 
+4. From the root directory run `docker-compose build stream_pose_ml_api`. 
 
 NOTE - you may need to futz with dependencies / versions from errors that are generated.
 
@@ -335,13 +335,13 @@ Thank you for contributing!
 After adjusting some of this code for your own use case, you may wish to build and push Docker images to your own registry to deploy an application based on StreamPoseML. There are two main components with respect to StreamPoseML's web application: the API and the UI. For example, to build each:
 
 ```
-cd pose_parser && docker build -t myuser/pose_parser_api:latest -f Dockerfile .
+cd stream_pose_ml && docker build -t myuser/stream_pose_ml_api:latest -f Dockerfile .
 cd web_ui && docker build -t myuser/web_ui:latest -f Dockerfile .
 ```
 
 Then you can push them and deploy them however you see fit, e.g. ECR / K8s.
 
 ```
-docker push myuser/pose_parser_api:latest
+docker push myuser/stream_pose_ml_api:latest
 docker push myuser/web_ui:latest
 ```

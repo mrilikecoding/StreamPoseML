@@ -7,7 +7,7 @@ import yaml
 
 CONFIG = yaml.safe_load(open("./config.yml"))
 
-from pose_parser.jobs.process_videos_job import ProcessVideosJob
+from stream_pose_ml.jobs.process_videos_job import ProcessVideosJob
 
 
 class TestProcessVideosJob(unittest.TestCase):

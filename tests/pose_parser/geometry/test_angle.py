@@ -1,8 +1,8 @@
 import unittest
 
-from pose_parser.geometry.angle import Angle
-from pose_parser.geometry.joint import Joint
-from pose_parser.geometry.vector import Vector
+from stream_pose_ml.geometry.angle import Angle
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 
 class TestAngle(unittest.TestCase):

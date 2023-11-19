@@ -1,16 +1,16 @@
 version: '3'
 
 services:
-  pose_parser_api:
-    image: mrilikecoding/pose_parser_api:latest
-    # build: ./pose_parser
+  stream_pose_ml_api:
+    image: mrilikecoding/stream_pose_ml_api:latest
+    # build: ./stream_pose_ml
     ports:
       - "5001:5000"
       # - "5678:5678" # For debugger
     networks:
       - app-tier
     volumes:
-      - ./pose_parser:/usr/src/app
+      - ./stream_pose_ml:/usr/src/app
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
     # privileged: true
     # network_mode: "host"
@@ -33,7 +33,7 @@ services:
     environment:
       - APP_NAME=${APP_NAME}
     depends_on:
-      - pose_parser_api
+      - stream_pose_ml_api
     ports:
       - "3000:3000"
     stdin_open: true
