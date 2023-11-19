@@ -83,7 +83,7 @@ do
   sleep 5
 done
 
-echo "UI server is up! Launching Poser application in Browser..."
+echo "UI server is up! Launching StreamPoseML application in Browser..."
 
 # Check the operating system and open the URL in the browser
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then

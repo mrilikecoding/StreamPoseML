@@ -4,7 +4,7 @@ Your contributions would be welcome! How can this project benefit more people?
 
 ## Getting Started
 
-To get your environment set up to run Poser, you'll need Python and Pip installed on your machine. Ideally you'll want an isolated Python environment. If you want to run the web application, a Docker environment is recommended.
+To get your environment set up to run StreamPoseML, you'll need Python and Pip installed on your machine. Ideally you'll want an isolated Python environment. If you want to run the web application, a Docker environment is recommended.
 
 ## Workflow
 
@@ -14,9 +14,9 @@ Follow the [GitHub Flow Workflow](https://guides.github.com/introduction/flow/):
 1.  Check out the `main` branch
 1.  Create a feature branch
 1.  Write code and tests for your change
-1.  From your branch, make a pull request against `https://github.com/mrilikecoding/Poser`
+1.  From your branch, make a pull request against `https://github.com/mrilikecoding/StreamPoseML`
 1.  Get your change reviewed
-1.  Wait for your change to be pulled into `https://github.com/mrilikecoding/Poser/main`
+1.  Wait for your change to be pulled into `https://github.com/mrilikecoding/StreamPoseML/main`
 1.  Delete your feature branch
 
 ## Tests
@@ -48,7 +48,7 @@ When creating an issue please try to ahere to the following format:
 ## Documentation
 
 We also welcome improvements to the project tests or project
-docs. Please file an [issue](https://github.com/mrilikecoding/Poser/issues/new).
+docs. Please file an [issue](https://github.com/mrilikecoding/StreamPoseML/issues/new).
 
 ## First Contributions
 
@@ -58,4 +58,4 @@ If you are a first time contributor, familiarize yourself with the:
 # License
 
 By contributing your code, you agree to license your contribution under the
-terms of the [LICENSE](https://github.com/mrilikecoding/Poser/blob/main/LICENSE).
+terms of the [LICENSE](https://github.com/mrilikecoding/StreamPoseML/blob/main/LICENSE).

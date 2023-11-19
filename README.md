@@ -1,10 +1,10 @@
-# Poser
+# StreamPoseML
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Supported Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-green)
 
 
-Poser is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on utilizing labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
+StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on utilizing labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
 
 1. Collect video data
 2. Label video data
@@ -17,16 +17,16 @@ Poser is an open-source, end-to-end toolkit for creating realtime, video-based c
 9. Classify real-time video captured via the web or some other input source
 10. Actuate or send results outside the application
 
-Poser aspires to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
+StreamPoseML aspires to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
 
-Additionally, Poser aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a python dev/data-scientist, Poser provides a local laboratory for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable real-time classification / actuation system. 
+Additionally, StreamPoseML aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a python dev/data-scientist, StreamPoseML provides a local laboratory for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable real-time classification / actuation system. 
 
 
 ## Keypoint extraction
 
-Poser currently uses Mediapipe to extract body keypoints. This is because Poser was developed to assist with realtime video classification tasks that could potentially run on relatively ubiquitous devices, perhaps in a therpeutic or live performance setting. The aim is to provide a system to enable anyone with a webcam to be able to classify video in real-time. 
+StreamPoseML currently uses Mediapipe to extract body keypoints. This is because StreamPoseML was developed to assist with realtime video classification tasks that could potentially run on relatively ubiquitous devices, perhaps in a therpeutic or live performance setting. The aim is to provide a system to enable anyone with a webcam to be able to classify video in real-time. 
 
-You can certainly incorporate Poser into your own tooling. However, the best way to get started is to work within a Jupyter Notebook environment to bring everything together.
+You can certainly incorporate StreamPoseML into your own tooling. However, the best way to get started is to work within a Jupyter Notebook environment to bring everything together.
 
 The process for extracting keypoints looks like this:
 
@@ -46,7 +46,7 @@ pv.ProcessVideosJob().process_videos(
 )
 ```
 
-You pass a directory containing your videos. Each video will be run through mediapipe. In the keypoints directory, namespaced to each video, json keypoint representations will be saved. Additionally, the entire video's keypoints will be serialized into a video sequence and stored in a parallel directory. These files can be used directly in a training regime, or you can use Poser's dataset building tools to format sequence data into other formats.
+You pass a directory containing your videos. Each video will be run through mediapipe. In the keypoints directory, namespaced to each video, json keypoint representations will be saved. Additionally, the entire video's keypoints will be serialized into a video sequence and stored in a parallel directory. These files can be used directly in a training regime, or you can use StreamPoseML's dataset building tools to format sequence data into other formats.
 
 ## Feature engineering
 
@@ -54,7 +54,7 @@ There are currently various options available that take the raw keypoint data an
 
 ## Merging annotations with video keypoints / features
 
-A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. However this task is straightforward with Poser assuming you have structured annotation data. First, copy `config.example.yml` into `config.yml`.
+A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. However this task is straightforward with StreamPoseML assuming you have structured annotation data. First, copy `config.example.yml` into `config.yml`.
 
 ```
 cp config.example.yml config.yml
@@ -68,7 +68,7 @@ sh copy_example.sh
 
 This will copy the `example_data` folder into a `data` directory which is ignored by git.
 
-To use your own annotations, you'll need to update the annotation schema to match your annotation data. Poser assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently Poser support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
+To use your own annotations, you'll need to update the annotation schema to match your annotation data. StreamPoseML assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently StreamPoseML support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
 
 Here's an example of a valid annotation file for video named `example_video.webm`:
 
@@ -112,9 +112,9 @@ annotation_schema: # assume one annotation file per video where there is a list 
 
 ## Creating datasets with features
 
-Poser was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see several Jupyter notebook examples showing how to use Poser to build a training dataset.
+StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see several Jupyter notebook examples showing how to use StreamPoseML to build a training dataset.
 
-To get a feel for building your dataset using Poser, see `/pose_parser/notebooks/dataset_for_ui.ipynb`
+To get a feel for building your dataset using StreamPoseML, see `/pose_parser/notebooks/dataset_for_ui.ipynb`
 
 The process looks like this:
 
@@ -124,7 +124,7 @@ import pose_parser.jobs.build_and_format_dataset_job as data_builder
 # This is the main class that does all the work
 db = data_builder.BuildAndFormatDatasetJob()
 
-# Here you'll specift the path to you annotations and Poser generated sequences
+# Here you'll specift the path to you annotations and StreamPoseML generated sequences
 dataset = db.build_dataset_from_data_files(
     annotations_data_directory=source_annotations_directory,
     sequence_data_directory=sequence_data_directory,
@@ -178,7 +178,7 @@ There are several convenience methods abstracted into a Model Builder class crea
 
 ## Saving your model
 
-If you want to use your trained model in Poser's web application, you'll need to save it as a "pickle" so that it can be loaded into the application server at runtime. You may need to wrap it in a class before you do this such that when it is loaded it responds  with a result when the method "predict" is called on it.
+If you want to use your trained model in StreamPoseML's web application, you'll need to save it as a "pickle" so that it can be loaded into the application server at runtime. You may need to wrap it in a class before you do this such that when it is loaded it responds  with a result when the method "predict" is called on it.
 
 ## Running the Web Applictaion
 
@@ -332,7 +332,7 @@ Thank you for contributing!
 
 ## Building & Deploying
 
-After adjusting some of this code for your own use case, you may wish to build and push Docker images to your own registry to deploy an application based on Poser. There are two main components with respect to Poser's web application: the API and the UI. For example, to build each:
+After adjusting some of this code for your own use case, you may wish to build and push Docker images to your own registry to deploy an application based on StreamPoseML. There are two main components with respect to StreamPoseML's web application: the API and the UI. For example, to build each:
 
 ```
 cd pose_parser && docker build -t myuser/pose_parser_api:latest -f Dockerfile .

@@ -18,7 +18,7 @@ if typing.TYPE_CHECKING:
     from pose_parser.learning.sequence_transformer import SequenceTransformer
 
 
-class PoserClient:
+class StreamPoseClient:
     def __init__(
         self,
         frame_window: int = 25,

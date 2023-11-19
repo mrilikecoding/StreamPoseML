@@ -1,7 +1,7 @@
 {
   "name": "mock_bluetooth",
   "version": "1.0.0",
-  "description": "mock bluetooth service for Poser",
+  "description": "mock bluetooth service for StreamPoseML",
   "main": "mock_bluetooth.js",
   "scripts": {
     "start": "node mock_bluetooth.js",
