@@ -311,27 +311,47 @@ If you use this code in any research, please cite it so that others may benefit 
 
 ## Contributions
 
-Your contributions would be enthusiastically welcomed! While there's not a formal roadmap, there are plenty of TODOs and with more people using this, the hope is that a roadmap will emerge. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are welcome! Here's how you can help:
 
-### TODOs
-* fix error that sends keypoints to server when classification is turned off
-* make UI nicer and create an easier template to adapt
-* create a nicer scheme for integrating models and their data schema
-  * this probably looks like an abstract class that can wrap models as well as multi-stage classifiers with a single predict method. This abstract class should also incorporate the data schema. There should be a utility that can go from skel data to the schema... this'll be a big feature.
-* add citation file
-* Finish testing modules - use test doubles
-* Refactor object creation - some complicated init anti-patterns are here
-* Build out an ETL wrapper and simplify job logic - there are some parameter sinkholes in the current flow
-* Build a utility for looking at video and annotations
-* Model builder methods are cumbersome and untested - need to split up model creation from grid search / random search logic
-   
+### Contributing Changes
 
-# Building Dockerfiles
+1. **Fork the Repo**: Fork the repository on GitHub.
 
-You may with to build and push the Dockerfiles to your own registry to deploy an application based on Poser. There are two main components with respect to Poser's web application: the API and the UI. To build each:
+2. **Clone Your Fork**
+
+3. **Create a Branch**
+
+4. **Make and Commit Your Changes**:
+
+5. **Push to Your Fork**:
+
+6. **Open a Pull Request**: Submit a pull request from your branch to the main repository.
+
+### Reporting Issues
+
+- **Check Existing Issues**: Before creating a new issue, please check if it's already reported.
+- **Create an Issue**: Use the GitHub issue tracker to report a new issue.
+
+### Guidelines
+
+- Be respectful and considerate.
+- Provide clear, constructive feedback.
+- Credit contributions from others.
+
+Thank you for contributing!
+
+## Building & Deploying
+
+After adjusting some of this code for your own use case, you may wish to build and push Docker images to your own registry to deploy an application based on Poser. There are two main components with respect to Poser's web application: the API and the UI. For example, to build each:
+
 ```
 cd pose_parser && docker build -t myuser/pose_parser_api:latest -f Dockerfile .
 cd web_ui && docker build -t myuser/web_ui:latest -f Dockerfile .
 ```
 
 Then you can push them and deploy them however you see fit, e.g. ECR / K8s.
+
+```
+docker push myuser/pose_parser_api:latest
+docker push myuser/web_ui:latest
+```
