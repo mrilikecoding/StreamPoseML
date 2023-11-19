@@ -21,6 +21,17 @@ StreamPoseML aspires to help with steps 3-10, with the aim of making a system po
 
 Additionally, StreamPoseML aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a python dev/data-scientist, StreamPoseML provides a local laboratory for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable real-time classification / actuation system. 
 
+## Toolkit usage
+
+To install the toolkit for usage in your own python project:
+
+`pip install stream_pose_ml`
+
+Then you can:
+
+```
+import stream_pose_ml
+```
 
 ## Keypoint extraction
 
