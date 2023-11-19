@@ -336,12 +336,12 @@ After adjusting some of this code for your own use case, you may wish to build a
 
 ```
 cd stream_pose_ml && docker build -t myuser/stream_pose_ml_api:latest -f Dockerfile .
-cd web_ui && docker build -t myuser/web_ui:latest -f Dockerfile .
+cd web_ui && docker build -t myuser/stream_pose_ml_web_ui:latest -f Dockerfile .
 ```
 
 Then you can push them and deploy them however you see fit, e.g. ECR / K8s.
 
 ```
 docker push myuser/stream_pose_ml_api:latest
-docker push myuser/web_ui:latest
+docker push myuser/stream_pose_ml_web_ui:latest
 ```

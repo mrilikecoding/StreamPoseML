@@ -28,7 +28,7 @@ services:
       bash -c "python run.py"
 
   web_ui:
-    image: mrilikecoding/web_ui:latest
+    image: mrilikecoding/stream_pose_ml_web_ui:latest
     # build: ./web_ui
     environment:
       - APP_NAME=${APP_NAME}

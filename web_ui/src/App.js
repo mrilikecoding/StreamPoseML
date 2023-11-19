@@ -17,7 +17,7 @@ function App() {
 
     return (
         <div className="App">
-            <h1>AI Tango</h1>
+            <h1>Stream Pose ML: Web UI</h1>
             <div className="container">
                 <div className='column'>
                     <ModelSelector setModel={setModel} />
