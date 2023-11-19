@@ -1,16 +1,11 @@
 .vscode
 __pycache__
 .DS_Store
-*.mp4
 *.egg-info
 
 config.yml
 
 node_modules/
 data/*
-test.csv
 
 web_ui/logs/*
-
-# test ML modules
-pd_dancing/
