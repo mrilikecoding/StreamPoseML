@@ -56,51 +56,41 @@ There are currently various options available that take the raw keypoint data an
 
 A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. However this task is straightforward with Poser assuming you have structured annotation data. First, copy `config.example.yml` into `config.yml`.
 
-Then update the annotation schema to match your annotation data. Poser assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently Poser support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
+```
+cp config.example.yml config.yml
+```
 
-Here's an example of a valid annotation file for video named `video1.mov`:
+Similarly, to play with some provided sample data you can run:
 
 ```
-video1-annotation.json
+sh copy_example.sh
+```
+
+This will copy the `example_data` folder into a `data` directory which is ignored by git.
+
+To use your own annotations, you'll need to update the annotation schema to match your annotation data. Poser assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently Poser support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
+
+Here's an example of a valid annotation file for video named `example_video.webm`:
+
+```
+example_video.json
 
  {
-   "id": "63e10d737329c2fe92c8ae0a",
-   "datasetId": "63bef4c53775a03d44271475",
-   "metadata": {
-     "system": {
-       "ffmpeg": {
-         "avg_frame_rate": "30000/1001",
-         "width": 1920
-       },
-       "fps": 29.97002997002997,
-     },
-     "fps": 29.97002997002997,
-     "startTime": 0.007
-   },
-   "name": "video1.webm",
+   "name": "example_video.webm",
    "annotations": [
      {
-       "id": "63fe90715ff162c693fa0f3c",
-       "datasetId": "63bef4c53775a03d44271475",
-       "itemId": "63e10d737329c2fe92c8ae0a",
        "label": "Left Step",
        "metadata": {
          "system": {
            "startTime": 5.472133333333334,
            "endTime": 6.940266666666667,
            "frame": 164,
-           "endFrame": 208,
-           "openAnnotationVersion": "1.56.0-prod.31",
-           "recipeId": "63bef4c5223e5c2a0a9e4227"
-         },
-         "user": {}
-       },
-       "source": "ui"
-     },
+           "endFrame": 208
+         }
+       }
+     }
      ...
-   ],
-   "annotationsCount": 3,
-   "annotated": true
+   ]
  }
 ```
 
@@ -122,7 +112,7 @@ annotation_schema: # assume one annotation file per video where there is a list 
 
 ## Creating datasets with features
 
-Poser was built while conducting studies of Parkinson's Disease patients in dance therapy settings. From these efforts, you can see several Jupyter notebook examples showing how to use Poser to built a training dataset.
+Poser was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see several Jupyter notebook examples showing how to use Poser to build a training dataset.
 
 To get a feel for building your dataset using Poser, see `/pose_parser/notebooks/dataset_for_ui.ipynb`
 
