@@ -3,6 +3,8 @@ __pycache__
 .DS_Store
 *.egg-info
 
+dist/* 
+
 config.yml
 
 node_modules/
