@@ -1,15 +1,13 @@
-TODO - obtain DOI
-
 If you use this software in your research, please cite it as:
 
-Green, N. (2023). StreamPoseML. Version 0.1.0. [DOI:xxx]
+Green, N. (2023). StreamPoseML. Version 0.1.1. [10.5281/zenodo.10161980]
 
 BibTeX:
 
 @software{StreamPoseML-2023,
   author = {Nathaniel Green},
   title = {StreamPoseML},
-  version = {0.1.0},
+  version = {0.1.1},
   date = {2023},
-  doi = {xx/xx},
+  doi = {11/23},
 }
