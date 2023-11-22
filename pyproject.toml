@@ -10,6 +10,7 @@ version = "0.0.0" # placeholder, will be overwritten by setuptools_scm
 authors = [{name = "Nate Green", email = "nate@nate.green"}]
 description = "A toolkit for realtime video classification tasks."
 readme = "README.md"
+dynamic = ["dependencies"]
 license = {file = "LICENSE"}
 classifiers = [
     "Development Status :: 3 - Alpha",
