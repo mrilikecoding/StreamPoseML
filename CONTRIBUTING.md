@@ -21,7 +21,7 @@ Follow the [GitHub Flow Workflow](https://guides.github.com/introduction/flow/):
 
 ## Tests
 
-Tests should work with `pytest`
+Tests should work with `pytest`. Run `python setup.py` to set paths correctly.
 
 ## Style
 

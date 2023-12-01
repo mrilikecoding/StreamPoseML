@@ -11,5 +11,6 @@ setup(
     install_requires=read_requirements(),
     package_dir={'': 'stream_pose_ml'},
     packages=find_packages(where='stream_pose_ml'),
+    use_scm_version={"write_to": "version.txt", "fallback_version": "0.1.0", "root": ".", "relative_to": __file__},
 )
 

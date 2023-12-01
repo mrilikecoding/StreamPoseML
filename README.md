@@ -7,11 +7,11 @@
 
 
 
-StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on utilizing labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
+StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on using labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
 
 1. Collect video data
 2. Label video data
-3. Generate body keypoints from video
+3. Generate pose keypoints from video
 4. Compute features
 5. Merge annotations/labels with keypoints/features into a dataset
 6. Train a model
@@ -22,13 +22,19 @@ StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-
 
 StreamPoseML aspires to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
 
-Additionally, StreamPoseML aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a python dev/data-scientist, StreamPoseML provides a local laboratory for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable real-time classification / actuation system. 
+Additionally, StreamPoseML aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a Python dev or data scientist, StreamPoseML provides convenient abstractions for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable, browser-based real-time classification / actuation system. 
 
 ## Toolkit usage
 
-To install the toolkit for usage in your own python project:
+The two main parts of StreamPoseML are the sample web application and the Python module. The web application is intended to run within a Docker environment. Comprising a basic React front-end and a Flask back-end, it can be pulled from Dockerhub to run as-is or can be modified to suit your needs. 
 
-`pip install stream_pose_ml`
+See instructions below for running the out-of-the-box sample web application.
+
+To install the Python module for usage in your own Python project:
+
+```
+pip install stream_pose_ml
+```
 
 Then you can:
 
@@ -36,11 +42,18 @@ Then you can:
 import stream_pose_ml
 ```
 
+The three packages you'll use likely use directly are the `process_videos_job`, the `build_and_format_dataset_job`, and the `model_builder`. in the example notebooks you'll see these imported like so:
+
+```
+import stream_pose_ml.jobs.process_videos_job as pv
+import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder 
+import stream_pose_ml.learning.model_builder  as mb
+```
+
+
 ## Keypoint extraction
 
-StreamPoseML currently uses Mediapipe to extract body keypoints. This is because StreamPoseML was developed to assist with realtime video classification tasks that could potentially run on relatively ubiquitous devices, perhaps in a therpeutic or live performance setting. The aim is to provide a system to enable anyone with a webcam to be able to classify video in real-time. 
-
-You can certainly incorporate StreamPoseML into your own tooling. However, the best way to get started is to work within a Jupyter Notebook environment to bring everything together.
+StreamPoseML currently uses [Mediapipe](https://developers.google.com/mediapipe), which is based on [BlazePose](https://arxiv.org/abs/2006.10204), to extract body keypoints. This is because StreamPoseML was developed to assist with realtime video classification tasks that could potentially run on relatively ubiquitous devices, perhaps in a therpeutic or live performance setting. The aim is to provide a system to enable anyone with a webcam to be able to classify video in real-time. Additionally, some keypoint coordinates in the video processing steps are computed to be more consistent with [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose) landmarks.
 
 The process for extracting keypoints looks like this:
 
@@ -64,17 +77,21 @@ You pass a directory containing your videos. Each video will be run through medi
 
 ## Feature engineering
 
-There are currently various options available that take the raw keypoint data and build upon it to generate normalized angle and distance measurements for use in building your dataset. These features are shown more in the examples below.
+There are currently various options available that take the raw keypoint data and build upon it to generate normalized angle and distance measurements for use in building your dataset. 
+
+In particular, there are various segmentation strategies that can be used to organize the raw keypoint data based on combinations of window size, temporal pooling, and various angle and distance measurements. Please explore the notebookes in `./stream_pose_ml/notebooks` for usage examples. However generally speaking it's probably most useful to use a segmentation strategy of `none` to generate your dataset, then from there you can explore different data structure more easily with a tool such as `pandas`.
 
 ## Merging annotations with video keypoints / features
 
-A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. However this task is straightforward with StreamPoseML assuming you have structured annotation data. First, copy `config.example.yml` into `config.yml`.
+A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. 
+
+However this task is straightforward with StreamPoseML assuming you have structured annotation data. You'll want to follow the folder structure conventions in this repo, so the best way is to simply clone this repo locally and work within it to process your data. First copy `config.example.yml` into `config.yml`. This should be in the root the project importing `stream_pose_ml`. 
 
 ```
 cp config.example.yml config.yml
 ```
 
-Similarly, to play with some provided sample data you can run:
+Similarly, to play with some provided sample data in this repo you can run:
 
 ```
 sh copy_example.sh
@@ -138,7 +155,7 @@ import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder
 # This is the main class that does all the work
 db = data_builder.BuildAndFormatDatasetJob()
 
-# Here you'll specift the path to you annotations and StreamPoseML generated sequences
+# Here you'll specify the path to you annotations and StreamPoseML generated sequences
 dataset = db.build_dataset_from_data_files(
     annotations_data_directory=source_annotations_directory,
     sequence_data_directory=sequence_data_directory,
@@ -188,15 +205,23 @@ This will give you one row per frame with columns for each x, y, z coordinate in
 
 ## Training models
 
-There are several convenience methods abstracted into a Model Builder class created to speed up iterations and model evaluation. See the notebooks for usage examples. However, once you have your dataset you can use whatever process you like to train models.
+Once you have a dataset to work with, you can use whatever process you like to train and evaluate your models. But here you'll find some convenience methods for training and evaluation abstracted on top of a few popular machine learning libraries. These are scoped to a Model Builder class created to speed up iterations and model evaluation using the metrics we found useful in our research. It may not suit your particular needs, but have a look and feel free to make contributions.
+
+See the `/stream_pose_ml/notebooks/model_builder_examples.ipynb` for usage examples and see `/stream_pose_ml/stream_pose_ml/learning/model_builder.py` to see what's available.
 
 ## Saving your model
 
 If you want to use your trained model in StreamPoseML's web application, you'll need to save it as a "pickle" so that it can be loaded into the application server at runtime. You may need to wrap it in a class before you do this such that when it is loaded it responds  with a result when the method "predict" is called on it.
 
-## Running the Web Applictaion
+But if you've used StreamPoseML's model builder you can save the model instance like so:
 
-First, as mentioned above, you'll need a trained classifier saved to a pickle file (in Python). The model should implement a "predict" method that takes an array of examples to classify. For realtime video classification generally you'll want to pass a single example
+`model_builder.save_model_and_datasets(notes=notes, model_type="gradient-boost")`
+
+In the future, the plan is to use a more standardized approach to saving models, such as [Cog](https://github.com/replicate/cog).
+
+## Running the Sample Web Application
+
+First, as mentioned above, you'll need a trained classifier saved to a pickle file. A sample model is provided in the `example_data` folder. The model should implement a "predict" method that takes an array of examples to classify. For realtime video classification generally you'll want to pass a single example
 
 The pickle object should be shaped like this:
 
@@ -206,145 +231,30 @@ The pickle object should be shaped like this:
 }
 ```
 
-Place this pickle file in `data/trained_models`
+Place this pickle file in `./data/trained_models`
 
 Provided is a simple Flask API that sits behind a React UI. The UI was tailored for our specific use case in classifying types of steps captured via webcam, however you can adapt this for your own model classification scheme.
 
-To run the app:
+To run the sample app:
 
 1. Visit docker.com and sign up for an account.
-2. Download the Docker for Desktop client for your your sytem, launch, and log in.
-3. Run `start.sh`
+2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/).client for your your system, launch, and log in.
+3. From your terminal, clone this repo and enter the directory.
+4. Run `start.sh`
 
 This should install the necessary dependencies and then launch the application in your default browser. 
 
-4. When you're done, run `stop.sh` to gracefully end the application processes.
+5. When you're done, run `stop.sh` to gracefully end the application processes.
 
-## Installation
+## Running the web application locally
 
-1. Set up a python environment via conda or pyenv or other preferred tool.
-2. Install via `requirements.txt` located in the `stream_pose_ml` folder.
+If the web application is of any use to you, you'll want to tinker with it to suit your needs. Then you'll want to run it locally and perhaps build and deploy it.
 
-To run the web app, you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app.
+First, again, you'll need to install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
-### Debugging the web app / python API via VS Code within docker
+To run the web app with Docker you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app. There is a bluetooth actuation scheme built in, however currently only Chrome supports this.
 
-Follow this guide if you're using VS Code and wish to debug the python API while running the containerized web app. 
-
-This setup may be helpful within the `.vscode` folder:
-
-In tasks.json:
-
-```
-{
-    "version": "2.0.0",
-    "tasks": [
-      {
-        "label": "Docker: Compose Up",
-        "type": "shell",
-        "command": "docker-compose up -d && sleep 15",
-        "options": {
-          "cwd": "${workspaceFolder}"
-        },
-        "group": {
-          "kind": "build",
-          "isDefault": true
-        },
-        "problemMatcher": []
-      }
-    ]
-  }
-  ```
-
-  Note - the `sleep 15` there is to give docker-compose time to spin up everything, otherwise the debugger fails to attach. If you notice the debugger still failing to attach you may need to increase this time.
-
-In `launch.json`:
-```
-    "configurations": [
-        {
-            "name": "Python: Remote Attach",
-            "type": "python",
-            "request": "attach",
-            "port": 5678,
-            "host": "localhost",
-            "pathMappings": [
-              {
-                "localRoot": "${workspaceFolder}/stream_pose_ml",
-                "remoteRoot": "/usr/src/app"
-              }
-            ],
-            "preLaunchTask": "Docker: Compose Up",
-            "postDebugTask": "Docker: Compose Down"
-          }
-    ],
-    "compounds": [
-        {
-          "name": "Docker Compose: Debug",
-          "configurations": ["Python: Remote Attach"]
-        }
-      ]
-}
-```
-
-Then, after running `docker-compose up`, run the VS debug process "Docker-Compose: Debug" for the app, and you should be able to set breakpoints / debug etc.
-
-Note - within the flow of socketio, you won't be able to see changes reloaded automatically for various annoying reasons. So if you debug and make a change, you'll need to restart the debugger.
-
-## Workflow
-
-Locally I've been running experiments, training models, testing, and writing notebooks outside of docker. The purpose of the dockerized container is to facilitate a deployed ML Model accessbile via API from the React front end. Therefore if you are working on the back end and make environment dependency changes, you'll need to rebuild the docker container with the updated dependencies if you want to use the web app. This is done by following these steps:
-
-1. Make sure your local isolated python environment is activated.
-2. `cd stream_pose_ml` (enter into the stream_pose_ml directory)
-3. `pip list --format=freeze > requirements.txt` -- generate the list of dependencies from your local environment. Note, this format is necessary because otherwise pip tends to create strange `file://` paths - we just want to specify package versions.
-4. From the root directory run `docker-compose build stream_pose_ml_api`. 
-
-NOTE - you may need to futz with dependencies / versions from errors that are generated.
-
-## Tests
-
-To start run `python setup.py` to set paths correctly. Then simply:
-
-`pytest`
-
-Note: tests work for some of the modules but have fallen behind... contributions wanted! You'll note some failures etc. 
-
-## Citing 
-
-If you use this code in any research, please cite it so that others may benefit from knowing about this project. See [CITATION.txt](CITATION.txt).
-
-## Contributions
-
-Contributions are welcome! Here's how you can help:
-
-### Contributing Changes
-
-1. **Fork the Repo**: Fork the repository on GitHub.
-
-2. **Clone Your Fork**
-
-3. **Create a Branch**
-
-4. **Make and Commit Your Changes**:
-
-5. **Push to Your Fork**:
-
-6. **Open a Pull Request**: Submit a pull request from your branch to the main repository.
-
-### Reporting Issues
-
-- **Check Existing Issues**: Before creating a new issue, please check if it's already reported.
-- **Create an Issue**: Use the GitHub issue tracker to report a new issue.
-
-### Guidelines
-
-- Be respectful and considerate.
-- Provide clear, constructive feedback.
-- Credit contributions from others.
-
-Thank you for contributing!
-
-## Building & Deploying
+## Building & Deploying the Web Application
 
 After adjusting some of this code for your own use case, you may wish to build and push Docker images to your own registry to deploy an application based on StreamPoseML. There are two main components with respect to StreamPoseML's web application: the API and the UI. For example, to build each:
 
@@ -359,3 +269,13 @@ Then you can push them and deploy them however you see fit, e.g. ECR / K8s.
 docker push myuser/stream_pose_ml_api:latest
 docker push myuser/stream_pose_ml_web_ui:latest
 ```
+
+## Citing 
+
+If you use this code in any research, please cite it so that others may benefit from knowing about this project. See [CITATION.txt](CITATION.txt).
+
+## Contributions
+
+Contributions are welcome! For guidelines and more details for working with this package locallay see:
+
+[CONTRIBUTING.md](CONTRIBUTING.md)
