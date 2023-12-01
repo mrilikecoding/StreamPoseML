@@ -1,15 +1,12 @@
 # StreamPoseML
-
+#### An End-to-End Open-Source Web Application and Python Toolkit  for Real-Time Video Pose Classification and Machine Learning
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Supported Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-green)
 [![DOI](https://zenodo.org/badge/604382267.svg)](https://zenodo.org/doi/10.5281/zenodo.10161979)
 
-
-
-
 StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on using labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
 
-1. Collect video data
+<!-- 1. Collect video data
 2. Label video data
 3. Generate pose keypoints from video
 4. Compute features
@@ -18,7 +15,9 @@ StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-
 7. Run experiments
 8. Deploy the trained the model
 9. Classify real-time video captured via the web or some other input source
-10. Actuate or send results outside the application
+10. Actuate or send results outside the application -->
+
+![10 Step End-to-End Video Classification](figure.png)
 
 StreamPoseML aspires to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
 
@@ -270,9 +269,9 @@ docker push myuser/stream_pose_ml_api:latest
 docker push myuser/stream_pose_ml_web_ui:latest
 ```
 
-## Citing 
+## Citing
 
-If you use this code in any research, please cite it so that others may benefit from knowing about this project. See [CITATION.txt](CITATION.txt).
+If you use the project in your work or research, please cite this repository or the corresponding paper. See [paper.md](paper.md).
 
 ## Contributions
 
