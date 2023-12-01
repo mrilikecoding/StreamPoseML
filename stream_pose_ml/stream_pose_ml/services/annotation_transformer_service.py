@@ -1,14 +1,16 @@
 import yaml
 import os
 
+
 def get_nested_key(data: dict, key: str):
     """Access nested dictionary keys based on a dot-separated key string."""
-    keys = key.split('.')
+    keys = key.split(".")
     for k in keys:
         data = data[k]
     return data
 
-def find_project_root(identifying_file='config.yml'):
+
+def find_project_root(identifying_file="config.yml"):
     """Find the root directory of the project by looking for an identifying file."""
     current_path = os.path.abspath(os.curdir)
 
@@ -24,8 +26,9 @@ def find_project_root(identifying_file='config.yml'):
         # If we've already reached the root directory, stop
         if parent_path == current_path:
             raise Exception(f"Root directory with {identifying_file} not found!")
-        
+
         current_path = parent_path
+
 
 class AnnotationTransformerService:
     """
@@ -33,19 +36,17 @@ class AnnotationTransformerService:
     """
 
     @staticmethod
-    def load_annotation_schema(schema_filename: str = 'config.yml') -> dict:
+    def load_annotation_schema(schema_filename: str = "config.yml") -> dict:
         """Loads the annotation schema from a YAML file."""
         project_root = find_project_root()
         schema_path = os.path.join(project_root, schema_filename)
 
-        with open(schema_path, 'r') as ymlfile:
-            return yaml.load(ymlfile, Loader=yaml.FullLoader)['annotation_schema']
+        with open(schema_path, "r") as ymlfile:
+            return yaml.load(ymlfile, Loader=yaml.FullLoader)["annotation_schema"]
 
     @staticmethod
     def update_video_data_with_annotations(
-        annotation_data: dict,
-        video_data: dict,
-        schema: dict = None
+        annotation_data: dict, video_data: dict, schema: dict = None
     ) -> tuple:
         """Merged video and annotation data.
 
@@ -68,18 +69,24 @@ class AnnotationTransformerService:
             schema = AnnotationTransformerService.load_annotation_schema()
 
         # Extract annotation information based on provided schema
-        annotations_key = schema['annotations_key']
+        annotations_key = schema["annotations_key"]
         clip_annotation_map = [
             {
-                "label": get_nested_key(annotation, schema['annotation_fields']['label']),
-                "frame": get_nested_key(annotation, schema['annotation_fields']['start_frame']),
-                "endFrame": get_nested_key(annotation, schema['annotation_fields']['end_frame']),
+                "label": get_nested_key(
+                    annotation, schema["annotation_fields"]["label"]
+                ),
+                "frame": get_nested_key(
+                    annotation, schema["annotation_fields"]["start_frame"]
+                ),
+                "endFrame": get_nested_key(
+                    annotation, schema["annotation_fields"]["end_frame"]
+                ),
             }
             for annotation in annotation_data[annotations_key]
         ]
 
-        label_hierarchy = schema['label_class_mapping']
-        
+        label_hierarchy = schema["label_class_mapping"]
+
         # Determine top level column names
         label_columns = set(label_hierarchy.values())
         labeled_frames = []
