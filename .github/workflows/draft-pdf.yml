@@ -1,4 +1,5 @@
 on: [push]
+name: Paper Draft
 
 jobs:
   paper:
