@@ -46,7 +46,7 @@ class Angle:
             raise AngleError("There was a problem instantiating the angle.")
 
     def unit_vector(self, vector: tuple) -> float:
-        """ Determine the directional unit vector of a passed tuple of two points.
+        """Determine the directional unit vector of a passed tuple of two points.
 
         Given a passed vector with beginning and end points
         Obtain the directional vector then compute the unit vector
@@ -67,7 +67,7 @@ class Angle:
             raise AngleError("There was an error computing the unit vector")
 
     def angle_between(self, vector_1: tuple, vector_2: tuple) -> float:
-        """ Given two directional vectors (i.e. Vector(..).direction_3d) get the angle.
+        """Given two directional vectors (i.e. Vector(..).direction_3d) get the angle.
 
         Returns:
             the angle in radians between vectors 'v1' and 'v2'
