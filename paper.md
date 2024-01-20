@@ -4,36 +4,30 @@ tags:
   - Movement AI classification
   - Media Pipe
   - Python
-
 authors:
   - name: Milka Trajkova
     orcid: 0000-0002-3694-763X
     equal-contrib: true
     affiliation: 1 
-
   - name: Nathaniel Green
     orcid: 0000-0003-0157-7744
     equal-contrib: true 
     affiliation: 2
-
   - name: Minoru Shinohara
     orcid: 0000-0002-9260-0366
-    corresponding: true # (This is how to denote the corresponding author)
+    corresponding: true 
     affiliation: “3, 4”
-
 affiliations:
  - name: School of Literature, Media, and Communication, Georgia Institute of Technology, Atlanta, GA, USA
-   index: 1
+  index: 1
  - name: Independent Researcher, USA
    index: 2
  - name: School of Biological Sciences, Georgia Institute of Technology, Atlanta, GA, USA
-   index: 3
+  index: 3
  - name: Wallace H. Coulter Department of School of Biomedical Engineering, Georgia Institute of Technology and Emory University, Atlanta, GA, USA
-   index: 4
-
+  index: 4
 date: 1 December 2023
 bibliography: paper.bib
-
 ---
 
 # Summary
