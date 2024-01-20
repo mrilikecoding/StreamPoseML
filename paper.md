@@ -1,5 +1,4 @@
 ---
----
 title: “StreamPoseML” - An End-to-End Open-Source Web Application and Python
   Toolkit  for Real-Time Video Pose Classification and Machine Learning
 tags:
