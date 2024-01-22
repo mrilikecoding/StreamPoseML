@@ -1,6 +1,5 @@
 ---
-title: “StreamPoseML” - An End-to-End Open-Source Web Application and Python
-  Toolkit  for Real-Time Video Pose Classification and Machine Learning
+title: "'StreamPoseML' An End-to-End Open-Source Web Application and Python Toolkit for Real-Time Video Pose Classification and Machine Learning"
 tags:
   - Movement AI classification
   - Media Pipe
@@ -19,16 +18,13 @@ authors:
     corresponding: true
     affiliation: “3, 4”
 affiliations:
-  - name: School of Literature, Media, and Communication, Georgia Institute of
-      Technology, Atlanta, GA, USA
+  - name: School of Literature, Media, and Communication, Georgia Institute of Technology, Atlanta, GA, USA
     index: 1
   - name: Independent Researcher, USA
     index: 2
-  - name: School of Biological Sciences, Georgia Institute of Technology, Atlanta,
-      GA, USA
+  - name: School of Biological Sciences, Georgia Institute of Technology, Atlanta, GA, USA
     index: 3
-  - name: Wallace H. Coulter Department of School of Biomedical Engineering, Georgia
-      Institute of Technology and Emory University, Atlanta, GA, USA
+  - name: Wallace H. Coulter Department of School of Biomedical Engineering, Georgia Institute of Technology and Emory University, Atlanta, GA, USA
     index: 4
 date: 1 December 2023
 bibliography: paper.bib
