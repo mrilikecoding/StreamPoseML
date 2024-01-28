@@ -16,7 +16,7 @@ authors:
   - name: Minoru Shinohara
     orcid: 0000-0002-9260-0366
     corresponding: true
-    affiliation: “3, 4”
+    affiliation: "3, 4"
 affiliations:
   - name: School of Literature, Media, and Communication, Georgia Institute of Technology, Atlanta, GA, USA
     index: 1
@@ -58,3 +58,5 @@ Currently, motor training for rehabilitation therapy or skill improvement often 
 # Acknowledgements
 
 We acknowledge the assistance of Koki Asahina (Georgia Institute of Technology) in preparing the source data and constructive comments of Dr. Hyeokhyen Kwon (Emory University) on the draft. This study was partially supported by the McCamish Parkinson’s Disease Innovation Program at Georgia Tech and Emory University.
+
+# References
