@@ -2,35 +2,22 @@ version: '3'
 
 services:
   stream_pose_ml_api:
-    # image: mrilikecoding/stream_pose_ml_api:latest
-    build: ./stream_pose_ml
+    image: mrilikecoding/stream_pose_ml_api:latest
     ports:
       - "5001:5001"
-      - "5678:5678" # For debugger
     networks:
       - app-tier
     volumes:
       - ./stream_pose_ml:/usr/src/app
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
-    # privileged: true
-    # network_mode: "host"
     environment:
-      # - DEBUG=${DEBUG:-FALSE} # Defaults to FALSE, but override this if you wish to attach a debugger, e.g. via VSCode tasks.json
-      - DEBUG=TRUE
       - FLASK_APP=run.py
       - APP_NAME=${APP_NAME}
-      - FLASK_DEBUG=development
-      # - BLUETOOTH_DEVICE_MAC=${BLUETOOTH_DEVICE_MAC}
-      # - SPP_UUID=${SPP_UUID}
     command: >
-      bash -c "pip install ptvsd &&  python -m ptvsd --host 0.0.0.0 --port 5678 $(if [ \"${DEBUG}\" = \"true\" ]; then echo '--wait'; fi) run.py"
-    # command: >
-    #   bash -c "python run.py"
+      bash -c "python run.py"
 
   web_ui:
     image: mrilikecoding/stream_pose_ml_web_ui:latest
-    # build: ./web_ui
-    environment:
       - APP_NAME=${APP_NAME}
     depends_on:
       - stream_pose_ml_api
