@@ -36,6 +36,29 @@
     transform: rotate(360deg);
   }
 }
+#videoContainer {
+  position: relative;
+  height: 720px;
+}
+
+#videoContainer #localVideo {
+  position: absolute;
+  clear: both;
+  display: block;
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);}
+
+#videoContainer #videoStreamCanvas {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 1;
+  pointer-events: none;
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -moz-transform: rotateY(180deg);
+} 
 
 .container {
   display: flex;
