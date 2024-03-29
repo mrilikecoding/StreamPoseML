@@ -1,31 +1,52 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
-import poseLandmarkerTask from "./models/pose_landmarker_lite.task"
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
 import io from "socket.io-client";
+
+const USE_GPU = true;
+const MODEL_LITE_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task" 
+const MODEL_FULL_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task" 
+const MODEL_HEAVY_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task" 
 
 const VideoStream = ({ handleClassification }) => {
     const videoRef = useRef(null);
     const canvasRef = useRef(null);
     const [posePresence, setPosePresence] = useState(null);
+    const [keypointProcessingSpeed, setKeypointProcessingSpeed] = useState(null);
 
     const [results, setResults] = useState(null);
     const socketRef = useRef();
     
+
+    
     useEffect(() => {
+        // For drawing keypoints
+        const canvasElement = canvasRef.current;
+        const video = videoRef.current;
+        const canvasCtx = canvasElement.getContext("2d");
+        const drawingUtils = new DrawingUtils(canvasCtx);
+
         let poseLandmarker;
         let animationFrameId;
 
         const initializePoseDetection = async () => {
+            // For configuration options see
+            // https://developers.google.com/mediapipe/solutions/vision/pose_landmarker/web_js
             try {
                 const vision = await FilesetResolver.forVisionTasks(
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
                 );
                 poseLandmarker = await PoseLandmarker.createFromOptions(
                     vision, {
-                    baseOptions: { modelAssetPath: poseLandmarkerTask },
+                    baseOptions: { 
+                        modelAssetPath: MODEL_HEAVY_URI, 
+                        delegate: USE_GPU ? "GPU" : "CPU",
+                    },
                     numPoses: 1,
-                    runningMode: "VIDEO"
+                    runningMode: "VIDEO",
+                    // minPoseDetectionConfidence: 0.90,
+                    // minPosePresenceConfidence: 0.90,
+                    // minTrackingConfidence: 0.90,
                 });
                 detectPose();
             } catch (error) {
@@ -33,35 +54,33 @@ const VideoStream = ({ handleClassification }) => {
             }
         };
 
-        const drawLandmarks = (landmarksArray) => {
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = 'white';
-        
-            landmarksArray.forEach(landmarks => {
-                landmarks.forEach(landmark => {
-                    const x = landmark.x * canvas.width;
-                    const y = landmark.y * canvas.height;
-        
-                    ctx.beginPath();
-                    ctx.arc(x, y, 5, 0, 2 * Math.PI); // Draw a circle for each landmark
-                    ctx.fill();
-                });
-            });
-        };
-
         const detectPose = () => {
-            if (videoRef.current && videoRef.current.readyState >= 2) {
-                const detections = poseLandmarker.detectForVideo(videoRef.current, performance.now());
-                // setPosePresence(detections.handednesses.length > 0);
-
-                // Assuming detections.landmarks is an array of landmark objects
-                if (detections.landmarks) {
-                    drawLandmarks(detections.landmarks);
+            const FPS = 60 // cap max FPS @TODO make configurable 
+            setTimeout(()=> {
+                if (videoRef.current && videoRef.current.readyState >= 2) {
+                    let startTimeMs = performance.now();
+                    // const start = Date.now() // profile start
+                    poseLandmarker.detectForVideo(videoRef.current, startTimeMs, (result) => {
+                        canvasElement.width = video.clientWidth;
+                        canvasElement.height = video.clientHeight;
+                        canvasCtx.save();
+                        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                        for (const landmark of result.landmarks) {
+                          drawingUtils.drawLandmarks(landmark, {
+                            radius: (data) => {
+                                if (data) {
+                                    DrawingUtils.lerp(data.from.z, -0.15, 0.1, 5, 1)
+                                }
+                            }
+                          });
+                          drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS);
+                        }
+                        canvasCtx.restore();
+                    });
+                    // setKeypointProcessingSpeed(Date.now() - start); // profile end
                 }
-            }
-            requestAnimationFrame(detectPose);
+                requestAnimationFrame(detectPose);
+            }, 1000 / FPS)
         }
 
         const startWebcam = async () => {
@@ -149,7 +168,7 @@ const VideoStream = ({ handleClassification }) => {
          */
         // let lastVideoTime = -1;
         // let currentResults = {};
-        // function captureFrameKeypoints(video) {
+        // function (video) {
         //     // Perform pose estimation on the captured frame
         //     const canvas = document.createElement("canvas");
         //     canvas.width = video.videoWidth;
@@ -218,8 +237,13 @@ const VideoStream = ({ handleClassification }) => {
 
     return (
         <div>
-            <video  style={{ position: "absolute", width: "300px", height: "200px" }} id="localVideo" ref={videoRef} autoPlay muted></video>
-            <canvas  style={{ position: "absolute", width: "300px", height: "200px" }} ref={canvasRef} ></canvas>
+            <div id="videoContainer">
+                <video id="localVideo" ref={videoRef} autoPlay muted></video>
+                <canvas id="videoStreamCanvas" ref={canvasRef} ></canvas>
+                <pre>
+                    {keypointProcessingSpeed}
+                </pre>
+            </div>
             <div className='container'>
                 <div className='column'>
                     <h2>Debug:</h2>

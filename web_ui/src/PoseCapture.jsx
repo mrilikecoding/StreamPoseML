@@ -12,11 +12,8 @@ function PoseCapture({ handleVideoToggle, videoStreamer, videoLoader }) {
     return (
         <div>
             <div>
-                {videoLoader}
-            </div>
-            <div>
                 <button className='button' onClick={toggleVideoStream}>
-                    {isVideoStreamOn ? 'Turn off keypoint classification' : 'Turn on keypoint classification'}
+                    {isVideoStreamOn ? 'Stop streaming' : 'Classify from webcam stream'}
                 </button>
                 {isVideoStreamOn ? videoStreamer : null}
             </div>
