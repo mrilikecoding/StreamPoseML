@@ -7,6 +7,11 @@ const USE_GPU = true;
 const MODEL_LITE_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task" 
 const MODEL_FULL_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task" 
 const MODEL_HEAVY_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_heavy/float16/latest/pose_landmarker_heavy.task" 
+const MODEL_PATH = MODEL_HEAVY_URI;
+const SMOOTH_LANDMARKS = true;
+const SMOOTHING_FACTOR = 0.60;
+const MAX_FPS = 30; // cap max FPS @TODO make configurable 
+
 
 const VideoStream = ({ handleClassification }) => {
     const videoRef = useRef(null);
@@ -28,6 +33,30 @@ const VideoStream = ({ handleClassification }) => {
 
         let poseLandmarker;
         let animationFrameId;
+        let smoothingFactor = SMOOTHING_FACTOR;
+
+        const smoothLandmarks = (currentLandmarks, prevSmoothedLandmarks) => {
+            if (prevSmoothedLandmarks.length === 0) {
+                // Initial case, no smoothing needed
+                return currentLandmarks;
+            }
+    
+            // Smooth each landmark
+            if (currentLandmarks) {
+                const smoothedLandmarks = currentLandmarks.map((currentLandmark, i) => {
+                    const prevSmoothedLandmark = prevSmoothedLandmarks[i]
+                    return {
+                        x: (1 - smoothingFactor) * currentLandmark.x + smoothingFactor * prevSmoothedLandmark.x,
+                        y: (1 - smoothingFactor) * currentLandmark.y + smoothingFactor * prevSmoothedLandmark.y,
+                        z: (1 - smoothingFactor) * currentLandmark.z + smoothingFactor * prevSmoothedLandmark.z
+                    }
+                });
+                return smoothedLandmarks;
+            } else {
+                return currentLandmarks;
+            }
+    
+        }
 
         const initializePoseDetection = async () => {
             // For configuration options see
@@ -39,7 +68,7 @@ const VideoStream = ({ handleClassification }) => {
                 poseLandmarker = await PoseLandmarker.createFromOptions(
                     vision, {
                     baseOptions: { 
-                        modelAssetPath: MODEL_HEAVY_URI, 
+                        modelAssetPath: MODEL_PATH, 
                         delegate: USE_GPU ? "GPU" : "CPU",
                     },
                     numPoses: 1,
@@ -54,13 +83,22 @@ const VideoStream = ({ handleClassification }) => {
             }
         };
 
+        let prevSmoothedLandmarks = [];
         const detectPose = () => {
-            const FPS = 60 // cap max FPS @TODO make configurable 
             setTimeout(()=> {
                 if (videoRef.current && videoRef.current.readyState >= 2) {
                     let startTimeMs = performance.now();
-                    // const start = Date.now() // profile start
+                    const start = performance.now(); // profile start
                     poseLandmarker.detectForVideo(videoRef.current, startTimeMs, (result) => {
+                        if (SMOOTH_LANDMARKS) {
+                            const smoothedLandmarks = smoothLandmarks(result.landmarks[0], prevSmoothedLandmarks);
+                            prevSmoothedLandmarks = smoothedLandmarks;
+                            const resultWithSmoothedLandmarks = {
+                                ...result,
+                                landmarks: [smoothedLandmarks]
+                            };
+                            result = resultWithSmoothedLandmarks;
+                        }
                         canvasElement.width = video.clientWidth;
                         canvasElement.height = video.clientHeight;
                         canvasCtx.save();
@@ -77,10 +115,10 @@ const VideoStream = ({ handleClassification }) => {
                         }
                         canvasCtx.restore();
                     });
-                    // setKeypointProcessingSpeed(Date.now() - start); // profile end
+                    setKeypointProcessingSpeed(performance.now() - start); // profile end
                 }
                 requestAnimationFrame(detectPose);
-            }, 1000 / FPS)
+            }, 1000 / MAX_FPS)
         }
 
         const startWebcam = async () => {
@@ -237,12 +275,13 @@ const VideoStream = ({ handleClassification }) => {
 
     return (
         <div>
+            <pre>
+                Keypoint Processing Speed: {keypointProcessingSpeed}ms
+            </pre>
+            
             <div id="videoContainer">
                 <video id="localVideo" ref={videoRef} autoPlay muted></video>
                 <canvas id="videoStreamCanvas" ref={canvasRef} ></canvas>
-                <pre>
-                    {keypointProcessingSpeed}
-                </pre>
             </div>
             <div className='container'>
                 <div className='column'>
