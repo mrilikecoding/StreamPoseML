@@ -10,10 +10,10 @@ RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 
 WORKDIR /usr/src/app
 
-COPY .  ./
+COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install -r requirements.txt
+
+COPY .  ./
 
 ENTRYPOINT ["python", "run.py"]

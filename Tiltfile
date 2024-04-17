@@ -4,7 +4,7 @@ docker_build('streamposeml-image', './stream_pose_ml', build_args={'flask_debug'
         run('cd /app && pip install -r requirements.txt',
             trigger='./stream_pose_ml/requirements.txt'),
 
-        run('touch /stream_pose_ml/stream_pose_ml/api/app.py'),
+        run('touch ./api/app.py'),
 
 ])
 
