@@ -12,51 +12,37 @@ const SMOOTH_LANDMARKS = true;
 const SMOOTHING_FACTOR = 0.60;
 const MAX_FPS = 30; // cap max FPS @TODO make configurable 
 
+const smoothLandmarks = (currentLandmarks, prevSmoothedLandmarks) => {
+    let smoothingFactor = SMOOTHING_FACTOR;
+
+    if (prevSmoothedLandmarks.length === 0) {
+        // Initial case, no smoothing needed
+        return currentLandmarks;
+    }
+
+    // Smooth each landmark
+    if (currentLandmarks) {
+        const smoothedLandmarks = currentLandmarks.map((currentLandmark, i) => {
+            const prevSmoothedLandmark = prevSmoothedLandmarks[i]
+            return {
+                x: (1 - smoothingFactor) * currentLandmark.x + smoothingFactor * prevSmoothedLandmark.x,
+                y: (1 - smoothingFactor) * currentLandmark.y + smoothingFactor * prevSmoothedLandmark.y,
+                z: (1 - smoothingFactor) * currentLandmark.z + smoothingFactor * prevSmoothedLandmark.z
+            }
+        });
+        return smoothedLandmarks;
+    } else {
+        return currentLandmarks;
+    }
+}
 
 const VideoStream = ({ handlePoseResults }) => {
-    const videoRef = useRef(null);
-    const canvasRef = useRef(null);
-    const [posePresence, setPosePresence] = useState(null);
-    const [keypointProcessingSpeed, setKeypointProcessingSpeed] = useState(null);
-
-    const [results, setResults] = useState(null);
-    const socketRef = useRef();
-    
-
+    const videoRef = useRef();
+    const canvasRef = useRef();
+    const [keypointProcessingSpeed, setKeypointProcessingSpeed] = useState();
     
     useEffect(() => {
-        // For drawing keypoints
-        const canvasElement = canvasRef.current;
-        const video = videoRef.current;
-        const canvasCtx = canvasElement.getContext("2d");
-        const drawingUtils = new DrawingUtils(canvasCtx);
-
         let poseLandmarker;
-        let animationFrameId;
-        let smoothingFactor = SMOOTHING_FACTOR;
-
-        const smoothLandmarks = (currentLandmarks, prevSmoothedLandmarks) => {
-            if (prevSmoothedLandmarks.length === 0) {
-                // Initial case, no smoothing needed
-                return currentLandmarks;
-            }
-    
-            // Smooth each landmark
-            if (currentLandmarks) {
-                const smoothedLandmarks = currentLandmarks.map((currentLandmark, i) => {
-                    const prevSmoothedLandmark = prevSmoothedLandmarks[i]
-                    return {
-                        x: (1 - smoothingFactor) * currentLandmark.x + smoothingFactor * prevSmoothedLandmark.x,
-                        y: (1 - smoothingFactor) * currentLandmark.y + smoothingFactor * prevSmoothedLandmark.y,
-                        z: (1 - smoothingFactor) * currentLandmark.z + smoothingFactor * prevSmoothedLandmark.z
-                    }
-                });
-                return smoothedLandmarks;
-            } else {
-                return currentLandmarks;
-            }
-    
-        }
 
         const initializePoseDetection = async () => {
             // For configuration options see
@@ -83,6 +69,12 @@ const VideoStream = ({ handlePoseResults }) => {
             }
         };
 
+        // For drawing keypoints
+        const canvasElement = canvasRef.current;
+        const video = videoRef.current;
+        const canvasCtx = canvasElement.getContext("2d");
+        const drawingUtils = new DrawingUtils(canvasCtx);
+        let animationFrameId;
         let prevSmoothedLandmarks = [];
         const detectPose = () => {
             setTimeout(()=> {
