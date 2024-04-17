@@ -1,10 +1,13 @@
 import time
 import os
+from pathlib import Path
 
 from flask import Flask, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
+from werkzeug.utils import secure_filename
+
 
 from stream_pose_ml import stream_pose_client
 from stream_pose_ml.blaze_pose import mediapipe_client
@@ -15,9 +18,6 @@ from stream_pose_ml.learning import model_builder
 from stream_pose_ml.actuators import bluetooth_device
 
 ### Set the model ###
-# Load trained model into TrainedModel instance - note, models in local folder were saved
-# via model builder, so use the retrieve_model_from_pickle method in the model_builder.
-# Otherwise, any model with a "predict" method can be set on the trained_model instance.
 mb = model_builder.ModelBuilder()
 model_location = "./data/trained_models"
 trained_model = trained_model.TrainedModel()
@@ -49,7 +49,13 @@ stream_pose = StreamPoseMLApp()
 ### Init Flask API ###
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
-app.debug = True
+
+# Tmp file upload
+UPLOAD_FOLDER = 'tmp'
+ALLOWED_EXTENSIONS = {'pickle'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
+
 
 # TODO - make env dependent from config
 whitelist = [
@@ -57,9 +63,12 @@ whitelist = [
     "http://localhost:5001",
     "https://cdn.jsdelivr.net",
 ]
-# CORS(app, origins=whitelist)
-CORS(app, origins="*")
+CORS(app, origins=whitelist)
+# CORS(app, origins="*")
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/")
 def status():
@@ -69,15 +78,27 @@ def status():
 ### Application Routes ###
 @app.route("/set_model", methods=["POST"])
 def set_model():
-    data = request.get_json()
-    if "filename" not in data:
-        return {"error": "No filename"}, 400
+    model_name = None
+    model_path = None
+    if request.method == 'POST':
+        print(request)
+        if 'file' not in request.files:
+            return {"result": "No file part"}, 400
+        file = request.files['file']
+        if file.filename == "":
+            return {"result": "No selected file"}, 400
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            model_name = filename
+            model_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(model_path)
 
-    trained_model_pickle_path = data["filename"]
-    model, model_data = mb.retrieve_model_from_pickle(
-        file_path=f"{model_location}/{trained_model_pickle_path}"
-    )
+    # Load the model into memory
+    model, model_data = mb.retrieve_model_from_pickle(file_path=model_path)
     trained_model.set_model(model=model, model_data=model_data)
+
+    # Clean the file system
+    Path.unlink(Path.cwd() / model_path)
 
     ### Set the trained_models data transformer ###
     # TODO replace this with some kind of schema
@@ -96,7 +117,7 @@ def set_model():
     # TODO - add a separate step for this and make configurable
     stream_pose.set_actuator()
 
-    return {"result": f"Server Ready: classifier set to {trained_model_pickle_path}."}
+    return {"result": f"Server Ready: classifier set to {model_name}."}
 
 
 ### SocketIO Listeners ###
