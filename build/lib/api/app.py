@@ -56,8 +56,7 @@ whitelist = [
     "http://localhost:5001",
     "https://cdn.jsdelivr.net",
 ]
-# CORS(app, origins=whitelist)
-CORS(app, origins="*")
+CORS(app, origins=whitelist)
 
 
 @app.route("/")
@@ -135,38 +134,3 @@ def handle_keypoints(payload: str) -> None:
 
         emit("frame_result", return_payload)
 
-
-@socketio.on("frame")
-def handle_frame(payload: str) -> None:
-    """
-    Handle incoming video frames from the client.
-
-    This event handler is triggered when a 'frame' event is received from the client side.
-    It processes the frame data (e.g., perform keypoint extraction) and sends the results back to the client.
-
-    Args:
-        payload: str
-            The payload of the 'frame' event, containing the base64 encoded frame data.
-    """
-    if stream_pose.stream_pose_client is None:
-        emit("frame_result", {"error": "No model set"})
-        return
-
-    image = stream_pose.stream_pose_client.convert_base64_to_image_array(payload)
-    # image = pc.preprocess_image(image)
-
-    start_time = time.time()
-    results = stream_pose.run_frame_pipeline(image)
-    speed = time.time() - start_time
-
-    # Emit the results back to the client
-    if (
-        results and stream_pose.stream_pose_client.current_classification is not None
-    ):  # if we get some classification
-        return_payload = {
-            "classification": stream_pose.stream_pose_client.current_classification,
-            "timestamp": f"{time.time_ns()}",
-            "processing time (s)": speed,
-            "frame rate capacity (hz)": 1.0 / speed,
-        }
-        emit("frame_result", return_payload)
