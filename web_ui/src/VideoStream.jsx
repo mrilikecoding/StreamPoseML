@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
-
 import io from "socket.io-client";
+
+import { useCamera } from './hooks/useCamera';
 
 const USE_GPU = true;
 const MODEL_LITE_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task" 
@@ -36,10 +37,24 @@ const smoothLandmarks = (currentLandmarks, prevSmoothedLandmarks) => {
     }
 }
 
+
 const VideoStream = ({ handlePoseResults }) => {
     const videoRef = useRef();
+    const [video, isCameraInitialised, running, setPlaying, error] = useCamera(videoRef);
     const canvasRef = useRef();
     const [keypointProcessingSpeed, setKeypointProcessingSpeed] = useState();
+
+    const poseLandmarkerOptions = {
+        baseOptions: { 
+            modelAssetPath: MODEL_PATH, 
+            delegate: USE_GPU ? "GPU" : "CPU",
+        },
+        numPoses: 1,
+        runningMode: "VIDEO",
+        // minPoseDetectionConfidence: 0.90,
+        // minPosePresenceConfidence: 0.90,
+        // minTrackingConfidence: 0.90,
+    }
     
     useEffect(() => {
         let poseLandmarker;
@@ -51,23 +66,14 @@ const VideoStream = ({ handlePoseResults }) => {
                 const vision = await FilesetResolver.forVisionTasks(
                     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
                 );
-                poseLandmarker = await PoseLandmarker.createFromOptions(
-                    vision, {
-                    baseOptions: { 
-                        modelAssetPath: MODEL_PATH, 
-                        delegate: USE_GPU ? "GPU" : "CPU",
-                    },
-                    numPoses: 1,
-                    runningMode: "VIDEO",
-                    // minPoseDetectionConfidence: 0.90,
-                    // minPosePresenceConfidence: 0.90,
-                    // minTrackingConfidence: 0.90,
-                });
+                poseLandmarker = await PoseLandmarker.createFromOptions(vision, poseLandmarkerOptions);
                 detectPose();
             } catch (error) {
                 console.log("Error initializing pose landmark detection.", error)
             }
         };
+
+        initializePoseDetection();
 
         // For drawing keypoints
         const canvasElement = canvasRef.current;
@@ -114,22 +120,8 @@ const VideoStream = ({ handlePoseResults }) => {
             }, 1000 / MAX_FPS)
         }
 
-        const startWebcam = async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                videoRef.current.srcObject = stream;
-                await initializePoseDetection();
-            } catch (error) {
-                console.error("Error accessing webcam:", error);
-            }
-        };
-
-        startWebcam();
 
         return () => {
-            if (videoRef.current && videoRef.current.srcObject) {
-                videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-            }
             if (poseLandmarker) {
                 poseLandmarker.close();
             }
