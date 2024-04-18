@@ -70,26 +70,22 @@ function WebBluetooth({deviceServiceUUID, deviceCharacteristicUUID, classifierRe
     }, [classifierResult, characteristic])
 
     return (
-        <div>
-            <div className='container'>
-
-            <div className='column bg'
-                style={{
-                    backgroundColor: (classifierResult && classifierResult.classification === true) ? 'green' : 'red'
-                }}
-                >
-                    <div>
-                        {
-                            !navigator.bluetooth ? <b>Bluetooth not supported in this browser. Please try Chrome.</b> :
-                            <button onClick={connectToDevice}>{bluetoothStatus}</button>
-                        }
-                    </div>
-                    <p>Bluetooth Send: {bluetoothSend}</p>
-                    <p>Bluetooth Response: {bluetoothResponse}</p>
-                    <p>(see console for read/write stream)</p>
-                    <p>Service UUID: {deviceServiceUUID}</p>
-                    <p>Characteristic UUID: {deviceCharacteristicUUID}</p>
-            </div>
+        <div className='card w-96 bg-base-100 shadow-xl'>
+            <h1>Bluetooth Actuation</h1>
+            <div className='card card-compact w-96 bg-base-100 shadow-xl px-4' style={{
+                backgroundColor: (classifierResult && classifierResult.classification === true) ? 'green' : 'red'
+            }} >
+                        <div>
+                            {
+                                !navigator.bluetooth ? <b>Bluetooth not supported in this browser. Please try Chrome.</b> :
+                                <button onClick={connectToDevice}>{bluetoothStatus}</button>
+                            }
+                        </div>
+                        <p>Bluetooth Send: {bluetoothSend}</p>
+                        <p>Bluetooth Response: {bluetoothResponse}</p>
+                        <p>(see console for read/write stream)</p>
+                        <p>Service UUID: {deviceServiceUUID}</p>
+                        <p>Characteristic UUID: {deviceCharacteristicUUID}</p>
             </div>
         </div>
     )
