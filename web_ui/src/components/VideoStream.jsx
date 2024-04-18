@@ -133,17 +133,19 @@ const VideoStream = ({ handlePoseResults }) => {
 
 
     return (
-        <div>
-            <div className='artboard artboard-horizontal phone-2' id="videoContainer">
+        <div className='grid grid-cols-1'>
+            <div className='col-span-full' id="videoContainer">
                 <video id="localVideo" ref={videoRef} autoPlay muted></video>
                 <canvas id="videoStreamCanvas" ref={canvasRef} ></canvas>
             </div>
-            <div className='mockup-code'>
-                <pre>
-                    <code>
-                    Keypoint Processing Speed: {keypointProcessingSpeed}ms
-                    </code>
-                </pre>
+            <div className='col-span-full'>
+                <div className='card card-compact w-96 bg-base-100 shadow-xl px-4'>
+                    <pre>
+                        <code>
+                        Keypoint Processing Speed: {keypointProcessingSpeed}ms
+                        </code>
+                    </pre>
+                </div>
             </div>
         </div>
     );

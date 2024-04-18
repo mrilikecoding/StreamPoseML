@@ -1,9 +1,9 @@
 #videoContainer {
   position: relative;
-  height: 600px;
 }
 
 #videoContainer #localVideo {
+  width: 100%;
   position: absolute;
   clear: both;
   display: block;
@@ -12,6 +12,7 @@
   -moz-transform: rotateY(180deg);}
 
 #videoContainer #videoStreamCanvas {
+  width: 100%;
   position: absolute;
   left: 0px;
   top: 0px;

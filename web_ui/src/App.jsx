@@ -57,20 +57,21 @@ function App() {
     }
 
     return (
-        <div className="container mx-auto px-4">
-        <div className="navbar bg-primary text-primary-content">
-            StreamPose ML Web Client
-        </div>
-        <div className="flex flex-row">
-            <div className="basis-1/4">
+        <div className="grid grid-cols-4 gap-4 p-6 content-stretch">
+            <div className="prose col-span-full">
+                <h1 className="">
+                    StreamPose ML Web Client
+                </h1>
+            </div>
+            <div className="prose col-span-2">
                 <ModelSelector setModel={setModel} />
                 {model ? model : "Select model to begin classification"}
-                <div className="">
-                    <h1>Classifier Result</h1>
+                <div className="card card-compact bg-base-100 shadow-xl px-4">
+                    <h2>Classifier Result</h2>
                     {results ? <pre>{JSON.stringify(results, null, 2)}</pre> : <p>Awaiting server response...</p>}
                 </div>
             </div>
-            <div className="basis-1/2">
+            <div className="col-span-2">
                 <PoseCapture 
                     handleVideoToggle={handleVideoToggle}
                     videoLoader={<VideoLoad />}
@@ -79,14 +80,13 @@ function App() {
                         />}
                 />
             </div>
-            <div className="basis-1/4">
+            <div className="col-span-2">
                 <WebBluetooth 
                     deviceServiceUUID={DEVICE_SERVICE_UUID}
                     deviceCharacteristicUUID={DEVICE_CHARACTERISTIC_UUID}
                     classifierResult={classifierResult}
                 />
             </div>
-        </div>
         </div>
     );
 }
