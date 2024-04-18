@@ -1,12 +1,11 @@
 import io from "socket.io-client";
 
 import './App.css';
-// import Api from "./helpers/api"
-import VideoStream from './VideoStream';
-import VideoLoad from './VideoLoad';
-import PoseCapture from './PoseCapture';
-import ModelSelector from './ModelSelector';
-import WebBluetooth from './WebBluetooth';
+import VideoStream from './components/VideoStream';
+import VideoLoad from './components/VideoLoad';
+import PoseCapture from './components/PoseCapture';
+import ModelSelector from './components/ModelSelector';
+import WebBluetooth from './components/WebBluetooth';
 import React, { useState, useEffect, useRef } from 'react';
 
 function App() {
@@ -58,31 +57,36 @@ function App() {
     }
 
     return (
-        <div className="App">
-            <h1>StreamPose ML Web Client</h1>
-            <div>
-                <div>
-                    <div className='column'>
-                        <ModelSelector setModel={setModel} />
-                    </div>
-                    {model ? model : "Select model to begin classification"}
+        <div className="container mx-auto px-4">
+        <div className="navbar bg-primary text-primary-content">
+            StreamPose ML Web Client
+        </div>
+        <div className="flex flex-row">
+            <div className="basis-1/4">
+                <ModelSelector setModel={setModel} />
+                {model ? model : "Select model to begin classification"}
+                <div className="">
+                    <h1>Classifier Result</h1>
                     {results ? <pre>{JSON.stringify(results, null, 2)}</pre> : <p>Awaiting server response...</p>}
                 </div>
-                {/* <WebBluetooth 
-                    deviceServiceUUID={DEVICE_SERVICE_UUID}
-                    deviceCharacteristicUUID={DEVICE_CHARACTERISTIC_UUID}
-                    classifierResult={classifierResult}
-                /> */}
             </div>
-            <div className="container">
+            <div className="basis-1/2">
                 <PoseCapture 
                     handleVideoToggle={handleVideoToggle}
                     videoLoader={<VideoLoad />}
                     videoStreamer={<VideoStream 
                         handlePoseResults={handlePoseResults} 
-                    />}
+                        />}
                 />
             </div>
+            <div className="basis-1/4">
+                <WebBluetooth 
+                    deviceServiceUUID={DEVICE_SERVICE_UUID}
+                    deviceCharacteristicUUID={DEVICE_CHARACTERISTIC_UUID}
+                    classifierResult={classifierResult}
+                />
+            </div>
+        </div>
         </div>
     );
 }

@@ -24,20 +24,16 @@ function ModelSelector({ setModel }) {
     };
 
     return (
-        <div>
-            <h2>Usage Instructions</h2>
-            <p>Refer to project documentation for instructions on how to save your trained classifier as a "pickle" file. Place this file within "data/trained_models" at the root of the application (you may need to create these folders). Then select the model here:</p>
-            <input type="file" onChange={handleFileChange} />
-            <br />
-            <p>Set the application to use the model below. If successful, a video component will appear as well as the option to select a Bluetooth device.</p>
-            <div className='column'>
-                <button onClick={handleSubmit} disabled={!selectedFile}>
+        <div className=''>
+            <h1>Select Trained Model</h1>
+            <p>Refer to project documentation for instructions on how to save your trained classifier as a "pickle" file. Select the model here:</p>
+            <div className='join'>
+                <input className='file-input w-full max-w-xs join-item' type="file" onChange={handleFileChange} />
+                <button className='btn btn-primary join-item' onClick={handleSubmit} disabled={!selectedFile}>
                     Set Model
                 </button>
             </div>
-            <div className='column'>
-                <div>{selectedFile ? selectedFile.name : "No model selected"}</div>
-            </div>
+            <div>{selectedFile ? selectedFile.name : "No model selected"}</div>
         </div>
     );
 }

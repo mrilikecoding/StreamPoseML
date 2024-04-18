@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 import io from "socket.io-client";
 
-import { useCamera } from './hooks/useCamera';
+import { useCamera } from '../hooks/useCamera';
 
 const USE_GPU = true;
 const MODEL_LITE_URI = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task" 
@@ -134,13 +134,16 @@ const VideoStream = ({ handlePoseResults }) => {
 
     return (
         <div>
-            <pre>
-                Keypoint Processing Speed: {keypointProcessingSpeed}ms
-            </pre>
-            
-            <div id="videoContainer">
+            <div className='artboard artboard-horizontal phone-2' id="videoContainer">
                 <video id="localVideo" ref={videoRef} autoPlay muted></video>
                 <canvas id="videoStreamCanvas" ref={canvasRef} ></canvas>
+            </div>
+            <div className='mockup-code'>
+                <pre>
+                    <code>
+                    Keypoint Processing Speed: {keypointProcessingSpeed}ms
+                    </code>
+                </pre>
             </div>
         </div>
     );
