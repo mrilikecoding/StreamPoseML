@@ -18,3 +18,25 @@ spec:
           image: streamposeml-image
           ports:
             - containerPort: 5001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webui
+  labels:
+    app: webui
+spec:
+  selector:
+    matchLabels:
+      app: webui
+  template:
+    metadata:
+      labels:
+        app: webui
+    spec:
+      containers:
+        - name: webui
+          image: webui-image
+          ports:
+            - containerPort: 3000
+
