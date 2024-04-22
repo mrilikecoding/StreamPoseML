@@ -16,7 +16,7 @@ const MAX_FPS = 30; // cap max FPS @TODO make configurable
 const smoothLandmarks = (currentLandmarks, prevSmoothedLandmarks) => {
     let smoothingFactor = SMOOTHING_FACTOR;
 
-    if (prevSmoothedLandmarks.length === 0) {
+    if (!prevSmoothedLandmarks || prevSmoothedLandmarks.length === 0) {
         // Initial case, no smoothing needed
         return currentLandmarks;
     }
