@@ -24,9 +24,8 @@ function ModelSelector({ setModel }) {
     };
 
     return (
-        <div className=''>
+        <>
             <h2>Select Trained Model</h2>
-            <div role="alert" className="alert">{selectedFile ? selectedFile.name : "No model selected"}</div>
             <p>Refer to project documentation for instructions on how to save your trained classifier as a "pickle" file. Select the model here:</p>
             <div className='join'>
                 <input className='file-input file-input-bordered w-full max-w-xs join-item' type="file" onChange={handleFileChange} />
@@ -34,7 +33,8 @@ function ModelSelector({ setModel }) {
                     Set Model
                 </button>
             </div>
-        </div>
+
+        </>
     );
 }
 

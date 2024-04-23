@@ -64,14 +64,21 @@ function App() {
                 </h1>
             </div>
             <div className="prose col-span-2">
-                <ModelSelector setModel={setModel} />
-                {model ? model : "Select model to begin classification"}
-                <div className="card card-compact bg-base-100 shadow-xl px-4">
+                <div role="alert" className={model ? "alert alert-success text-success-content" : "alert alert-warning text-warning-content" }>
+                    <div className="col-span-2">
+                        <ModelSelector setModel={setModel} />
+                        <h3>
+                            {model ? model : "No model selected."}
+                        </h3>
+                    </div>
+                </div>
+                <div className="col-span-2 card card-compact bg-base-100 shadow-xl px-4">
                     <h2>Classifier Result</h2>
-                    {results ? <pre>{JSON.stringify(results, null, 2)}</pre> : <p>Awaiting server response...</p>}
+                    {results ? <pre>{JSON.stringify(results, null, 2)}</pre> : <p>Not yet sending data.</p>}
                 </div>
             </div>
             <div className="col-span-2">
+                <WebBluetooth classifierResult={classifierResult} />
                 <PoseCapture 
                     handleVideoToggle={handleVideoToggle}
                     videoLoader={<VideoLoad />}
@@ -81,11 +88,6 @@ function App() {
                 />
             </div>
             <div className="col-span-2">
-                <WebBluetooth 
-                    deviceServiceUUID={DEVICE_SERVICE_UUID}
-                    deviceCharacteristicUUID={DEVICE_CHARACTERISTIC_UUID}
-                    classifierResult={classifierResult}
-                />
             </div>
         </div>
     );
