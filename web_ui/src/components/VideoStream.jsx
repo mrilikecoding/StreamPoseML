@@ -97,7 +97,10 @@ const VideoStream = ({ handlePoseResults }) => {
                             };
                             result = resultWithSmoothedLandmarks;
                         }
-                        handlePoseResults(result);
+                        // TODO this is a workaround for darkness
+                        if (result.landmarks[0] !== undefined) {
+                            handlePoseResults(result);
+                        }
                         canvasElement.width = video.clientWidth;
                         canvasElement.height = video.clientHeight;
                         canvasCtx.save();
