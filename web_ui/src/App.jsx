@@ -72,22 +72,22 @@ function App() {
                         </h3>
                     </div>
                 </div>
-                <div className="col-span-2 card card-compact bg-base-100 shadow-xl px-4">
+                <div className="col-span-2 card card-compact bg-base-100 px-4">
                     <h2>Classifier Result</h2>
                     {results ? <pre>{JSON.stringify(results, null, 2)}</pre> : <p>Not yet sending data.</p>}
                 </div>
-            </div>
-            <div className="col-span-2">
                 <WebBluetooth classifierResult={classifierResult} />
-                <PoseCapture 
-                    handleVideoToggle={handleVideoToggle}
-                    videoLoader={<VideoLoad />}
-                    videoStreamer={<VideoStream 
-                        handlePoseResults={handlePoseResults} 
-                        />}
-                />
             </div>
             <div className="col-span-2">
+                <div className="fixed w-1/2">
+                    <PoseCapture 
+                        handleVideoToggle={handleVideoToggle}
+                        videoLoader={<VideoLoad />}
+                        videoStreamer={<VideoStream 
+                            handlePoseResults={handlePoseResults} 
+                            />}
+                    />
+                </div>
             </div>
         </div>
     );

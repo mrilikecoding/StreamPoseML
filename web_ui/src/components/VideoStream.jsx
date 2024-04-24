@@ -136,7 +136,7 @@ const VideoStream = ({ handlePoseResults }) => {
 
 
     return (
-        <div className='grid grid-cols-1'>
+        <div className='grid grid-cols-1 top-0'>
             <div className='col-span-full' id="videoContainer">
                 <video id="localVideo" ref={videoRef} autoPlay muted></video>
                 <canvas id="videoStreamCanvas" ref={canvasRef} ></canvas>
@@ -144,9 +144,7 @@ const VideoStream = ({ handlePoseResults }) => {
             <div className='col-span-full'>
                 <div className='card card-compact w-96 bg-base-100 shadow-xl px-4'>
                     <pre>
-                        <code>
-                        Keypoint Processing Speed: {keypointProcessingSpeed}ms
-                        </code>
+                        Keypoint Processing Speed: {keypointProcessingSpeed ? keypointProcessingSpeed.toFixed(2) : "--" }ms
                     </pre>
                 </div>
             </div>
