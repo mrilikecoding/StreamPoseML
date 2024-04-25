@@ -12,13 +12,11 @@ services:
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
     environment:
       - FLASK_APP=run.py
-      - APP_NAME=${APP_NAME}
     command: >
       bash -c "python run.py"
 
   web_ui:
     image: mrilikecoding/stream_pose_ml_web_ui:latest
-      - APP_NAME=${APP_NAME}
     depends_on:
       - stream_pose_ml_api
     ports:
@@ -26,14 +24,12 @@ services:
     stdin_open: true
     networks:
       - app-tier
-    command: >
-          bash -c "cd /usr/src/app/my-app &&
-                npm install &&
-                npm_config_loglevel=verbose npm start > logs/container_logs.txt 2>&1 || (ls -al /root/.npm/_logs && false)"
+    entrypoint: >
+          bash -c "yarn build  && yarn serve --host --port 3000"
     volumes:
       - ./web_ui:/usr/src/app/my-app
-      - ./web_ui/node_modules:/usr/src/app/my-app/node_modules
       - ./web_ui/logs:/root/.npm/_logs
+      - /usr/src/app/my-app/node_modules # anonymous persistent volume to prevent local machine override
 
 networks:
   app-tier:
