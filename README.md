@@ -90,14 +90,6 @@ However this task is straightforward with StreamPoseML assuming you have structu
 cp config.example.yml config.yml
 ```
 
-Similarly, to play with some provided sample data in this repo you can run:
-
-```
-sh copy_example.sh
-```
-
-This will copy the `example_data` folder into a `data` directory which is ignored by git.
-
 To use your own annotations, you'll need to update the annotation schema to match your annotation data. StreamPoseML assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently StreamPoseML support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
 
 Here's an example of a valid annotation file for video named `example_video.webm`:
@@ -144,7 +136,7 @@ annotation_schema: # assume one annotation file per video where there is a list 
 
 StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see several Jupyter notebook examples showing how to use StreamPoseML to build a training dataset.
 
-To get a feel for building your dataset using StreamPoseML, see `/stream_pose_ml/notebooks/dataset_for_ui.ipynb`
+To get a feel for building your dataset using StreamPoseML, see `/stream_pose_ml/notebooks/example_usage.ipynb`
 
 The process looks like this:
 
@@ -206,7 +198,7 @@ This will give you one row per frame with columns for each x, y, z coordinate in
 
 Once you have a dataset to work with, you can use whatever process you like to train and evaluate your models. But here you'll find some convenience methods for training and evaluation abstracted on top of a few popular machine learning libraries. These are scoped to a Model Builder class created to speed up iterations and model evaluation using the metrics we found useful in our research. It may not suit your particular needs, but have a look and feel free to make contributions.
 
-See the `/stream_pose_ml/notebooks/model_builder_examples.ipynb` for usage examples and see `/stream_pose_ml/stream_pose_ml/learning/model_builder.py` to see what's available.
+See the `/stream_pose_ml/notebooks/example_usage.ipynb` for usage examples and see `/stream_pose_ml/stream_pose_ml/learning/model_builder.py` to see what's available.
 
 ## Saving your model
 
@@ -230,7 +222,7 @@ The pickle object should be shaped like this:
 }
 ```
 
-Place this pickle file in `./data/trained_models`
+You will load this model into the web application to classify streaming keypoint data with it. 
 
 Provided is a simple Flask API that sits behind a React UI. The UI was tailored for our specific use case in classifying types of steps captured via webcam, however you can adapt this for your own model classification scheme.
 
@@ -241,17 +233,17 @@ To run the sample app:
 3. From your terminal, clone this repo and enter the directory.
 4. Run `start.sh`
 
-This should install the necessary dependencies and then launch the application in your default browser. 
+This should install the necessary dependencies and then launch the application in your default browser (Chrome is recommended for full feature support).
 
 5. When you're done, run `stop.sh` to gracefully end the application processes.
 
 ## Running the web application locally
 
-If the web application is of any use to you, you'll want to tinker with it to suit your needs. Then you'll want to run it locally and perhaps build and deploy it.
+The previous method relies on Docker Compose to pull the latest builds from Dockerhub. However, if the web application is of any use to you, you'll probably want to tinker with it to suit your needs. Then you'll want to run it locally or perhaps build and deploy it on your own infrastructre.
 
-First, again, you'll need to install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+Local development against local containers is easiest with [Tilt](tilt.dev) and [Minikube](https://minikube.sigs.k8s.io/docs/). Once installed, you can simply run `tilt up`.
 
-To run the web app with Docker you'll want to do `docker-compose up`. The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app. There is a bluetooth actuation scheme built in, however currently only Chrome supports this.
+The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app. There is a bluetooth actuation scheme built in, however currently only Chrome supports this.
 
 ## Building & Deploying the Web Application
 
