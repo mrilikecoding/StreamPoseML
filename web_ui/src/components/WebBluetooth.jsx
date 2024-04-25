@@ -88,7 +88,7 @@ function WebBluetooth({ classifierResult }) {
             let value = encoder.encode(pos);
             setBluetoothSend(`value: ${pos}, encoded: ${value}`);
             if (characteristic) {
-                characteristic.writeValue(value)
+                characteristic.writeValueWithoutResponse(value)
                             .then(() => {
                                 const log = 'Write operation is complete.';
                                 handleLogOutputUpdate(log);
