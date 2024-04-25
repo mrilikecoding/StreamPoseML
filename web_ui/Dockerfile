@@ -1,13 +1,14 @@
-FROM node:18
+FROM node:latest
 
 WORKDIR /usr/src/app/my-app
 
-ADD package.json package.json
-ADD package-lock.json package-lock.json
-RUN npm install
+COPY yarn.lock package.json ./
 
-ADD . ./
+RUN yarn install
+
+COPY . .
 
 EXPOSE 3000
-ENTRYPOINT npm start
+
+ENTRYPOINT yarn dev --host
 
