@@ -1,18 +1,18 @@
 # This file is for setting general application configuration variables
 
-# I/O paths
+# I/O paths - TODO these are deprecated - remove with general config cleanup
 keypoints_data_output_directory: ./data/keypoints
 sequence_data_output_directory: ./data/keypoints
 merged_annotation_output_directory: ./data/annotated_videos
 source_video_directory: ./data/source_videos
 source_annotation_directory: ./data/source/annotations
 
-# testing paths - tmp for generated output. Make sure to cleanup!
-test_video_directory: ./stream_pose_ml/test_videos
-test_annotation_directory: ./stream_pose_ml/test_annotations
-test_keypoints_data_output_directory: ./stream_pose_ml/tmp/test_keypoints
-test_sequence_data_output_directory: ./stream_pose_ml/tmp/test_sequences
-test_merged_annotation_output_directory: ./stream_pose_ml/tmp/annotated_videos
+# Testing paths - tmp for generated output. Make sure to cleanup!
+test_video_directory: ./pose_parser/test_videos
+test_annotation_directory: ./pose_parser/test_annotations
+test_keypoints_data_output_directory: ./pose_parser/tmp/test_keypoints
+test_sequence_data_output_directory: ./pose_parser/tmp/test_sequences
+test_merged_annotation_output_directory: ./pose_parser/tmp/annotated_videos
 
 # Annotation Schema
 

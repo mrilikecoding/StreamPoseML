@@ -84,11 +84,9 @@ In particular, there are various segmentation strategies that can be used to org
 
 A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with. 
 
-However this task is straightforward with StreamPoseML assuming you have structured annotation data. You'll want to follow the folder structure conventions in this repo, so the best way is to simply clone this repo locally and work within it to process your data. First copy `config.example.yml` into `config.yml`. This should be in the root the project importing `stream_pose_ml`. 
+However this task is straightforward with StreamPoseML assuming you have structured annotation data. You'll want to follow the folder structure conventions in this repo, so the best way is to simply clone this repo locally and work within it to process your data.
 
-```
-cp config.example.yml config.yml
-```
+First, take note of `config.yml` and its defined annotation schema.
 
 To use your own annotations, you'll need to update the annotation schema to match your annotation data. StreamPoseML assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently StreamPoseML support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
 
@@ -116,7 +114,7 @@ example_video.json
  }
 ```
 
-Then here's what your `config.yml` should look like.
+Then here's what your annotatoin schema definition in `config.yml` should look like:
 
 ```
 annotation_schema: # assume one annotation file per video where there is a list of annotations
@@ -134,7 +132,7 @@ annotation_schema: # assume one annotation file per video where there is a list 
 
 ## Creating datasets with features
 
-StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see several Jupyter notebook examples showing how to use StreamPoseML to build a training dataset.
+StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see a notebook example showing how to use StreamPoseML to build a training dataset.
 
 To get a feel for building your dataset using StreamPoseML, see `/stream_pose_ml/notebooks/example_usage.ipynb`
 
@@ -218,7 +216,7 @@ The pickle object should be shaped like this:
 
 ```
 {
-  classifier: <your_trained_model>
+  classifier: <your_trained_model implementing predict method>
 }
 ```
 
@@ -226,12 +224,12 @@ You will load this model into the web application to classify streaming keypoint
 
 Provided is a simple Flask API that sits behind a React UI. The UI was tailored for our specific use case in classifying types of steps captured via webcam, however you can adapt this for your own model classification scheme.
 
-To run the sample app:
+To run the sample app you'll need to pull the latest builds from Dockerhub:
 
 1. Visit docker.com and sign up for an account.
-2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/).client for your your system, launch, and log in.
-3. From your terminal, clone this repo and enter the directory.
-4. Run `start.sh`
+2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/) client for your your system, launch, and log in.
+3. From your terminal, git clone this repo and enter the directory.
+4. Run `start.sh` to pull down the latest images (backend and frontend) and spin them up with Docker Compose.
 
 This should install the necessary dependencies and then launch the application in your default browser (Chrome is recommended for full feature support).
 
@@ -241,7 +239,7 @@ This should install the necessary dependencies and then launch the application i
 
 The previous method relies on Docker Compose to pull the latest builds from Dockerhub. However, if the web application is of any use to you, you'll probably want to tinker with it to suit your needs. Then you'll want to run it locally or perhaps build and deploy it on your own infrastructre.
 
-Local development against local containers is easiest with [Tilt](tilt.dev) and [Minikube](https://minikube.sigs.k8s.io/docs/). Once installed, you can simply run `tilt up`.
+Local development against local containers is easiest with [Tilt](tilt.dev) and [Minikube](https://minikube.sigs.k8s.io/docs/). Once installed (in addition to Docker), you can simply run `tilt up`.
 
 The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app. There is a bluetooth actuation scheme built in, however currently only Chrome supports this.
 
