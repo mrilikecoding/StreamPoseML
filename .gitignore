@@ -6,8 +6,6 @@ __pycache__
 dist/* 
 web_ui/dist/*
 
-config.yml
-
 node_modules/
 data/*
 
