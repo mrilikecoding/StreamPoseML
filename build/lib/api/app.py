@@ -79,7 +79,8 @@ def set_model():
 
     ### Set the trained_models data transformer ###
     # TODO replace this with some kind of schema
-    transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
+    # transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
+    transformer = sequence_transformer.AnotherTransformer()
     trained_model.set_data_transformer(transformer)
 
     stream_pose.set_stream_pose_client(

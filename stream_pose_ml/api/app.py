@@ -102,7 +102,8 @@ def set_model():
 
     ### Set the trained_models data transformer ###
     # TODO replace this with some kind of schema
-    transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
+    # transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
+    transformer = sequence_transformer.ThirtyFrameJointsTransformer()
     trained_model.set_data_transformer(transformer)
 
     stream_pose.set_stream_pose_client(
@@ -110,7 +111,7 @@ def set_model():
             mediapipe_client_instance=mpc,
             trained_model=trained_model,
             data_transformer=transformer,
-            frame_window=10,
+            frame_window=130, # TODO this should be configurable or based on model metadata
         )
     )
 

@@ -21,7 +21,7 @@ if typing.TYPE_CHECKING:
 class StreamPoseClient:
     def __init__(
         self,
-        frame_window: int = 25,
+        frame_window: int = 10, 
         mediapipe_client_instance: type["MediaPipeClient"] = None,
         trained_model: type["TrainedModel"] = None,
         data_transformer: type["SequenceTransformer"] = None,
@@ -30,7 +30,7 @@ class StreamPoseClient:
         self.model = trained_model
         self.transformer = data_transformer
         self.mpc = mediapipe_client_instance
-        self.frames = deque([], maxlen=self.frame_window)
+        self.frames = deque([], maxlen=self.frame_window) # will keep x most recent frames
         # mp_pose = mp.solutions.pose
         # self.pose = mp_pose.Pose(
         #     min_detection_confidence=0.5, min_tracking_confidence=0.5
