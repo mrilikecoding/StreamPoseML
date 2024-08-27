@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stream_pose_ml"
-version = "0.1.4" # placeholder, will be overwritten by setuptools_scm
+version = "0.1.5" # placeholder, will be overwritten by setuptools_scm
 authors = [{name = "Nate Green", email = "nate@nate.green"}]
 description = "A toolkit for realtime video classification tasks."
 readme = "README.md"
