@@ -451,7 +451,7 @@ class ModelBuilder:
             rfecv.fit(self.X_train, self.y_train)
             pass
 
-    def save_model_and_datasets(self, notes: str, model_type: str = None):
+    def save_model_and_datasets(self, notes: str, model_type: str = None, model_path: str = "../../data/trained_models"):
         """Save the current model and metadata to a pickle / json file.
 
         Args:
@@ -462,7 +462,6 @@ class ModelBuilder:
             model_type = self.model_type
 
         model_id = f"{model_type}-{time.time_ns()}"
-        model_path = "../../data/trained_models"
         model_file = f"{model_id}.pickle"
         saved_model_path = f"{model_path}/{model_file}"
         meta = json.dumps(
