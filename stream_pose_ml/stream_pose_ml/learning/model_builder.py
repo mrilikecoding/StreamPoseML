@@ -1,12 +1,22 @@
-import pandas as pd
-import pickle
-import time
+from copy import copy
 import json
+import joblib
+import os
+import pickle
+import shutil
+import tempfile  # For creating temporary directories
+import time
+from typing import Optional
+
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from copy import copy
 
+# MLFlow integration
+import mlflow
+import mlflow.sklearn
+import mlflow.xgboost
 
 # Modeling
 from sklearn.decomposition import PCA
@@ -257,15 +267,16 @@ class ModelBuilder:
         f1 = f1_score(y_test, y_pred)
         auc = roc_auc_score(y_test, y_pred_proba, average="weighted")
 
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
-        scores = cross_val_score(
-            model, self.X, self.y, scoring="roc_auc", cv=cv, n_jobs=-1
-        )
-        # summarize performance
-        self.auc_cv = np.mean(scores)
-        print("Mean ROC AUC from cross validation: %.3f" % self.auc_cv)
-        print("Min ROC AUC from cross validation: %.3f" % min(scores))
-        print("Max ROC AUC from cross validation: %.3f" % max(scores))
+        # TODO cv is hanging locally, so commenting out for now
+        # cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+        # scores = cross_val_score(
+        #     model, self.X, self.y, scoring="roc_auc", cv=cv, n_jobs=-1
+        # )
+        # # summarize performance
+        # self.auc_cv = np.mean(scores)
+        # print("Mean ROC AUC from cross validation: %.3f" % self.auc_cv)
+        # print("Min ROC AUC from cross validation: %.3f" % min(scores))
+        # print("Max ROC AUC from cross validation: %.3f" % max(scores))
 
         if not self.run_PCA and hasattr(self, "feature_importances"):
             print("Top 5 features")
@@ -503,6 +514,53 @@ class ModelBuilder:
             pickle.dump(model_data, f, pickle.HIGHEST_PROTOCOL)
 
         print(f"Saved model to pickle! {saved_model_path}")
+        
+    def save_model_to_mlflow(self, model: Optional[object] = None, model_path: str = "../../data/trained_models") -> None:
+        """
+        Save the model to MLflow.
+        
+        Args:
+            model (Optional[object]): The model to be saved. If not provided, it defaults to self.model.
+            model_path (str): The path where the model artifact will be stored. Defaults to "../../data/trained_models".
+        """
+        model_name = f"{self.model_type}-mlflow-{time.time_ns()}"
+        model_to_save = model if model else self.model
+
+        # Resolve the absolute path for final model storage
+        destination_dir = os.path.abspath(model_path)
+        if not os.path.exists(destination_dir):
+            os.makedirs(destination_dir)  # Create the destination directory if it doesn't exist
+
+        # Create a temporary directory for saving the model artifacts
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            print(f"Temporary directory created at {tmp_dir}")
+
+            # Save the model to the temporary directory
+            if isinstance(model_to_save, xgb.XGBClassifier):  # For XGBoost
+                tmp_model_path = os.path.join(tmp_dir, f"{model_name}.model")  # Use .model for XGBoost
+                model_to_save.save_model(tmp_model_path)
+            elif isinstance(model_to_save, RandomForestClassifier):  # For RandomForestClassifier
+                tmp_model_path = os.path.join(tmp_dir, f"{model_name}.joblib")
+                joblib.dump(model_to_save, tmp_model_path)
+            else:
+                raise ValueError(f"Model type {type(model_to_save)} is not supported for logging.")
+
+            # Log the model from the temporary directory to MLflow
+            with mlflow.start_run():
+                if isinstance(model_to_save, xgb.XGBClassifier):  # For XGBoost
+                    mlflow.xgboost.log_model(model_to_save, artifact_path="tmp_model")
+                elif isinstance(model_to_save, RandomForestClassifier):  # For RandomForestClassifier
+                    mlflow.sklearn.log_model(model_to_save, artifact_path="tmp_model")
+                print(f"Model '{model_name}' successfully logged to MLflow from {tmp_dir}")
+
+            # Move the contents from the temporary directory to the specified model_path
+            for item in os.listdir(tmp_dir):
+                s = os.path.join(tmp_dir, item)
+                d = os.path.join(destination_dir, item)
+                shutil.move(s, d)  # Move each artifact to the destination directory
+
+            print(f"Artifacts moved from {tmp_dir} to {destination_dir}")
+            print(f"Model '{model_name}' successfully logged to MLflow at path '{model_path}'.")
 
     def retrieve_model_from_pickle(self, file_path: str):
         """Load a model and metadata from a pickle file.
