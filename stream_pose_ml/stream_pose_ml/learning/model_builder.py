@@ -346,6 +346,7 @@ class ModelBuilder:
         gradient_booster = xgb.XGBClassifier(eval_metric="mlogloss")
         gradient_booster.fit(X_train, y_train)
         self.model = gradient_booster
+        self.model_type = "Gradient-Boost"
 
     def train_logistic_regression(self):
         X_train = self.X_train
@@ -427,7 +428,7 @@ class ModelBuilder:
             )
             self.model = rf
 
-        self.model_type = "Random Forest"
+        self.model_type = "Random-Forest"
 
     def run_recursive_feature_estimation(self, num_features):
         if num_features:
