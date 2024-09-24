@@ -2,7 +2,9 @@ version: '3'
 
 services:
   stream_pose_ml_api:
-    image: mrilikecoding/stream_pose_ml_api:latest
+    # image: mrilikecoding/stream_pose_ml_api:latest
+    build: # for local development 
+      context: ./stream_pose_ml 
     ports:
       - "5001:5001"
     networks:
@@ -16,7 +18,9 @@ services:
       bash -c "python run.py"
 
   web_ui:
-    image: mrilikecoding/stream_pose_ml_web_ui:latest
+    # image: mrilikecoding/stream_pose_ml_web_ui:latest
+    build: # for local development 
+      context: ./web_ui 
     depends_on:
       - stream_pose_ml_api
     ports:
@@ -30,6 +34,17 @@ services:
       - ./web_ui:/usr/src/app/my-app
       - ./web_ui/logs:/root/.npm/_logs
       - /usr/src/app/my-app/node_modules # anonymous persistent volume to prevent local machine override
+
+  mlflow:
+    build:
+      context: ./mlflow 
+    networks:
+      - app-tier
+    ports:
+      - "5002:5002"  # Expose Flask API
+    volumes:
+      - ./mlflow/app.py:/app.py  # Mount the app.py file
+      - ./mlflow/models:/models  # Mount the models directory
 
 networks:
   app-tier:
