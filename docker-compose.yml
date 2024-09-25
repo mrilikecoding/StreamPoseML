@@ -12,6 +12,7 @@ services:
     volumes:
       - ./stream_pose_ml:/usr/src/app
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
+      - shared_models:/usr/src/app/tmp  # Mount the named volume at /usr/src/app/tmp
     environment:
       - FLASK_APP=run.py
     command: >
@@ -44,8 +45,11 @@ services:
       - "5002:5002"  # Expose Flask API
     volumes:
       - ./mlflow/app.py:/app.py  # Mount the app.py file
-      - ./mlflow/models:/models  # Mount the models directory
+      - shared_models:/models  # Mount the named volume at /models
 
 networks:
   app-tier:
     driver: bridge
+
+volumes:
+  shared_models:
