@@ -2,12 +2,16 @@ import time
 import os
 from pathlib import Path
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
+
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 from werkzeug.utils import secure_filename
 
+import shutil
+import zipfile
+import tarfile
 
 from stream_pose_ml import stream_pose_client
 from stream_pose_ml.blaze_pose import mediapipe_client
@@ -52,7 +56,8 @@ app.config["SECRET_KEY"] = "secret!"
 
 # Tmp file upload
 UPLOAD_FOLDER = 'tmp'
-ALLOWED_EXTENSIONS = {'pickle'}
+ALLOWED_EXTENSIONS = {'zip', 'tar.gz', 'tar', 'pickle', 'joblib', 'model'}
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 
@@ -78,30 +83,47 @@ def status():
 ### Application Routes ###
 @app.route("/set_model", methods=["POST"])
 def set_model():
-    model_name = None
-    model_path = None
-    if request.method == 'POST':
-        print(request)
-        if 'file' not in request.files:
-            return {"result": "No file part"}, 400
-        file = request.files['file']
-        if file.filename == "":
-            return {"result": "No selected file"}, 400
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            model_name = filename
-            model_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(model_path)
-
-    # Load the model into memory
-    model, model_data = mb.retrieve_model_from_pickle(file_path=model_path)
-    trained_model.set_model(model=model, model_data=model_data)
+    if 'file' not in request.files:
+        return jsonify({"result": "No file part"}), 400
+    file = request.files['file']
+    if file.filename == "":
+        return jsonify({"result": "No selected file"}), 400
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        archive_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(archive_path)
+        
+        # Extract the archive
+        extract_to = os.path.join(app.config['UPLOAD_FOLDER'], filename.rsplit('.', 1)[0])
+        
+        # Handle different archive formats
+        if filename.endswith('.zip'):
+            with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                zip_ref.extractall(extract_to)
+        elif filename.endswith('.tar.gz') or filename.endswith('.tar'):
+            with tarfile.open(archive_path, 'r:*') as tar_ref:
+                tar_ref.extractall(extract_to)
+        
+        # Remove the archive file after extraction
+        os.remove(archive_path)
+        
+        # At this point, the model is extracted to 'extract_to' directory
+        # You can now send a request to the mlflow service to load the model
+        model_path = extract_to  # This is the path to the extracted model directory
+        
+        # Send a request to mlflow to load the model
+        mlflow_response = load_model_in_mlflow(model_path)
+        if mlflow_response:
+            return jsonify({"result": "Model uploaded and loaded successfully"}), 200
+    else:
+        return jsonify({"result": "Invalid file type"}), 400
 
     # Clean the file system
-    Path.unlink(Path.cwd() / model_path)
+    # Path.unlink(Path.cwd() / model_path)
 
     ### Set the trained_models data transformer ###
     # TODO replace this with some kind of schema
+    model_name = filename
     transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
     trained_model.set_data_transformer(transformer)
 
@@ -117,7 +139,7 @@ def set_model():
     # TODO - add a separate step for this and make configurable
     stream_pose.set_actuator()
 
-    return {"result": f"Server Ready: classifier set to {model_name}."}
+    return jsonify({"result": f"Server Ready: classifier set to {model_name}."}), 200
 
 
 ### SocketIO Listeners ###
@@ -132,6 +154,21 @@ socketio = SocketIO(
     cors_allowed_origins="*",
 )
 
+
+def load_model_in_mlflow(model_path):
+    import requests
+    # The path needs to be adjusted for the mlflow container
+    # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' corresponds to '/models' in 'mlflow'
+    model_name = os.path.basename(model_path)
+    mlflow_model_path = os.path.join('/models', model_name)
+    data = {'model_path': mlflow_model_path}
+    try:
+        response = requests.post('http://mlflow:5002/load_model', json=data)
+        return response.status_code == 200
+    except requests.exceptions.RequestException as e:
+        print(f"Error loading model in mlflow: {e}")
+        return False
+    
 
 @socketio.on("keypoints")
 def handle_keypoints(payload: str) -> None:
