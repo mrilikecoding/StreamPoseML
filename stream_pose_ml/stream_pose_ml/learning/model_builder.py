@@ -518,50 +518,46 @@ class ModelBuilder:
         
     def save_model_to_mlflow(self, model: Optional[object] = None, model_path: str = "../../data/trained_models") -> None:
         """
-        Save the model to MLflow.
-        
+        Save the model to MLflow in a format compatible with mlflow models serve and create a zipped version alongside the directory.
+
         Args:
-            model (Optional[object]): The model to be saved. If not provided, it defaults to self.model.
+            model (Optional[object]): The model to be saved. If not provided, defaults to self.model.
             model_path (str): The path where the model artifact will be stored. Defaults to "../../data/trained_models".
         """
-        model_name = f"{self.model_type}-mlflow-{time.time_ns()}"
+        import os
+        import mlflow
+        import xgboost as xgb
+        from sklearn.ensemble import RandomForestClassifier
+        import time
+
+        # Use the provided model or default to self.model
         model_to_save = model if model else self.model
 
-        # Resolve the absolute path for final model storage
+        # Generate a unique model name
+        model_name = f"{self.model_type}-mlflow-{time.time_ns()}"
+
+        # Resolve the absolute path for model storage
         destination_dir = os.path.abspath(model_path)
         if not os.path.exists(destination_dir):
             os.makedirs(destination_dir)  # Create the destination directory if it doesn't exist
 
-        # Create a temporary directory for saving the model artifacts
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            print(f"Temporary directory created at {tmp_dir}")
+        # Define the path where the model will be saved
+        model_save_path = os.path.join(destination_dir, model_name)
 
-            # Save the model to the temporary directory
-            if isinstance(model_to_save, xgb.XGBClassifier):  # For XGBoost
-                tmp_model_path = os.path.join(tmp_dir, f"{model_name}.model")  # Use .model for XGBoost
-                model_to_save.save_model(tmp_model_path)
-            elif isinstance(model_to_save, RandomForestClassifier):  # For RandomForestClassifier
-                tmp_model_path = os.path.join(tmp_dir, f"{model_name}.joblib")
-                joblib.dump(model_to_save, tmp_model_path)
-            else:
-                raise ValueError(f"Model type {type(model_to_save)} is not supported for logging.")
+        # Save the model to the directory using MLflow's save_model
+        if isinstance(model_to_save, xgb.XGBClassifier):
+            mlflow.xgboost.save_model(model_to_save, path=model_save_path)
+        elif isinstance(model_to_save, RandomForestClassifier):
+            mlflow.sklearn.save_model(model_to_save, path=model_save_path)
+        else:
+            raise ValueError(f"Model type {type(model_to_save)} is not supported for logging.")
 
-            # Log the model from the temporary directory to MLflow
-            with mlflow.start_run():
-                if isinstance(model_to_save, xgb.XGBClassifier):  # For XGBoost
-                    mlflow.xgboost.log_model(model_to_save, artifact_path="tmp_model")
-                elif isinstance(model_to_save, RandomForestClassifier):  # For RandomForestClassifier
-                    mlflow.sklearn.log_model(model_to_save, artifact_path="tmp_model")
-                print(f"Model '{model_name}' successfully logged to MLflow from {tmp_dir}")
+        print(f"Model '{model_name}' successfully saved to {model_save_path}")
 
-            # Move the contents from the temporary directory to the specified model_path
-            for item in os.listdir(tmp_dir):
-                s = os.path.join(tmp_dir, item)
-                d = os.path.join(destination_dir, item)
-                shutil.move(s, d)  # Move each artifact to the destination directory
-
-            print(f"Artifacts moved from {tmp_dir} to {destination_dir}")
-            print(f"Model '{model_name}' successfully logged to MLflow at path '{model_path}'.")
+        # Zip the saved model directory
+        zip_file_path = os.path.join(destination_dir, f"{model_name}.zip")
+        shutil.make_archive(zip_file_path.replace(".zip", ""), 'zip', model_save_path)
+        print(f"Zipped model directory to {zip_file_path}")
 
     def retrieve_model_from_pickle(self, file_path: str):
         """Load a model and metadata from a pickle file.
