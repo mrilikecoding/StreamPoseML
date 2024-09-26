@@ -45,6 +45,7 @@ services:
       - app-tier
     ports:
       - "5002:5002"  # Expose Flask API
+      - "1234:1234"  # Expose MLFlow Model Server API Subprocess
     environment:
       - FLASK_ENV=development
       - PYTHONUNBUFFERED=1
