@@ -2,7 +2,7 @@
 FROM continuumio/miniconda3
 
 # Install MLflow and any additional base dependencies
-RUN pip install --no-cache-dir mlflow flask requests
+RUN pip install --no-cache-dir mlflow flask requests debugpy
 
 # Expose port 5002 for the Flask API
 EXPOSE 5002
