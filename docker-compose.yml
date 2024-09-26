@@ -15,8 +15,10 @@ services:
       - shared_models:/usr/src/app/tmp  # Mount the named volume at /usr/src/app/tmp
     environment:
       - FLASK_APP=run.py
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
     command: >
-      bash -c "python run.py"
+      bash -c "python -u run.py"
 
   web_ui:
     # image: mrilikecoding/stream_pose_ml_web_ui:latest
@@ -43,6 +45,9 @@ services:
       - app-tier
     ports:
       - "5002:5002"  # Expose Flask API
+    environment:
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
     volumes:
       - ./mlflow/app.py:/app.py  # Mount the app.py file
       - shared_models:/models  # Mount the named volume at /models
