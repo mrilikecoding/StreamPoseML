@@ -4,8 +4,13 @@ import threading
 import os
 import signal
 import time
+import logging
 
 app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+logger = logging.getLogger(__name__)
 
 # Global variable to keep track of the model server process
 model_server_process = None
@@ -30,6 +35,7 @@ def load_model():
     model_path = data.get('model_path')
 
     if not model_path or not os.path.exists(model_path):
+        print("invalid model path")
         return jsonify({'status': 'error', 'message': 'Invalid model path.'}), 400
 
     # Terminate existing model server if running
@@ -53,7 +59,40 @@ def load_model():
         preexec_fn=os.setsid  # Start the process in a new process group
     )
 
+        # Start threads to read subprocess output
+    stdout_thread = threading.Thread(
+        target=read_subprocess_output, 
+        args=(model_server_process.stdout, logger.info)
+    )
+    stderr_thread = threading.Thread(
+        target=read_subprocess_output, 
+        args=(model_server_process.stderr, logger.error)
+    )
+    stdout_thread.start()
+    stderr_thread.start()
+
+    # Optionally, start a monitoring thread
+    monitor_thread = threading.Thread(target=monitor_model_server)
+    monitor_thread.start()
+
+
     return jsonify({'status': 'success', 'message': 'Model server started.'}), 200
+
+def read_subprocess_output(pipe, logger_method):
+    for line in iter(pipe.readline, b''):
+        decoded_line = line.decode().rstrip()
+        logger_method(decoded_line)
+
+def monitor_model_server():
+    global model_server_process
+    while True:
+        if model_server_process:
+            return_code = model_server_process.poll()
+            if return_code is not None:
+                logger.error(f"Model server process exited with code {return_code}")
+                # Optionally restart the process or notify
+                break
+        time.sleep(5)
 
 @app.route('/invocations', methods=['POST'])
 def invocations():

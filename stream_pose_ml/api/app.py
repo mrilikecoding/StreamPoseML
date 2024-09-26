@@ -90,36 +90,32 @@ def set_model():
         return jsonify({"result": "No selected file"}), 400
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        archive_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(archive_path)
-        
+        model_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(model_path)
+
         # Extract the archive
-        extract_to = os.path.join(app.config['UPLOAD_FOLDER'], filename.rsplit('.', 1)[0])
-        
+        extract_to = os.path.join(
+            app.config["UPLOAD_FOLDER"], filename.rsplit(".", 1)[0]
+        )
+
         # Handle different archive formats
         if filename.endswith('.zip'):
-            with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+            with zipfile.ZipFile(model_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_to)
+            model_path = extract_to
         elif filename.endswith('.tar.gz') or filename.endswith('.tar'):
-            with tarfile.open(archive_path, 'r:*') as tar_ref:
+            with tarfile.open(model_path, "r:*") as tar_ref:
                 tar_ref.extractall(extract_to)
-        
-        # Remove the archive file after extraction
-        os.remove(archive_path)
-        
-        # At this point, the model is extracted to 'extract_to' directory
-        # You can now send a request to the mlflow service to load the model
-        model_path = extract_to  # This is the path to the extracted model directory
-        
+            model_path = extract_to
+
         # Send a request to mlflow to load the model
         mlflow_response = load_model_in_mlflow(model_path)
         if mlflow_response:
+            print(mlflow_response)
             return jsonify({"result": "Model uploaded and loaded successfully"}), 200
     else:
+        print("invalid file type")
         return jsonify({"result": "Invalid file type"}), 400
-
-    # Clean the file system
-    # Path.unlink(Path.cwd() / model_path)
 
     ### Set the trained_models data transformer ###
     # TODO replace this with some kind of schema
@@ -164,11 +160,12 @@ def load_model_in_mlflow(model_path):
     data = {'model_path': mlflow_model_path}
     try:
         response = requests.post('http://mlflow:5002/load_model', json=data)
+        print(response)
         return response.status_code == 200
     except requests.exceptions.RequestException as e:
         print(f"Error loading model in mlflow: {e}")
         return False
-    
+
 
 @socketio.on("keypoints")
 def handle_keypoints(payload: str) -> None:
