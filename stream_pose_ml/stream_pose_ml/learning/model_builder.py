@@ -340,6 +340,20 @@ class ModelBuilder:
             output.append({feature: f"{importance * 100}%"})
         return output
 
+    def set_model_signature(self, X_train: pd.DataFrame = None):
+        if not X_train:
+            X_train = self.X_train
+        if not self.model:
+            return False
+
+        from mlflow.models.signature import infer_signature
+
+        input_example = X_train.head(1)
+        signature = infer_signature(X_train, self.model.predict(X_train))
+        self.signature = signature
+        self.input_example = input_example
+        return signature, input_example
+
     def train_gradient_boost(self):
         X_train = self.X_train
         y_train = self.y_train
@@ -347,6 +361,7 @@ class ModelBuilder:
         gradient_booster.fit(X_train, y_train)
         self.model = gradient_booster
         self.model_type = "Gradient-Boost"
+        self.set_model_signature()
 
     def train_logistic_regression(self):
         X_train = self.X_train
@@ -532,6 +547,8 @@ class ModelBuilder:
 
         # Use the provided model or default to self.model
         model_to_save = model if model else self.model
+        signature = None if self.signature is None else self.signature
+        input_example = None if self.input_example is None else self.input_example
 
         # Generate a unique model name
         model_name = f"{self.model_type}-mlflow-{time.time_ns()}"
@@ -546,9 +563,9 @@ class ModelBuilder:
 
         # Save the model to the directory using MLflow's save_model
         if isinstance(model_to_save, xgb.XGBClassifier):
-            mlflow.xgboost.save_model(model_to_save, path=model_save_path)
+            mlflow.xgboost.save_model(model_to_save, path=model_save_path, signature=signature, input_example=input_example)
         elif isinstance(model_to_save, RandomForestClassifier):
-            mlflow.sklearn.save_model(model_to_save, path=model_save_path)
+            mlflow.sklearn.save_model(model_to_save, path=model_save_path, signature=signature, input_example=input_example)
         else:
             raise ValueError(f"Model type {type(model_to_save)} is not supported for logging.")
 
