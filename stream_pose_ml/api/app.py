@@ -1,6 +1,8 @@
 import time
 import os
 from pathlib import Path
+import logging
+
 
 from flask import Flask, request, jsonify
 
@@ -14,6 +16,7 @@ import zipfile
 import tarfile
 
 from stream_pose_ml import stream_pose_client
+from stream_pose_ml import ml_flow_client
 from stream_pose_ml.blaze_pose import mediapipe_client
 from stream_pose_ml.learning import trained_model
 from stream_pose_ml.learning import sequence_transformer
@@ -28,6 +31,8 @@ trained_model = trained_model.TrainedModel()
 
 
 ### Set the pose estimation client ###
+# dummy_client=True here indicates that we don't need mediapipe loaded, 
+# we just want to use methods on the class
 mpc = mediapipe_client.MediaPipeClient(dummy_client=True)
 
 
@@ -40,6 +45,7 @@ class StreamPoseMLApp:
         self.stream_pose_client = stream_pose_client
 
     def set_actuator(self, actuator="bluetooth_device"):
+        # TODO this is deprecated as we're calling bluetooth from the front end currently
         if actuator == "bluetooth_device":
             self.actuator = bluetooth_device.BluetoothDevice()
 
@@ -111,15 +117,21 @@ def set_model():
         # Send a request to mlflow to load the model
         mlflow_response = load_model_in_mlflow(model_path)
         if mlflow_response:
-            print(mlflow_response)
-            return jsonify({"result": "Model uploaded and loaded successfully"}), 200
+            set_ml_flow_client()
+            logging.info("MLFlow Model loaded successfully")
+            return jsonify({"result": f"MLFlow Ready: classifier set to {filename}."}), 200
+        else:
+            set_stream_pose_ml_client()
+            logging.info("StreamPoseML Model loaded successfully")
+            return jsonify({"result": f"StreamPoseML Ready: classifier set to {filename}."}), 200
     else:
         print("invalid file type")
         return jsonify({"result": "Invalid file type"}), 400
 
-    ### Set the trained_models data transformer ###
-    # TODO replace this with some kind of schema
-    model_name = filename
+
+
+
+def set_stream_pose_ml_client():
     transformer = sequence_transformer.TenFrameFlatColumnAngleTransformer()
     trained_model.set_data_transformer(transformer)
 
@@ -128,15 +140,23 @@ def set_model():
             mediapipe_client_instance=mpc,
             trained_model=trained_model,
             data_transformer=transformer,
-            frame_window=10,
+            frame_window=10, # TODO receive from UI
         )
     )
 
-    # TODO - add a separate step for this and make configurable
-    stream_pose.set_actuator()
+def set_ml_flow_client():
+    # TODO pass schema in here
+    transformer = sequence_transformer.MLFlowTransformer()
+    trained_model.set_data_transformer(transformer)
 
-    return jsonify({"result": f"Server Ready: classifier set to {model_name}."}), 200
-
+    stream_pose.set_stream_pose_client(
+        ml_flow_client.MLFlowClient(
+            mediapipe_client_instance=mpc,
+            trained_model=trained_model,
+            data_transformer=transformer,
+            frame_window=10, # TODO receive from UI
+        )
+    )
 
 ### SocketIO Listeners ###
 
