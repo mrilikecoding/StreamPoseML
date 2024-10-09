@@ -11,7 +11,6 @@ from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 from werkzeug.utils import secure_filename
 
-import shutil
 import zipfile
 import tarfile
 
@@ -19,7 +18,7 @@ from stream_pose_ml import stream_pose_client
 from stream_pose_ml import ml_flow_client
 from stream_pose_ml.blaze_pose import mediapipe_client
 from stream_pose_ml.learning import trained_model
-from stream_pose_ml.learning import sequence_transformer
+from stream_pose_ml.transformers import sequence_transformer
 from stream_pose_ml.learning import model_builder
 
 from stream_pose_ml.actuators import bluetooth_device
