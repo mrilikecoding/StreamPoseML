@@ -69,3 +69,16 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
         output_flattened = pd.json_normalize(data=output_dict)
         output_flattened_filtered = output_flattened.filter(columns)
         return (output_flattened_filtered, output_meta)
+
+# TODO create concrete classes for different schemes
+class MLFlowTransformer(SequenceTransformer):
+    def transform(self, data: any, columns: list) -> any:
+        """
+        columns here would be the schema from ML flow
+        we also need the frame count
+        so maybe what we do is assume the cols in the schema
+        MUST match a convention we define
+        then the only variable formatting piece is the frame length
+        ...
+        """
+        return 
