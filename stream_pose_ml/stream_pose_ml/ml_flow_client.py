@@ -20,6 +20,8 @@ class MLFlowClient:
         mediapipe_client_instance: type["MediaPipeClient"] = None,
         trained_model: type["TrainedModel"] = None,
         data_transformer: type["SequenceTransformer"] = None,
+        predict_fn: typing.Callable = None,
+        input_example: list = None
     ):
         self.frame_window = frame_window
         self.model = trained_model
@@ -27,20 +29,27 @@ class MLFlowClient:
         self.mpc = mediapipe_client_instance
         self.frames = deque([], maxlen=self.frame_window)
         self.current_classification = None
+        self.predict_fn = predict_fn
+        self.input_example = input_example
 
     def run_keypoint_pipeline(self, keypoints):
         current_frames = self.update_frame_data_from_js_client_keypoints(keypoints)
         if len(current_frames) == self.frame_window:
+            # TODO this could probably be throttled based on configured predict frequency
             sequence = BlazePoseSequence(
                 name=f"sequence-{time.time_ns()}",
                 sequence=list(current_frames),
-                include_geometry=True,
+                include_geometry=False,
             ).generate_blaze_pose_frames_from_sequence()
+            columns = self.input_example.columns.tolist()
             sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
-            data, meta = self.transformer.transform(data=sequence_data, columns=columns)
+            data, meta = self.transformer.transform(data=sequence_data, columns=self.input_columns)
 
-            # TODO here call the invoke endpoint in MLFLOW
-            # self.current_classification = bool(self.model.predict(data=data)[0])
+        if not self.predict_fn:
+            return False
+
+        # TODO enforce signature of predict_fn
+        self.current_classification = bool(self.predict_fn(data=data))
         return True
 
     def update_frame_data_from_js_client_keypoints(self, keypoint_results):

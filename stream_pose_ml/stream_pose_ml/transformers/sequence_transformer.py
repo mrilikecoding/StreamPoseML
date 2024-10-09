@@ -76,9 +76,10 @@ class MLFlowTransformer(SequenceTransformer):
         """
         columns here would be the schema from ML flow
         we also need the frame count
-        so maybe what we do is assume the cols in the schema
+        maybe this can be inferred from the data len
         MUST match a convention we define
-        then the only variable formatting piece is the frame length
+        otherwise this prob looks like the other transformer here
+        flatten out and enumerate
         ...
         """
         return 

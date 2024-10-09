@@ -114,9 +114,10 @@ def set_model():
             model_path = extract_to
 
         # Send a request to mlflow to load the model
+        input_example = None # TODO parse the input example
         mlflow_response = load_model_in_mlflow(model_path)
         if mlflow_response:
-            set_ml_flow_client()
+            set_ml_flow_client(input_example=input_example)
             logging.info("MLFlow Model loaded successfully")
             return jsonify({"result": f"MLFlow Ready: classifier set to {filename}."}), 200
         else:
@@ -126,8 +127,6 @@ def set_model():
     else:
         print("invalid file type")
         return jsonify({"result": "Invalid file type"}), 400
-
-
 
 
 def set_stream_pose_ml_client():
@@ -143,7 +142,11 @@ def set_stream_pose_ml_client():
         )
     )
 
-def set_ml_flow_client():
+def mlflow_predict(data: list = []):
+    # TODO call invocation endpoint with the data and return response
+    return True
+
+def set_ml_flow_client(input_example = None):
     # TODO pass schema in here
     transformer = sequence_transformer.MLFlowTransformer()
     trained_model.set_data_transformer(transformer)
@@ -154,6 +157,8 @@ def set_ml_flow_client():
             trained_model=trained_model,
             data_transformer=transformer,
             frame_window=10, # TODO receive from UI
+            predict_function = mlflow_predict,
+            input_example = input_example
         )
     )
 
@@ -168,7 +173,6 @@ socketio = SocketIO(
     ping_interval=2,
     cors_allowed_origins="*",
 )
-
 
 def load_model_in_mlflow(model_path):
     import requests
