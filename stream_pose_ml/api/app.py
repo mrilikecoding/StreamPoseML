@@ -2,7 +2,7 @@ import time
 import os
 from pathlib import Path
 import logging
-
+import json
 
 from flask import Flask, request, jsonify
 
@@ -30,7 +30,7 @@ trained_model = trained_model.TrainedModel()
 
 
 ### Set the pose estimation client ###
-# dummy_client=True here indicates that we don't need mediapipe loaded, 
+# dummy_client=True here indicates that we don't need mediapipe loaded,
 # we just want to use methods on the class
 mpc = mediapipe_client.MediaPipeClient(dummy_client=True)
 
@@ -60,25 +60,28 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 
 # Tmp file upload
-UPLOAD_FOLDER = 'tmp'
-ALLOWED_EXTENSIONS = {'zip', 'tar.gz', 'tar', 'pickle', 'joblib', 'model'}
+UPLOAD_FOLDER = "tmp"
+ALLOWED_EXTENSIONS = {"zip", "tar.gz", "tar", "pickle", "joblib", "model"}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 
 
 # TODO - make env dependent from config
 whitelist = [
     "http://localhost:3000",
+    "http://web_ui:3000",
     "http://localhost:5001",
+    "http://stream_pose_ml:5001",
     "https://cdn.jsdelivr.net",
 ]
 CORS(app, origins=whitelist)
 # CORS(app, origins="*")
 
+
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @app.route("/")
 def status():
@@ -88,14 +91,14 @@ def status():
 ### Application Routes ###
 @app.route("/set_model", methods=["POST"])
 def set_model():
-    if 'file' not in request.files:
+    if "file" not in request.files:
         return jsonify({"result": "No file part"}), 400
-    file = request.files['file']
+    file = request.files["file"]
     if file.filename == "":
         return jsonify({"result": "No selected file"}), 400
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        model_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        model_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(model_path)
 
         # Extract the archive
@@ -104,26 +107,39 @@ def set_model():
         )
 
         # Handle different archive formats
-        if filename.endswith('.zip'):
-            with zipfile.ZipFile(model_path, 'r') as zip_ref:
+        if filename.endswith(".zip"):
+            with zipfile.ZipFile(model_path, "r") as zip_ref:
                 zip_ref.extractall(extract_to)
             model_path = extract_to
-        elif filename.endswith('.tar.gz') or filename.endswith('.tar'):
+        elif filename.endswith(".tar.gz") or filename.endswith(".tar"):
             with tarfile.open(model_path, "r:*") as tar_ref:
                 tar_ref.extractall(extract_to)
             model_path = extract_to
 
         # Send a request to mlflow to load the model
-        input_example = None # TODO parse the input example
         mlflow_response = load_model_in_mlflow(model_path)
         if mlflow_response:
+            # Load input_example.json if it exists
+            input_example_path = os.path.join(model_path, "input_example.json")
+            input_example = None
+            if os.path.exists(input_example_path):
+                with open(input_example_path, "r") as json_file:
+                    input_example = json.load(json_file)
             set_ml_flow_client(input_example=input_example)
             logging.info("MLFlow Model loaded successfully")
-            return jsonify({"result": f"MLFlow Ready: classifier set to {filename}."}), 200
+            return (
+                jsonify({"result": f"MLFlow Ready: classifier set to {filename}."}),
+                200,
+            )
         else:
             set_stream_pose_ml_client()
             logging.info("StreamPoseML Model loaded successfully")
-            return jsonify({"result": f"StreamPoseML Ready: classifier set to {filename}."}), 200
+            return (
+                jsonify(
+                    {"result": f"StreamPoseML Ready: classifier set to {filename}."}
+                ),
+                200,
+            )
     else:
         print("invalid file type")
         return jsonify({"result": "Invalid file type"}), 400
@@ -138,15 +154,17 @@ def set_stream_pose_ml_client():
             mediapipe_client_instance=mpc,
             trained_model=trained_model,
             data_transformer=transformer,
-            frame_window=10, # TODO receive from UI
+            frame_window=10,  # TODO receive from UI
         )
     )
+
 
 def mlflow_predict(data: list = []):
     # TODO call invocation endpoint with the data and return response
     return True
 
-def set_ml_flow_client(input_example = None):
+
+def set_ml_flow_client(input_example=None):
     # TODO pass schema in here
     transformer = sequence_transformer.MLFlowTransformer()
     trained_model.set_data_transformer(transformer)
@@ -156,11 +174,12 @@ def set_ml_flow_client(input_example = None):
             mediapipe_client_instance=mpc,
             trained_model=trained_model,
             data_transformer=transformer,
-            frame_window=10, # TODO receive from UI
-            predict_function = mlflow_predict,
-            input_example = input_example
+            frame_window=10,  # TODO receive from UI
+            predict_fn=mlflow_predict,
+            input_example=input_example,
         )
     )
+
 
 ### SocketIO Listeners ###
 
@@ -174,15 +193,17 @@ socketio = SocketIO(
     cors_allowed_origins="*",
 )
 
+
 def load_model_in_mlflow(model_path):
     import requests
+
     # The path needs to be adjusted for the mlflow container
     # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' corresponds to '/models' in 'mlflow'
     model_name = os.path.basename(model_path)
-    mlflow_model_path = os.path.join('/models', model_name)
-    data = {'model_path': mlflow_model_path}
+    mlflow_model_path = os.path.join("/models", model_name)
+    data = {"model_path": mlflow_model_path}
     try:
-        response = requests.post('http://mlflow:5002/load_model', json=data)
+        response = requests.post("http://mlflow:5002/load_model", json=data)
         print(response)
         return response.status_code == 200
     except requests.exceptions.RequestException as e:

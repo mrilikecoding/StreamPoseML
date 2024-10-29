@@ -13,15 +13,16 @@ if typing.TYPE_CHECKING:
     from stream_pose_ml.learning.trained_model import TrainedModel
     from stream_pose_ml.transformers.sequence_transformer import SequenceTransformer
 
+
 class MLFlowClient:
     def __init__(
         self,
         frame_window: int = 25,
-        mediapipe_client_instance: type["MediaPipeClient"] = None,
-        trained_model: type["TrainedModel"] = None,
-        data_transformer: type["SequenceTransformer"] = None,
-        predict_fn: typing.Callable = None,
-        input_example: list = None
+        mediapipe_client_instance: type["MediaPipeClient"] | None = None,
+        trained_model: type["TrainedModel"] | None = None,
+        data_transformer: type["SequenceTransformer"] | None = None,
+        predict_fn: typing.Callable | None = None,
+        input_example: dict = {"columns": []},
     ):
         self.frame_window = frame_window
         self.model = trained_model
@@ -31,6 +32,7 @@ class MLFlowClient:
         self.current_classification = None
         self.predict_fn = predict_fn
         self.input_example = input_example
+        self.input_columns = input_example["columns"]
 
     def run_keypoint_pipeline(self, keypoints):
         current_frames = self.update_frame_data_from_js_client_keypoints(keypoints)
@@ -41,9 +43,11 @@ class MLFlowClient:
                 sequence=list(current_frames),
                 include_geometry=False,
             ).generate_blaze_pose_frames_from_sequence()
-            columns = self.input_example.columns.tolist()
+
             sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
-            data, meta = self.transformer.transform(data=sequence_data, columns=self.input_columns)
+            data, meta = self.transformer.transform(
+                data=sequence_data, columns=self.input_columns
+            )
 
         if not self.predict_fn:
             return False
@@ -60,7 +64,7 @@ class MLFlowClient:
             "image_dimensions": None,
         }
         if "landmarks" in keypoint_results and len(keypoint_results["landmarks"]):
-            # mpc.serialize_pose_landmarks takes the coords and formats them with 
+            # mpc.serialize_pose_landmarks takes the coords and formats them with
             # x y z as well as normalized againt the hip width distance
             frame_data["joint_positions"] = self.mpc.serialize_pose_landmarks(
                 pose_landmarks=keypoint_results["landmarks"][0]
