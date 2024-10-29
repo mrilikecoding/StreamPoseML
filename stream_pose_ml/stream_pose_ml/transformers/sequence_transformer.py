@@ -70,6 +70,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
         output_flattened_filtered = output_flattened.filter(columns)
         return (output_flattened_filtered, output_meta)
 
+
 # TODO create concrete classes for different schemes
 class MLFlowTransformer(SequenceTransformer):
     def transform(self, data: any, columns: list) -> any:
@@ -82,4 +83,30 @@ class MLFlowTransformer(SequenceTransformer):
         flatten out and enumerate
         ...
         """
-        return 
+        # TODO fix this up, just copied from above to start
+        frame_segment = data["frames"]
+        flattened = {
+            key: value
+            for key, value in frame_segment[-1].items()
+            if (isinstance(value, str) or value is None)
+        }
+        flattened["data"] = defaultdict(dict)
+        for i, frame in enumerate(frame_segment):
+            frame_items = frame.items()
+            for key, value in frame_items:
+                flattened_data_key = flattened["data"][key]
+                if isinstance(value, dict):
+                    value_items = value.items()
+                    for k, v in value_items:
+                        flattened_data_key[f"frame-{i+1}-{k}"] = v
+                else:
+                    flattened_data_key = value
+
+        data = flattened["data"]
+        output_dict = {"joints": data["joints"]}
+        meta_keys = ["type", "sequence_id", "sequence_source", "image_dimensions"]
+        output_meta = {key: flattened[key] for key in meta_keys}
+        output_flattened = pd.json_normalize(data=output_dict)
+        output_flattened_filtered = output_flattened.filter(columns)
+        return (output_flattened_filtered, output_meta)
+
