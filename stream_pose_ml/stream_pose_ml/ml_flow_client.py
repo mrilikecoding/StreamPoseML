@@ -48,13 +48,11 @@ class MLFlowClient:
             data, meta = self.transformer.transform(
                 data=sequence_data, columns=self.input_columns
             )
+            if not self.predict_fn:
+                return
 
-        if not self.predict_fn:
-            return False
-
-        # TODO enforce signature of predict_fn
-        self.current_classification = bool(self.predict_fn(data=data))
-        return True
+            # TODO enforce signature of predict_fn
+            self.current_classification = bool(self.predict_fn(data=data))
 
     def update_frame_data_from_js_client_keypoints(self, keypoint_results):
         frame_data = {
