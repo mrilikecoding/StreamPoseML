@@ -161,6 +161,7 @@ def set_stream_pose_ml_client():
 
 def mlflow_predict(data: list = []):
     # TODO call invocation endpoint with the data and return response
+    print(data)
     return True
 
 

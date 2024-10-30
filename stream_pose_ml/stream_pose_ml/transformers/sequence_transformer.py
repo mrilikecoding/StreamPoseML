@@ -83,7 +83,6 @@ class MLFlowTransformer(SequenceTransformer):
         flatten out and enumerate
         ...
         """
-        # TODO fix this up, just copied from above to start
         frame_segment = data["frames"]
         flattened = {
             key: value
@@ -103,7 +102,7 @@ class MLFlowTransformer(SequenceTransformer):
                     flattened_data_key = value
 
         data = flattened["data"]
-        output_dict = {"joints": data["joints"]}
+        output_dict = {"joints": data["joint_positions"]}
         meta_keys = ["type", "sequence_id", "sequence_source", "image_dimensions"]
         output_meta = {key: flattened[key] for key in meta_keys}
         output_flattened = pd.json_normalize(data=output_dict)
