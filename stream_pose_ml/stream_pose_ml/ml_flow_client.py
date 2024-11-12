@@ -32,7 +32,7 @@ class MLFlowClient:
         self.current_classification = None
         self.predict_fn = predict_fn
         self.input_example = input_example
-        self.input_columns = input_example["columns"]
+        self.input_example_columns = input_example["columns"]
 
     def run_keypoint_pipeline(self, keypoints):
         current_frames = self.update_frame_data_from_js_client_keypoints(keypoints)
@@ -46,13 +46,13 @@ class MLFlowClient:
 
             sequence_data = BlazePoseSequenceSerializer().serialize(sequence)
             data, meta = self.transformer.transform(
-                data=sequence_data, columns=self.input_columns
+                data=sequence_data, columns=self.input_example_columns
             )
             if not self.predict_fn:
                 return
 
             # TODO enforce signature of predict_fn
-            self.current_classification = bool(self.predict_fn(data=data))
+            self.current_classification = bool(self.predict_fn(json_data_payload=data))
 
     def update_frame_data_from_js_client_keypoints(self, keypoint_results):
         frame_data = {

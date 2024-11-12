@@ -123,7 +123,9 @@ def invocations():
             data=request.data,
             headers={"Content-Type": request.headers.get("Content-Type")},
         )
-        return (response.content, response.status_code, response.headers.items())
+        res = (response.content, response.status_code, response.headers.items())
+        print(res)
+        return res
     except requests.exceptions.ConnectionError:
         return (
             jsonify(

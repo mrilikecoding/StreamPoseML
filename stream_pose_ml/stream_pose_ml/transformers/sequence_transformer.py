@@ -73,7 +73,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
 
 # TODO create concrete classes for different schemes
 class MLFlowTransformer(SequenceTransformer):
-    def transform(self, data: any, columns: list) -> any:
+    def transform(self, data: any, columns) -> any:
         """
         columns here would be the schema from ML flow
         we also need the frame count
@@ -84,28 +84,56 @@ class MLFlowTransformer(SequenceTransformer):
         ...
         """
         frame_segment = data["frames"]
+
+        # Flatten the frame data with default 0.0 where values are missing
         flattened = {
-            key: value
+            key: value if value is not None else 0.0  # default to 0.0 if value is None
             for key, value in frame_segment[-1].items()
-            if (isinstance(value, str) or value is None)
+            if isinstance(value, (str, type(None)))
         }
+
         flattened["data"] = defaultdict(dict)
         for i, frame in enumerate(frame_segment):
-            frame_items = frame.items()
-            for key, value in frame_items:
+            for key, value in frame.items():
                 flattened_data_key = flattened["data"][key]
+
                 if isinstance(value, dict):
-                    value_items = value.items()
-                    for k, v in value_items:
-                        flattened_data_key[f"frame-{i+1}-{k}"] = v
+                    for k, v in value.items():
+                        flattened_data_key[f"frame-{i+1}-{k}"] = (
+                            v if v is not None else 0.0
+                        )  # default to 0.0 if None
                 else:
-                    flattened_data_key = value
+                    flattened_data_key = (
+                        value if value is not None else 0.0
+                    )  # default to 0.0 if None
 
         data = flattened["data"]
         output_dict = {"joints": data["joint_positions"]}
         meta_keys = ["type", "sequence_id", "sequence_source", "image_dimensions"]
         output_meta = {key: flattened[key] for key in meta_keys}
+
+        # Flatten the data into a DataFrame
         output_flattened = pd.json_normalize(data=output_dict)
-        output_flattened_filtered = output_flattened.filter(columns)
-        return (output_flattened_filtered, output_meta)
+
+        # Create a DataFrame with the specified columns, defaulting missing values to 0.0
+        output_flattened_filtered = pd.DataFrame(columns=columns)
+
+        # Set all columns in output_flattened_filtered to 0.0 initially
+        output_flattened_filtered = output_flattened_filtered.fillna(0.0)
+
+        # Update only the matching columns from output_flattened
+        for col in output_flattened.columns.intersection(columns):
+            output_flattened_filtered[col] = output_flattened[col]
+
+        # Ensure the order of columns matches the 'columns' list exacjtly
+        output_flattened_filtered = output_flattened_filtered[columns]
+
+        output_flattened_filtered = output_flattened_filtered.replace(
+            [np.inf, -np.inf, np.nan], 0.0
+        )
+
+        # Convert the DataFrame to a dictionary format required for the JSON payload
+        json_data_payload = output_flattened_filtered.to_dict(orient="records")[0]
+
+        return (json_data_payload, output_meta)
 
