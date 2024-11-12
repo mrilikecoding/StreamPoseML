@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import logging
 import json
+import requests
 
 from flask import Flask, request, jsonify
 
@@ -10,6 +11,8 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 from werkzeug.utils import secure_filename
+
+import pandas as pd
 
 import zipfile
 import tarfile
@@ -159,10 +162,21 @@ def set_stream_pose_ml_client():
     )
 
 
-def mlflow_predict(data: list = []):
-    # TODO call invocation endpoint with the data and return response
-    print(data)
-    return True
+def mlflow_predict(json_data_payload: str):
+    # Convert the DataFrame to a single row represented as a list of lists
+    data_json = {"inputs": json_data_payload}
+    headers = {"Content-Type": "application/json"}
+
+    # Send the request to the /invocations endpoint
+    response = requests.post(
+        "http://mlflow:5002/invocations", json=data_json, headers=headers
+    )
+
+    # Return the response in a usable format
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {"status": "error", "message": response.content}
 
 
 def set_ml_flow_client(input_example=None):
@@ -196,7 +210,6 @@ socketio = SocketIO(
 
 
 def load_model_in_mlflow(model_path):
-    import requests
 
     # The path needs to be adjusted for the mlflow container
     # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' corresponds to '/models' in 'mlflow'
