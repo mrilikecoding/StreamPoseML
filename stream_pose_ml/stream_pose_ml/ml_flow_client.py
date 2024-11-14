@@ -51,8 +51,10 @@ class MLFlowClient:
             if not self.predict_fn:
                 return
 
-            # TODO enforce signature of predict_fn
-            self.current_classification = bool(self.predict_fn(json_data_payload=data))
+            # TODO enforce signature of predict_fn, this is brittle
+            prediction = self.predict_fn(json_data_payload=data)["predictions"][0]
+            self.current_classification = bool(prediction)
+        return True
 
     def update_frame_data_from_js_client_keypoints(self, keypoint_results):
         frame_data = {
