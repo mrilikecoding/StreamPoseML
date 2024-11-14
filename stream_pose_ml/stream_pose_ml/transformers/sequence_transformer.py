@@ -74,15 +74,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
 # TODO create concrete classes for different schemes
 class MLFlowTransformer(SequenceTransformer):
     def transform(self, data: any, columns) -> any:
-        """
-        columns here would be the schema from ML flow
-        we also need the frame count
-        maybe this can be inferred from the data len
-        MUST match a convention we define
-        otherwise this prob looks like the other transformer here
-        flatten out and enumerate
-        ...
-        """
+        # TDOD this def needs a refactor, but working for now
         frame_segment = data["frames"]
 
         # Flatten the frame data with default 0.0 where values are missing
