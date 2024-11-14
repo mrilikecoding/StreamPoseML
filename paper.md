@@ -38,11 +38,23 @@ With the ubiquity of video content in various sectors, from surveillance to ente
 
 The lack of tools available for open-source end-to-end machine learning pipelines, particularly for motion classification, is a recognized challenge in the field [@orhei2021end]. \autoref{fig:example} illustrates the typical ten stages of an end-to-end video classification pipeline. While there are various individual tools and paid platforms available for each stage of the machine learning workflow, such as video annotation, e.g., Dataloop, LabelBox; data management and pre-processing, e.g., Postgres, SPSS; or unified machine learning services, such as Google Cloud, AWS SageMaker, Microsoft Azure, IBM Watson, and Databricks among others, there is a lack of an open-source integrated solution that streamlines those stages in an easy-to-used single pipeline. 
 
-![10 Step End-to-End Video Classification](figure.png)
+1. Collect video data
+2. Label video data
+3. Generate pose keypoints from video
+4. Compute features
+5. Merge annotations/labels with keypoints/features into a dataset
+6. Train a model
+7. Run experiments
+8. Deploy the trained the model
+
+And in our specific use cases:
+
+9. Classify real-time video captured via the web or some other input source
+10. Actuate or send results outside the application (e.g. to a Bluetooth Device)
 
 Motion assessment classification is iterative in nature, which involves going back and forth between stages for validating the detected body keypoints, features, and model performance quality.
 
-Recent initiatives have introduced open-source tools like Google's Teachable Machine, a web-based platform for developing basic machine learning models. This tool is user-friendly and easily accessible, yet it comes with a number of limitations. Its primary drawback is the limited customization and control it offers; users cannot alter the underlying features, algorithms, or hyperparameters, restricting advanced usage and complex project development. Additionally, data privacy is a concern since user data is uploaded to Google's servers, posing potential risks for breaches in sensitive and identifiable information. Scalability is another issue, as it is designed as an educational platform for machine learning that is limited in processing large datasets and tuning models for real-world applications. The dependency on a stable internet connection, limited data processing capabilities, lack of integration with other tools and platforms, performance issues with large models, and no control over the training environment further underline its limitations for professional use. Thus, while the Teachable Machine is excellent for introductory purposes, its constraints render it less viable for advanced applications for developing models in complex scenarios. 
+Recent initiatives have introduced open-source tools like Google's Teachable Machine [@teachablemachine], a web-based platform for developing basic machine learning models. This tool is user-friendly and easily accessible, yet it comes with a number of limitations. Its primary drawback is the limited customization and control it offers; users cannot alter the underlying features, algorithms, or hyperparameters, restricting advanced usage and complex project development. Additionally, data privacy is a concern since user data is uploaded to Google's servers, posing potential risks for breaches in sensitive and identifiable information. Scalability is another issue, as it is designed as an educational platform for machine learning that is limited in processing large datasets and tuning models for real-world applications. The dependency on a stable internet connection, limited data processing capabilities, lack of integration with other tools and platforms, performance issues with large models, and no control over the training environment further underline its limitations for professional use. Thus, while the Teachable Machine is excellent for introductory purposes, its constraints render it less viable for advanced applications for developing models in complex scenarios. 
 
 We identified several frameworks and toolkits in the literature, each allowing advanced applications for data handling and analysis workflows, machine learning frameworks, documentation of experiments, and optimizing hyperparameters [@tokui2019chainer] [@holmes1994weka] [@hall2009weka] [@williams2009rattle] [@gould2012darwin] [@schindelin2012fiji] [@kiefer2013emzed] [@alberti2018deepdiva] [@orhei2021end]. However, these toolkits do not address the complete pipeline comprehensively with the ability to 1) include pose estimation integration, 2) compute features and include them in a dataset, 3) present the results on a web application, and 4) actuate or send out the result to a subsequent tool via Bluetooth. These steps present a crucial point for the integration of video data, human pose estimation, and deployment for research activities, particularly for the bioinformatics and rehabilitation domains.
 
