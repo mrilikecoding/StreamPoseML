@@ -12,8 +12,6 @@ from flask_socketio import SocketIO, emit
 from engineio.payload import Payload
 from werkzeug.utils import secure_filename
 
-import pandas as pd
-
 import zipfile
 import tarfile
 
@@ -94,6 +92,10 @@ def status():
 ### Application Routes ###
 @app.route("/set_model", methods=["POST"])
 def set_model():
+    # TODO send in request from front end
+    frame_window = 30  # how many frames worth of data to serialize for prediction
+    frame_overlap = -20  # how many frames should overlap each frame window?
+
     if "file" not in request.files:
         return jsonify({"result": "No file part"}), 400
     file = request.files["file"]
@@ -128,7 +130,11 @@ def set_model():
             if os.path.exists(input_example_path):
                 with open(input_example_path, "r") as json_file:
                     input_example = json.load(json_file)
-            set_ml_flow_client(input_example=input_example)
+            set_ml_flow_client(
+                input_example=input_example,
+                frame_window=frame_window,
+                frame_overlap=frame_overlap,
+            )
             logging.info("MLFlow Model loaded successfully")
             return (
                 jsonify({"result": f"MLFlow Ready: classifier set to {filename}."}),
@@ -179,8 +185,7 @@ def mlflow_predict(json_data_payload: str):
         return {"status": "error", "message": response.content}
 
 
-def set_ml_flow_client(input_example=None):
-    # TODO pass schema in here
+def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
     transformer = sequence_transformer.MLFlowTransformer()
     trained_model.set_data_transformer(transformer)
 
@@ -189,9 +194,10 @@ def set_ml_flow_client(input_example=None):
             mediapipe_client_instance=mpc,
             trained_model=trained_model,
             data_transformer=transformer,
-            frame_window=10,  # TODO receive from UI
+            frame_window=frame_window,
             predict_fn=mlflow_predict,
             input_example=input_example,
+            frame_overlap=frame_overlap,
         )
     )
 
@@ -199,12 +205,12 @@ def set_ml_flow_client(input_example=None):
 ### SocketIO Listeners ###
 
 # Web Socket - TODO there is some optimization to be done here - need to look at these options
-Payload.max_decode_packets = 500
+Payload.max_decode_packets = 2000
 socketio = SocketIO(
     app,
     async_mode="eventlet",
-    ping_timeout=10,
-    ping_interval=2,
+    ping_timeout=30,
+    ping_interval=20,
     cors_allowed_origins="*",
 )
 
@@ -233,54 +239,20 @@ def handle_keypoints(payload: str) -> None:
 
     start_time = time.time()
     results = stream_pose.stream_pose_client.run_keypoint_pipeline(payload)
-    speed = time.time() - start_time
-
+    current_time = time.time()
+    speed = current_time - start_time
     # Emit the results back to the client
     if (
         results and stream_pose.stream_pose_client.current_classification is not None
     ):  # if we get some classification
         classification = stream_pose.stream_pose_client.current_classification
+        predict_speed = stream_pose.stream_pose_client.prediction_processing_time
         return_payload = {
             "classification": classification,
             "timestamp": f"{time.time_ns()}",
-            "processing time (s)": speed,
+            "pipeline processing time (s)": speed,
+            "prediction processing time (s)": predict_speed,
             "frame rate capacity (hz)": 1.0 / speed,
         }
 
-        emit("frame_result", return_payload)
-
-
-@socketio.on("frame")
-def handle_frame(payload: str) -> None:
-    """
-    Handle incoming video frames from the client.
-
-    This event handler is triggered when a 'frame' event is received from the client side.
-    It processes the frame data (e.g., perform keypoint extraction) and sends the results back to the client.
-
-    Args:
-        payload: str
-            The payload of the 'frame' event, containing the base64 encoded frame data.
-    """
-    if stream_pose.stream_pose_client is None:
-        emit("frame_result", {"error": "No model set"})
-        return
-
-    image = stream_pose.stream_pose_client.convert_base64_to_image_array(payload)
-    # image = pc.preprocess_image(image)
-
-    start_time = time.time()
-    results = stream_pose.run_frame_pipeline(image)
-    speed = time.time() - start_time
-
-    # Emit the results back to the client
-    if (
-        results and stream_pose.stream_pose_client.current_classification is not None
-    ):  # if we get some classification
-        return_payload = {
-            "classification": stream_pose.stream_pose_client.current_classification,
-            "timestamp": f"{time.time_ns()}",
-            "processing time (s)": speed,
-            "frame rate capacity (hz)": 1.0 / speed,
-        }
         emit("frame_result", return_payload)
