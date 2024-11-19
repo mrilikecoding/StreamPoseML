@@ -92,9 +92,12 @@ def status():
 ### Application Routes ###
 @app.route("/set_model", methods=["POST"])
 def set_model():
-    # TODO send in request from front end
-    frame_window = 30  # how many frames worth of data to serialize for prediction
-    frame_overlap = -20  # how many frames should overlap each frame window?
+    frame_window = request.form.get("frame_window_size", type=int)
+    frame_overlap = request.form.get("frame_window_overlap", type=int)
+
+    # Process the data as needed
+    print(f"Frame Window Size: {frame_window}")
+    print(f"Frame Window Overlap: {frame_overlap}")
 
     if "file" not in request.files:
         return jsonify({"result": "No file part"}), 400
