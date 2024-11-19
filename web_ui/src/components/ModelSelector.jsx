@@ -13,8 +13,8 @@ function ModelSelector({ setModel }) {
     const data = new FormData();
     data.append("filename", selectedFile.name);
     data.append("file", selectedFile);
-    data.append("frame_window_size", frameWindowSize); // Adding frame window size
-    data.append("frame_window_overlap", frameWindowOverlap); // Adding frame window overlap
+    data.append("frame_window_size", frameWindowSize);
+    data.append("frame_window_overlap", frameWindowOverlap);
 
     fetch(import.meta.env.VITE_STREAM_POSE_ML_API_ENDPOINT + "/set_model", {
       body: data,
@@ -30,10 +30,64 @@ function ModelSelector({ setModel }) {
   return (
     <>
       <h2>Select Trained Model</h2>
-      <div className="collapse collapse-plus collapse w-full border border-base-300 bg-base-100 rounded-box">
+      <h3>Frame Configuration</h3>
+      <div className="text-xs">
+        If you change these values, make sure to "set the model" again!
+      </div>
+      <div className="form-control mt-4">
+        <label className="form-control w-full max-w-xs">
+          <div className="label">
+            <span className="label-text">
+              <b>Frame Window Size</b>
+            </span>
+          </div>
+          <input
+            className="input input-bordered w-full max-w-xs"
+            type="number"
+            placeholder="Enter frame window size"
+            value={frameWindowSize}
+            onChange={(e) => setFrameWindowSize(parseInt(e.target.value) || 0)}
+          />
+          <div className="label">
+            <span className="label-text-alt">
+              This should match the model's expected number of input frames.
+              This client will batch data from this number of frames as input
+              for the model prediction as{" "}
+              <code>{"joints.frame-{n}-{joint_name}.{axis}"}</code>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div className="form-control mt-4">
+        <label className="form-control w-full max-w-xs">
+          <div className="label">
+            <span className="label-text">
+              <b>Prediction Frame Overlap</b>
+            </span>
+          </div>
+          <input
+            className="input input-bordered w-full max-w-xs"
+            type="number"
+            placeholder="Enter frame window overlap"
+            value={frameWindowOverlap}
+            onChange={(e) =>
+              setFrameWindowOverlap(parseInt(e.target.value) || 0)
+            }
+          />
+          <div className="label">
+            <span className="label-text-alt">
+              How frequently to call the model. Positive values will result in
+              overlapping frame window data based on the value. Negative values
+              will result in a gap in frames between each prediction.
+            </span>
+          </div>
+        </label>
+      </div>
+      <h3>Model File Selection</h3>
+      <div className="bg-secondary collapse collapse-plus collapse w-full border border-base-300 bg-base-100 rounded-box">
         <input type="checkbox" className="peer" />
         <div className="collapse-title text-primary-content">
-          Model schema guidelines...
+          <b>Model schema guidelines</b>
         </div>
         <div className="collapse-content text-primary-content">
           <p>
@@ -63,53 +117,12 @@ function ModelSelector({ setModel }) {
           <code>x, y, z</code>
         </div>
       </div>
-      <div className="form-control mt-4">
-        <label className="form-control w-full max-w-xs">
-          <div className="label">
-            <span className="label-text">Frame Window Size</span>
-          </div>
-          <input
-            className="input input-bordered w-full max-w-xs"
-            type="number"
-            placeholder="Enter frame window size"
-            value={frameWindowSize}
-            onChange={(e) => setFrameWindowSize(parseInt(e.target.value) || 0)}
-          />
-          <div className="label">
-            <span className="label-text-alt">
-              This should match the model's expected number of input frames
-            </span>
-          </div>
-        </label>
-      </div>
-      <div className="form-control mt-4">
-        <label className="form-control w-full max-w-xs">
-          <div className="label">
-            <span className="label-text">Prediction Frame Overlap</span>
-          </div>
-          <input
-            className="input input-bordered w-full max-w-xs"
-            type="number"
-            placeholder="Enter frame window overlap"
-            value={frameWindowOverlap}
-            onChange={(e) =>
-              setFrameWindowOverlap(parseInt(e.target.value) || 0)
-            }
-          />
-          <div className="label">
-            <span className="label-text-alt">
-              This value determines how frequently to call the model. Positive
-              values will result in overlapping frame window data based on the
-              value above. Negative values will result in a gap in frames
-              between subsquent predictions. For example, -50 will result in the
-              model getting invoked every frame_window - -50 frames. So if there
-              is a frame window of 30, 30 - -50 will result in a 20 frame gap
-              between each prediction. An overlap of 5 and a frame window of 30
-              will result in predictions every 25 frames.
-            </span>
-          </div>
-        </label>
-      </div>
+      <h4 className="text-xs">
+        This is either a pickle file generated via Stream Pose ML, or an MLFlow
+        logged model (e.g. in gzip format with all needed assets an
+        input_example file). Note, the model's expected input must conform to
+        the this client's keypoint output format as described above.
+      </h4>
       <div className="join">
         <input
           className="file-input file-input-bordered w-full max-w-xs join-item"
