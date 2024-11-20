@@ -1,12 +1,22 @@
-import pandas as pd
-import pickle
-import time
+from copy import copy
 import json
+import joblib
+import os
+import pickle
+import shutil
+import tempfile  # For creating temporary directories
+import time
+from typing import Optional
+
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from copy import copy
 
+# MLFlow integration
+import mlflow
+import mlflow.sklearn
+import mlflow.xgboost
 
 # Modeling
 from sklearn.decomposition import PCA
@@ -257,15 +267,16 @@ class ModelBuilder:
         f1 = f1_score(y_test, y_pred)
         auc = roc_auc_score(y_test, y_pred_proba, average="weighted")
 
-        cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
-        scores = cross_val_score(
-            model, self.X, self.y, scoring="roc_auc", cv=cv, n_jobs=-1
-        )
-        # summarize performance
-        self.auc_cv = np.mean(scores)
-        print("Mean ROC AUC from cross validation: %.3f" % self.auc_cv)
-        print("Min ROC AUC from cross validation: %.3f" % min(scores))
-        print("Max ROC AUC from cross validation: %.3f" % max(scores))
+        # TODO cv is hanging locally, so commenting out for now
+        # cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+        # scores = cross_val_score(
+        #     model, self.X, self.y, scoring="roc_auc", cv=cv, n_jobs=-1
+        # )
+        # # summarize performance
+        # self.auc_cv = np.mean(scores)
+        # print("Mean ROC AUC from cross validation: %.3f" % self.auc_cv)
+        # print("Min ROC AUC from cross validation: %.3f" % min(scores))
+        # print("Max ROC AUC from cross validation: %.3f" % max(scores))
 
         if not self.run_PCA and hasattr(self, "feature_importances"):
             print("Top 5 features")
@@ -329,12 +340,28 @@ class ModelBuilder:
             output.append({feature: f"{importance * 100}%"})
         return output
 
+    def set_model_signature(self, X_train: pd.DataFrame = None):
+        if not X_train:
+            X_train = self.X_train
+        if not self.model:
+            return False
+
+        from mlflow.models.signature import infer_signature
+
+        input_example = X_train.head(1)
+        signature = infer_signature(X_train, self.model.predict(X_train))
+        self.signature = signature
+        self.input_example = input_example
+        return signature, input_example
+
     def train_gradient_boost(self):
         X_train = self.X_train
         y_train = self.y_train
         gradient_booster = xgb.XGBClassifier(eval_metric="mlogloss")
         gradient_booster.fit(X_train, y_train)
         self.model = gradient_booster
+        self.model_type = "Gradient-Boost"
+        self.set_model_signature()
 
     def train_logistic_regression(self):
         X_train = self.X_train
@@ -416,7 +443,7 @@ class ModelBuilder:
             )
             self.model = rf
 
-        self.model_type = "Random Forest"
+        self.model_type = "Random-Forest"
 
     def run_recursive_feature_estimation(self, num_features):
         if num_features:
@@ -503,6 +530,51 @@ class ModelBuilder:
             pickle.dump(model_data, f, pickle.HIGHEST_PROTOCOL)
 
         print(f"Saved model to pickle! {saved_model_path}")
+        
+    def save_model_to_mlflow(self, model: Optional[object] = None, model_path: str = "../../data/trained_models") -> None:
+        """
+        Save the model to MLflow in a format compatible with mlflow models serve and create a zipped version alongside the directory.
+
+        Args:
+            model (Optional[object]): The model to be saved. If not provided, defaults to self.model.
+            model_path (str): The path where the model artifact will be stored. Defaults to "../../data/trained_models".
+        """
+        import os
+        import mlflow
+        import xgboost as xgb
+        from sklearn.ensemble import RandomForestClassifier
+        import time
+
+        # Use the provided model or default to self.model
+        model_to_save = model if model else self.model
+        signature = None if self.signature is None else self.signature
+        input_example = None if self.input_example is None else self.input_example
+
+        # Generate a unique model name
+        model_name = f"{self.model_type}-mlflow-{time.time_ns()}"
+
+        # Resolve the absolute path for model storage
+        destination_dir = os.path.abspath(model_path)
+        if not os.path.exists(destination_dir):
+            os.makedirs(destination_dir)  # Create the destination directory if it doesn't exist
+
+        # Define the path where the model will be saved
+        model_save_path = os.path.join(destination_dir, model_name)
+
+        # Save the model to the directory using MLflow's save_model
+        if isinstance(model_to_save, xgb.XGBClassifier):
+            mlflow.xgboost.save_model(model_to_save, path=model_save_path, signature=signature, input_example=input_example)
+        elif isinstance(model_to_save, RandomForestClassifier):
+            mlflow.sklearn.save_model(model_to_save, path=model_save_path, signature=signature, input_example=input_example)
+        else:
+            raise ValueError(f"Model type {type(model_to_save)} is not supported for logging.")
+
+        print(f"Model '{model_name}' successfully saved to {model_save_path}")
+
+        # Zip the saved model directory
+        zip_file_path = os.path.join(destination_dir, f"{model_name}.zip")
+        shutil.make_archive(zip_file_path.replace(".zip", ""), 'zip', model_save_path)
+        print(f"Zipped model directory to {zip_file_path}")
 
     def retrieve_model_from_pickle(self, file_path: str):
         """Load a model and metadata from a pickle file.
