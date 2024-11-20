@@ -12,3 +12,7 @@ data/*
 web_ui/logs/*
 
 example_data/output*
+
+stream_pose_ml/notebooks/mlruns
+
+mlflow/models/**/*

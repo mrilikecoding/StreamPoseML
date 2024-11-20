@@ -2,8 +2,7 @@ version: "3"
 
 services:
   stream_pose_ml_api:
-    build:
-      context: ./stream_pose_ml
+    image: mrilikecoding/stream_pose_ml_api:latest
     ports:
       - "5001:5001"
     networks:
@@ -20,8 +19,7 @@ services:
       bash -c "python -u run.py"
 
   web_ui:
-    build:
-      context: ./web_ui
+    image: mrilikecoding/stream_pose_ml_web_ui:latest
     depends_on:
       - stream_pose_ml_api
     ports:
@@ -37,8 +35,7 @@ services:
       - /usr/src/app/my-app/node_modules # anonymous persistent volume to prevent local machine override
 
   mlflow:
-    build:
-      context: ./mlflow
+    image: mrilikecoding/stream_pose_ml_mlflow:latest
     networks:
       - app-tier
     ports:
@@ -57,4 +54,3 @@ networks:
 
 volumes:
   shared_models:
-

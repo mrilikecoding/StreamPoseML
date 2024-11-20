@@ -15,7 +15,7 @@ from stream_pose_ml.serializers.blaze_pose_sequence_serializer import (
 if typing.TYPE_CHECKING:
     from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
     from stream_pose_ml.learning.trained_model import TrainedModel
-    from stream_pose_ml.learning.sequence_transformer import SequenceTransformer
+    from stream_pose_ml.transformers.sequence_transformer import SequenceTransformer
 
 
 class StreamPoseClient:
