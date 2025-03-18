@@ -7,7 +7,7 @@ if ! command -v docker &>/dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &>/dev/null; then
+if ! command -v docker compose &>/dev/null; then
   echo "Docker Compose is not installed. Please install Docker Compose and try again."
   exit 1
 fi
@@ -25,7 +25,7 @@ done
 # If debug mode is on, output Docker and Docker Compose versions
 if [[ $1 == "--debug" ]]; then
   echo "Docker version: $(docker --version)"
-  echo "Docker Compose version: $(docker-compose --version)"
+  echo "Docker Compose version: $(docker compose --version)"
 fi
 
 # Log into Docker Hub
@@ -41,7 +41,7 @@ docker pull mrilikecoding/stream_pose_ml_mlflow:latest
 COMPOSE_FILE="docker-compose.build.yml"
 
 echo "Starting services with Docker Compose using $COMPOSE_FILE..."
-DOCKER_COMPOSE_OUTPUT=$(docker-compose -f $COMPOSE_FILE up -d 2>&1) || {
+DOCKER_COMPOSE_OUTPUT=$(docker compose -f $COMPOSE_FILE up -d 2>&1) || {
   echo "Docker Compose exited with an error. Output was:"
   echo "$DOCKER_COMPOSE_OUTPUT"
   exit 1
