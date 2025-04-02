@@ -128,4 +128,3 @@ class MLFlowTransformer(SequenceTransformer):
         json_data_payload = output_flattened_filtered.to_dict(orient="records")[0]
 
         return (json_data_payload, output_meta)
-
