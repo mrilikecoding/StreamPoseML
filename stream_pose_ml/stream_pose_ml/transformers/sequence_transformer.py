@@ -1,19 +1,36 @@
 from abc import ABC, abstractmethod
-
+from typing import Any, Dict, List, Tuple, Union
 import pandas as pd
 import numpy as np
+from collections import defaultdict
 
 import stream_pose_ml.services.segmentation_service as ss
 
 
 class SequenceTransformer(ABC):
+    """
+    Abstract base class for sequence data transformers.
+    
+    TODO: Improve interface with better type annotations and documentation.
+    TODO: Define a clear data structure schema for inputs and outputs.
+    TODO: Add validation methods for input data structures.
+    """
+    
     @abstractmethod
-    def transform(self, data: any, columns: list) -> any:
-        """Transform the passed data into a row with the passed columns"""
+    def transform(self, data: Any, columns: List[str]) -> Union[Tuple[pd.DataFrame, Dict], Tuple[Dict, Dict]]:
+        """
+        Transform the passed data into a row with the passed columns.
+        
+        Args:
+            data: Input data containing sequence information
+            columns: List of column names to include in the output
+            
+        Returns:
+            Tuple containing:
+            - Either a DataFrame or Dict (depending on implementation) with transformed data
+            - Dict with metadata about the transformation
+        """
         pass
-
-
-from collections import defaultdict
 
 
 # TODO create concrete classes for different schemes
