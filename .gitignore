@@ -3,6 +3,8 @@ __pycache__
 .DS_Store
 *.egg-info
 
+.coverage
+
 dist/* 
 web_ui/dist/*
 
