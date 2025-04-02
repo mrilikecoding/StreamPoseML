@@ -14,5 +14,6 @@ web_ui/logs/*
 example_data/output*
 
 stream_pose_ml/notebooks/mlruns
+stream_pose_ml/notebooks/scratchpad/*
 
 mlflow/models/**/*
