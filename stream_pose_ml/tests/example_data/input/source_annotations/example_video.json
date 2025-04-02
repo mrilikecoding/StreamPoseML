@@ -1,0 +1,139 @@
+{
+  "name": "example_video.webm",
+  "annotations": [
+    {
+      "label": "Right Step",
+      "metadata": {
+        "system": {
+          "startTime": 0.23356666666666667,
+          "endTime": 1.6349666666666667,
+          "frame": 7,
+          "endFrame": 49
+        }
+      }
+    },
+    {
+      "label": "Successful Weight Transfer",
+      "metadata": {
+        "system": {
+          "startTime": 0.23356666666666667,
+          "endTime": 1.6349666666666667,
+          "frame": 7,
+          "endFrame": 49
+        }
+      }
+    },
+    {
+      "label": "Failure Weight Transfer",
+      "metadata": {
+        "system": {
+          "startTime": 1.7017,
+          "endTime": 3.2032000000000003,
+          "frame": 51,
+          "endFrame": 96
+        }
+      }
+    },
+    {
+      "label": "Left Step",
+      "metadata": {
+        "system": {
+          "startTime": 1.7017,
+          "endTime": 3.2032000000000003,
+          "frame": 51,
+          "endFrame": 96
+        }
+      }
+    },
+    {
+      "label": "Successful Weight Transfer",
+      "metadata": {
+        "system": {
+          "startTime": 5.372033333333333,
+          "endTime": 6.4064000000000005,
+          "frame": 161,
+          "endFrame": 192
+        }
+      }
+    },
+    {
+      "label": "Right Step",
+      "metadata": {
+        "system": {
+          "startTime": 3.2699333333333334,
+          "endTime": 4.237566666666667,
+          "frame": 98,
+          "endFrame": 127
+        }
+      }
+    },
+    {
+      "label": "Successful Weight Transfer",
+      "metadata": {
+        "system": {
+          "startTime": 3.2699333333333334,
+          "endTime": 4.237566666666667,
+          "frame": 98,
+          "endFrame": 127
+        }
+      }
+    },
+    {
+      "label": "Right Step",
+      "metadata": {
+        "system": {
+          "startTime": 5.372033333333333,
+          "endTime": 6.4064000000000005,
+          "frame": 161,
+          "endFrame": 192
+        }
+      }
+    },
+    {
+      "label": "Successful Weight Transfer",
+      "metadata": {
+        "system": {
+          "startTime": 4.270933333333334,
+          "endTime": 5.3053,
+          "frame": 128,
+          "endFrame": 159
+        }
+      }
+    },
+    {
+      "label": "Left Step",
+      "metadata": {
+        "system": {
+          "startTime": 4.270933333333334,
+          "endTime": 5.3053,
+          "frame": 128,
+          "endFrame": 159
+        }
+      }
+    },
+    {
+      "label": "Successful Weight Transfer",
+      "metadata": {
+        "system": {
+          "startTime": 6.473133333333333,
+          "endTime": 7.9079,
+          "frame": 194,
+          "endFrame": 237
+        }
+      }
+    },
+    {
+      "label": "Left Step",
+      "metadata": {
+        "system": {
+          "startTime": 6.473133333333333,
+          "endTime": 7.9079,
+          "frame": 194,
+          "endFrame": 237
+        }
+      }
+    }
+  ],
+  "annotationsCount": 12,
+  "annotated": true
+}
