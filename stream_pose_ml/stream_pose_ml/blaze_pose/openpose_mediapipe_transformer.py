@@ -1,4 +1,8 @@
-import stream_pose_ml.blaze_pose.blaze_pose_frame as bpf
+from typing import TYPE_CHECKING, Any
+
+# Use TYPE_CHECKING to avoid circular imports at runtime
+if TYPE_CHECKING:
+    from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 
 
 class OpenPoseMediapipeTransformer:
@@ -271,7 +275,7 @@ class OpenPoseMediapipeTransformer:
 
     @staticmethod
     def create_openpose_joints_and_vectors(
-        frame: "bpf.BlazePoseFrame",
+        frame: Any,  # Will be BlazePoseFrame at runtime
     ) -> bool:
         """Create new joints / vectors based on OpenPose angles/distance.
 

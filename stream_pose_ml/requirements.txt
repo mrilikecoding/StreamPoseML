@@ -21,4 +21,6 @@ tqdm==4.65.0
 tslearn==0.6.2
 xgboost==1.7.4
 pytest
+pytest-emoji
+pytest-cov
 mlflow
