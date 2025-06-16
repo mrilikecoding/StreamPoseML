@@ -141,6 +141,13 @@ class TestStreamPoseClient:
         assert client.run_keypoint_pipeline.call_count == 2
 
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 @pytest.mark.api_test
 class TestMLFlowClient:
     def test_run_keypoint_pipeline(self):

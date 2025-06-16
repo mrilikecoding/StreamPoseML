@@ -357,6 +357,13 @@ class TestSocketIOHandlers:
 
         handle_keypoints("test_payload")
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
         # Verify results
         mock_stream_pose.stream_pose_client.run_keypoint_pipeline.assert_called_once_with(
             "test_payload"

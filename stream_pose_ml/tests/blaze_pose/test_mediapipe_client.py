@@ -464,6 +464,13 @@ class TestMediaPipeClientPreprocessing:
         assert result.shape == image.shape
 
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 class TestMediaPipeClientFileOutput:
     """Tests for MediaPipeClient file output methods."""
     

@@ -359,6 +359,13 @@ class TestSegmentationService:
             mock_segment.assert_called_once_with(dataset=mock_dataset)
             assert result.segmented_data == ["clip1", "clip2"]
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def test_segment_dataset_flatten_on_example(self, mock_dataset):
         """Test segmenting a dataset with 'flatten_on_example' strategy."""
         # Given

@@ -2,8 +2,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from stream_pose_ml.serializers.angle_serializer import AngleSerializer
-from stream_pose_ml.geometry.angle import Angle
-from stream_pose_ml.geometry.vector import Vector
+from ..geometry.angle import Angle
+from ..geometry.vector import Vector
 
 
 class TestAngleSerializer:
@@ -56,6 +56,13 @@ class TestAngleSerializer:
             "angle_3d_degrees": 40.1,
         }
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def test_serialize_static_method(self, angle):
         """Test the serialize method as a static method."""
         # When

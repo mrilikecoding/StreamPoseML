@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 import pandas as pd
 
 from stream_pose_ml.jobs.build_and_format_dataset_job import BuildAndFormatDatasetJob
-from stream_pose_ml.learning.dataset import Dataset
+from ..learning.dataset import Dataset
 
 
 class TestBuildAndFormatDatasetJob:
@@ -216,6 +216,13 @@ class TestBuildAndFormatDatasetJob:
         # Verify to_csv was called with correct path
         mock_pandas.json_normalize.return_value.to_csv.assert_called_once_with(f"{csv_location}/{filename}.csv")
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     @patch('stream_pose_ml.jobs.build_and_format_dataset_job.time')
     def test_write_dataset_to_csv_with_timestamp(self, mock_time, mock_pandas):
         """Test writing a dataset to CSV with timestamp filename."""
