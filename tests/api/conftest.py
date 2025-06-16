@@ -10,10 +10,7 @@ import inspect
 from flask import Flask
 from flask_socketio import SocketIO
 
-# Add paths
-parent_dir = Path(__file__).parent.parent.parent
-if str(parent_dir) not in sys.path:
-    sys.path.insert(0, str(parent_dir))
+# Project root is already in sys.path via the pytest.ini or setup.py configuration
 
 # Mark API tests
 def pytest_configure(config):

@@ -1,1 +1,0 @@
-/Users/nathangreen/Development/stream_pose_ml/stream_pose_ml/geometry/__init__.py

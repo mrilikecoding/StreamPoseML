@@ -1,7 +1,7 @@
-from ..geometry.joint import Joint
-from ..geometry.vector import Vector
-from ..geometry.angle import Angle
-from ..geometry.distance import Distance
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
+from stream_pose_ml.geometry.angle import Angle
+from stream_pose_ml.geometry.distance import Distance
 from .openpose_mediapipe_transformer import (
     OpenPoseMediapipeTransformer,
 )

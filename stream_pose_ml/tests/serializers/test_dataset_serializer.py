@@ -1,5 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # Adjust if needed
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from stream_pose_ml.serializers.dataset_serializer import DatasetSerializer, DatasetSerializerError
 
@@ -142,13 +149,6 @@ class TestDatasetSerializer:
         with pytest.raises(DatasetSerializerError, match="There is no segmented data to serialize"):
             serializer.serialize(dataset)
 
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
     def test_step_frame_id_calculation(self, mock_dataset):
         """Test step_frame_id calculation for non-pooled data."""
         # Given

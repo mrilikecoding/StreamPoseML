@@ -7,8 +7,8 @@ from stream_pose_ml.blaze_pose.openpose_mediapipe_transformer import (
     OpenPoseMediapipeTransformerError
 )
 from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
-from ..geometry.joint import Joint
-from ..geometry.vector import Vector
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 
 class TestOpenPoseMediapipeTransformer:

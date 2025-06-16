@@ -1,10 +1,17 @@
 import pytest
 from unittest.mock import MagicMock
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # Adjust if needed
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from stream_pose_ml.serializers.distance_serializer import DistanceSerializer
-from ..geometry.distance import Distance
-from ..geometry.joint import Joint
-from ..geometry.vector import Vector
+from stream_pose_ml.geometry.distance import Distance
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 
 class TestDistanceSerializer:
@@ -57,13 +64,6 @@ class TestDistanceSerializer:
             "distance_3d_normalized": 0.7,
         }
 
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
     def test_serialize_static_method(self, distance):
         """Test the serialize method as a static method."""
         # When

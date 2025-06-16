@@ -2,9 +2,9 @@ import typing
 from enum import Enum
 
 if typing.TYPE_CHECKING:
-    from ..learning.dataset import Dataset
+    from stream_pose_ml.learning.dataset import Dataset
 
-from ..learning.labeled_clip import LabeledClip
+from stream_pose_ml.learning.labeled_clip import LabeledClip
 
 
 class SegmentationStrategy(Enum):

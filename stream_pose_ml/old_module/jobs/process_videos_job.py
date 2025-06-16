@@ -1,4 +1,4 @@
-from .utils import path_utility
+from stream_pose_ml.utils import path_utility
 from .process_video_job import ProcessVideoJob
 
 

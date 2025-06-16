@@ -1,5 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # Adjust if needed
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from stream_pose_ml.serializers.labeled_frame_serializer import LabeledFrameSerializer
 
@@ -226,13 +233,6 @@ class TestLabeledFrameSerializer:
         assert result["hand_to_hip.distance_2d"] == 50.5
         assert result["hand_to_hip.distance_3d"] == 75.2
 
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
     def test_serialize_joints_static(self):
         """Test the static serialize_joints method."""
         # Given

@@ -1,4 +1,4 @@
-from ..geometry.vector import Vector
+from stream_pose_ml.geometry.vector import Vector
 
 
 class VectorSerializer:
@@ -13,9 +13,9 @@ class VectorSerializer:
             "joint_1_name": vector.joint_1.name,
             "joint_2_name": vector.joint_2.name,
             "direction_2d": vector.direction_2d,
-            "direction_3d": vector.direction_2d,
+            "direction_3d": vector.direction_3d,
             "direction_reverse_2d": vector.direction_reverse_2d,
-            "direction_reverse_3d": vector.direction_reverse_2d,
+            "direction_reverse_3d": vector.direction_reverse_3d,
             "x1": vector.x1,
             "x2": vector.x2,
             "y1": vector.y1,

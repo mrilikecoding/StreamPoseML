@@ -1,6 +1,6 @@
-from ..learning.labeled_clip import LabeledClip
+from stream_pose_ml.learning.labeled_clip import LabeledClip
 from .labeled_frame_serializer import LabeledFrameSerializer
-from .learning import temporal_feature_pooling as tfp
+from stream_pose_ml.learning import temporal_feature_pooling as tfp
 
 
 class LabeledClipSerializer:

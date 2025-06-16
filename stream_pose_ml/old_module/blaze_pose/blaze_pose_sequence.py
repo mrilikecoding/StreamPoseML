@@ -1,4 +1,4 @@
-from .blaze_pose_frame import BlazePoseFrame
+from stream_pose_ml.blaze_pose_frame import BlazePoseFrame
 from .enumerations import BlazePoseJoints
 
 

@@ -9,10 +9,10 @@ from stream_pose_ml.blaze_pose.blaze_pose_frame import (
     BlazePoseFrameError,
 )
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
-from ..geometry.joint import Joint
-from ..geometry.vector import Vector
-from ..geometry.angle import Angle
-from ..geometry.distance import Distance
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
+from stream_pose_ml.geometry.angle import Angle
+from stream_pose_ml.geometry.distance import Distance
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-from ..blaze_pose.blaze_pose_sequence import BlazePoseSequence
+from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
 from .blaze_pose_frame_serializer import (
     BlazePoseFrameSerializer,
 )
