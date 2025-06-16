@@ -1,4 +1,4 @@
-from ..services.video_data_service import VideoDataService
+from stream_pose_ml.services.video_data_service import VideoDataService
 
 
 class ProcessVideoJob:

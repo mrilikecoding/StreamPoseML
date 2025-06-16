@@ -6,7 +6,7 @@ import json
 import cv2
 import mediapipe as mp
 
-from .enumerations import BlazePoseJoints
+from stream_pose_ml.enumerations import BlazePoseJoints
 
 
 class MediaPipeClient:

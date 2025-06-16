@@ -1,4 +1,4 @@
-from ..geometry.distance import Distance
+from stream_pose_ml.geometry.distance import Distance
 
 
 class DistanceSerializer:

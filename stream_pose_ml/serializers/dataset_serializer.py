@@ -3,7 +3,7 @@ import typing
 from .labeled_clip_serializer import LabeledClipSerializer
 
 if typing.TYPE_CHECKING:
-    from ..learning.dataset import Dataset
+    from stream_pose_ml.learning.dataset import Dataset
 
 
 class DatasetSerializer:

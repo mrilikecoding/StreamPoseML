@@ -1,6 +1,6 @@
 import numpy as np
 
-from .vector import Vector
+from stream_pose_ml.vector import Vector
 
 
 class Angle:

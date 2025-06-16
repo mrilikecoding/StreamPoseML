@@ -1,5 +1,5 @@
 from stream_pose_ml.geometry.angle import Angle
-from stream_pose_ml.serializers.vector_serialzier import VectorSerializer
+from stream_pose_ml.serializers.vector_serializer import VectorSerializer
 
 
 class AngleSerializer:

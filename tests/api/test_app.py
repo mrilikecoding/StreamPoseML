@@ -2,7 +2,6 @@
 
 import json
 import os
-import sys
 import pytest
 import requests
 from unittest.mock import MagicMock, patch, mock_open
@@ -10,9 +9,6 @@ from flask import Flask, jsonify, request
 from flask_socketio import SocketIO
 from werkzeug.datastructures import FileStorage
 from pathlib import Path
-
-# Add the paths needed to run the tests
-sys.path.append(str(Path(__file__).parents[1]))  # Add top-level directory to path
 
 # We'll use a different approach - create simple test utilities
 # that don't rely on importing from the actual app

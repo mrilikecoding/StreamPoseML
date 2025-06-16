@@ -1,4 +1,4 @@
-from ..geometry.joint import Joint
+from stream_pose_ml.geometry.joint import Joint
 
 
 class JointSerializer:

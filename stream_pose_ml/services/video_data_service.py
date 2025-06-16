@@ -1,9 +1,9 @@
 import time
 
-from .utils import path_utility
-from ..blaze_pose.mediapipe_client import MediaPipeClient
-from ..blaze_pose.blaze_pose_sequence import BlazePoseSequence
-from ..serializers.blaze_pose_sequence_serializer import (
+from stream_pose_ml.utils import path_utility
+from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
+from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
+from stream_pose_ml.serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
 )
 

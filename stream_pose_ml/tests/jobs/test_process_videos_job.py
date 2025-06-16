@@ -1,5 +1,12 @@
 import pytest
 from unittest.mock import patch, MagicMock
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # Adjust if needed
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from stream_pose_ml.jobs.process_videos_job import ProcessVideosJob
 from stream_pose_ml.jobs.process_video_job import ProcessVideoJob
@@ -115,13 +122,6 @@ class TestProcessVideosJob:
         assert result == [{'video1': 'data'}]  # Only first video processed due to limit
         assert mock_process_video_job.process_video.call_count == 1
 
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
     def test_process_videos_file_extensions(self, mock_path_utility, mock_process_video_job):
         """Test processing videos handles different file extensions."""
         # Modify mock to return both webm and mp4 files

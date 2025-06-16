@@ -1,4 +1,4 @@
-from ..geometry.vector import Vector
+from stream_pose_ml.geometry.vector import Vector
 
 
 class VectorSerializer:

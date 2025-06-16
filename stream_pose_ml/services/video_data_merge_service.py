@@ -1,14 +1,14 @@
 import os
 import json
-from .utils import path_utility
+from stream_pose_ml.utils import path_utility
 
 from .annotation_transformer_service import (
     AnnotationTransformerService,
 )
 
 
-from ..learning.labeled_clip import LabeledClip
-from .services import video_data_service as vds
+from stream_pose_ml.learning.labeled_clip import LabeledClip
+from stream_pose_ml.services import video_data_service as vds
 
 
 class VideoDataMergeService:

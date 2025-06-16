@@ -1,9 +1,16 @@
 import pytest
 from unittest.mock import MagicMock
+import sys
+from pathlib import Path
 
-from stream_pose_ml.serializers.vector_serialzier import VectorSerializer
-from ..geometry.vector import Vector
-from ..geometry.joint import Joint
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # Adjust if needed
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from stream_pose_ml.serializers.vector_serializer import VectorSerializer
+from stream_pose_ml.geometry.vector import Vector
+from stream_pose_ml.geometry.joint import Joint
 
 
 class TestVectorSerializer:
@@ -57,17 +64,15 @@ class TestVectorSerializer:
         result = serializer.serialize(vector)
         
         # Then
-        # Note: There's a bug in the implementation - direction_3d uses direction_2d value
-        # and direction_reverse_3d uses direction_reverse_2d value
         assert result == {
             "type": "Vector",
             "name": "test_vector",
             "joint_1_name": "joint1",
             "joint_2_name": "joint2",
             "direction_2d": [0.5, 0.5],
-            "direction_3d": [0.5, 0.5],  # Bug in implementation - should be direction_3d
+            "direction_3d": [0.3, 0.3, 0.3],  # Fixed: Now using the correct 3D value
             "direction_reverse_2d": [-0.5, -0.5],
-            "direction_reverse_3d": [-0.5, -0.5],  # Bug in implementation - should be direction_reverse_3d
+            "direction_reverse_3d": [-0.3, -0.3, -0.3],  # Fixed: Now using the correct 3D value
             "x1": 10,
             "y1": 20,
             "z1": 30,
@@ -82,13 +87,6 @@ class TestVectorSerializer:
             "z2_normalized": 0.35,
         }
 
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
     def test_serialize_static_method(self, vector):
         """Test the serialize method as a static method."""
         # When
@@ -100,8 +98,7 @@ if str(project_root) not in sys.path:
         assert result["joint_1_name"] == "joint1"
         assert result["joint_2_name"] == "joint2"
         assert result["direction_2d"] == [0.5, 0.5]
-        # Bug in implementation - direction_3d uses direction_2d value
-        assert result["direction_3d"] == [0.5, 0.5]
+        assert result["direction_3d"] == [0.3, 0.3, 0.3]
         assert result["x1"] == 10
         assert result["y1"] == 20
         assert result["z1"] == 30

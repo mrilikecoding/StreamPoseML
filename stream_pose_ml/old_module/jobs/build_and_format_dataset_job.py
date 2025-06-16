@@ -5,10 +5,10 @@ from ..services.video_data_merge_service import (
     VideoDataMergeService,
 )
 
-from ..utils.utils import round_nested_dict
-from ..services.segmentation_service import SegmentationService
-from ..learning.dataset import Dataset
-from ..serializers.dataset_serializer import DatasetSerializer
+from stream_pose_ml.utils.utils import round_nested_dict
+from stream_pose_ml.services.segmentation_service import SegmentationService
+from stream_pose_ml.learning.dataset import Dataset
+from stream_pose_ml.serializers.dataset_serializer import DatasetSerializer
 
 
 class BuildAndFormatDatasetJob:

@@ -1,4 +1,4 @@
-from .joint import Joint
+from stream_pose_ml.joint import Joint
 
 
 class Vector:

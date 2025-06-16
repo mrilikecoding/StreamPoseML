@@ -1,6 +1,5 @@
 """Integration tests for the API module."""
 
-import sys
 import pytest
 import json
 from unittest.mock import MagicMock, patch
@@ -8,9 +7,6 @@ import numpy as np
 from pathlib import Path
 from flask import Flask
 from flask_socketio import SocketIO
-
-# Add the paths needed to run the tests
-sys.path.append(str(Path(__file__).parents[1]))  # Add top-level directory to path
 
 # Create a dummy app class instead of importing from api
 class DummyStreamPoseMLApp:
