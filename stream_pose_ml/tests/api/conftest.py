@@ -18,6 +18,13 @@ def pytest_configure(config):
     """Add api_test marker."""
     config.addinivalue_line("markers", "api_test: mark test as an API test")
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 @pytest.fixture(scope="function")
 def mock_api_dependencies():
     """

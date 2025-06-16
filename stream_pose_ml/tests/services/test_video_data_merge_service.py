@@ -234,6 +234,13 @@ class TestVideoDataMergeService:
             "unlabeled_frames": [['unlabeled_frame1']]
         }
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def test_generate_annotated_video_data_with_limit(self, mock_path_utility, mock_transformer, mock_open_json):
         """Test generating annotated video data with a limit."""
         # Given

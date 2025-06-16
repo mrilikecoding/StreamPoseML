@@ -7,8 +7,8 @@ from stream_pose_ml.blaze_pose.openpose_mediapipe_transformer import (
     OpenPoseMediapipeTransformerError
 )
 from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
-from stream_pose_ml.geometry.joint import Joint
-from stream_pose_ml.geometry.vector import Vector
+from ..geometry.joint import Joint
+from ..geometry.vector import Vector
 
 
 class TestOpenPoseMediapipeTransformer:
@@ -167,6 +167,13 @@ class TestOpenPoseMediapipeTransformer:
             OpenPoseMediapipeTransformer.create_openpose_joints_and_vectors(mock_frame)
 
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 class TestOpenPoseMediapipeTransformerIntegration:
     """Integration tests for OpenPoseMediapipeTransformer with mocked BlazePoseFrame."""
     

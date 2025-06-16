@@ -87,6 +87,13 @@ class TestLoadFromPickleFixed:
             mock_print.assert_called_once_with(f"Loading {test_obj.__class__} from pickle")
             assert result == test_obj
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def _fixed_load_from_pickle(self, filename):
         """Fixed version of load_from_pickle using 'rb' mode."""
         with open(f"{filename}.pickle", "rb") as handle:

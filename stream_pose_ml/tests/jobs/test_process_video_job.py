@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from stream_pose_ml.jobs.process_video_job import ProcessVideoJob, ProcessVideoJobError
-from stream_pose_ml.services.video_data_service import VideoDataService
+from ..services.video_data_service import VideoDataService
 
 
 class TestProcessVideoJob:
@@ -90,6 +90,13 @@ class TestProcessVideoJob:
         # Verify the service was not called
         mock_video_data_service.return_value.process_video.assert_not_called()
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def test_process_video_no_file_writing(self, mock_video_data_service):
         """Test processing a video without writing files."""
         # Given

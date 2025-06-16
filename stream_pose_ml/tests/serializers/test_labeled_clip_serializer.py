@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from stream_pose_ml.serializers.labeled_clip_serializer import LabeledClipSerializer
-from stream_pose_ml.learning.labeled_clip import LabeledClip
+from ..learning.labeled_clip import LabeledClip
 
 
 class TestLabeledClipSerializer:
@@ -178,6 +178,13 @@ class TestLabeledClipSerializer:
         mock_temporal_pooling.compute_max.assert_not_called()
         mock_temporal_pooling.compute_standard_deviation.assert_not_called()
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def test_serialize_without_geometry(self, labeled_clip, mock_frame_serializer, mock_temporal_pooling):
         """Test serialization without including geometry data."""
         # Given

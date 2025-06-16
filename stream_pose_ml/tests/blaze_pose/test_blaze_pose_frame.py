@@ -9,10 +9,10 @@ from stream_pose_ml.blaze_pose.blaze_pose_frame import (
     BlazePoseFrameError,
 )
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
-from stream_pose_ml.geometry.joint import Joint
-from stream_pose_ml.geometry.vector import Vector
-from stream_pose_ml.geometry.angle import Angle
-from stream_pose_ml.geometry.distance import Distance
+from ..geometry.joint import Joint
+from ..geometry.vector import Vector
+from ..geometry.angle import Angle
+from ..geometry.distance import Distance
 
 
 @pytest.fixture
@@ -573,3 +573,10 @@ class TestBlazePoseFrameIntegration:
                 isinstance(distance, Distance) for distance in frame.distances.values()
             )
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))

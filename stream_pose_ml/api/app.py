@@ -17,12 +17,12 @@ import tarfile
 
 from stream_pose_ml import stream_pose_client
 from stream_pose_ml import ml_flow_client
-from stream_pose_ml.blaze_pose import mediapipe_client
-from stream_pose_ml.learning import trained_model
-from stream_pose_ml.transformers import sequence_transformer
-from stream_pose_ml.learning import model_builder
+from .blaze_pose import mediapipe_client
+from .learning import trained_model
+from .transformers import sequence_transformer
+from .learning import model_builder
 
-from stream_pose_ml.actuators import bluetooth_device
+from .actuators import bluetooth_device
 
 ### Set the model ###
 mb = model_builder.ModelBuilder()

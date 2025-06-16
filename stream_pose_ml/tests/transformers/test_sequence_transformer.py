@@ -299,6 +299,13 @@ class TestMLFlowTransformer:
             # Verify our mock was called once with the expected arguments
             mock_transform.assert_called_once_with(frame_data, columns)
 
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[3]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
     def test_handles_inf_and_nan_with_patch(self):
         """Test that inf and NaN values are replaced with 0.0 using patching."""
         # Given
