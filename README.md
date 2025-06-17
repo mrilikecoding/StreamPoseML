@@ -228,11 +228,13 @@ Provided is a simple Flask API that sits behind a React UI. The UI was tailored 
 To run the sample app you'll need to pull the latest builds from Dockerhub:
 
 1. Visit docker.com and sign up for an account.
-2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/) client for your your system, launch, and log in.
+2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/) client for your system, launch, and log in.
 3. From your terminal, git clone this repo and enter the directory.
-4. Run `start.sh` to pull down the latest images (backend and frontend) and spin them up with Docker Compose.
+4. Run `start.sh` to pull down the latest images (backend, frontend, and MLFlow) and spin them up with Docker Compose.
 
-This should install the necessary dependencies and then launch the application in your default browser (Chrome is recommended for full feature support).
+This should install the necessary dependencies and then launch the application in your default browser (Chrome-based browsers are recommended for full feature support).
+
+_Note, the MLFlow container pins MLFlow to version 2.18.0. Later versions of MLFlow have switched to FastAPI (uvicorn) from gunicorn, which presents problems loading MLFlow models logged before this change. This will be addressed in a forthcoming update. If you do use this with an MLFlow model logged using a version later than 2.18 you may need to bump the MLFlow version in the MLFlow container manually for now._
 
 5. When you're done, run `stop.sh` to gracefully end the application processes.
 

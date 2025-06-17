@@ -34,7 +34,7 @@ docker login
 
 # Pull the images
 docker pull mrilikecoding/stream_pose_ml_api:latest
-docker pull mrilikecoding/sream_pose_ml_web_ui:latest
+docker pull mrilikecoding/stream_pose_ml_web_ui:latest
 docker pull mrilikecoding/stream_pose_ml_mlflow:latest
 
 # Start the services with Docker Compose
