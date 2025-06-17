@@ -3,21 +3,25 @@ version: "3"
 services:
   stream_pose_ml_api:
     build:
-      context: ./stream_pose_ml
+      context: ./api
+      args:
+        - env=dev  # Use dev environment for local development
+        - flask_debug=True
     ports:
       - "5001:5001"
     networks:
       - app-tier
     volumes:
-      - ${PWD}/stream_pose_ml:/usr/src/app
+      - ${PWD}/api:/usr/src/app
+      - ${PWD}/stream_pose_ml:/usr/src/stream_pose_ml  # Mount local package for development
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
-      - shared_models:/usr/src/app/tmp # Mount the named volume at /usr/src/app/tmp
+      - shared_models:/usr/src/app/tmp
     environment:
       - FLASK_APP=run.py
       - FLASK_ENV=development
       - PYTHONUNBUFFERED=1
     command: >
-      bash -c "python -u run.py"
+      bash -c "pip install -e /usr/src/stream_pose_ml && python -u run.py"
 
   web_ui:
     build:
@@ -30,7 +34,7 @@ services:
     networks:
       - app-tier
     entrypoint: >
-      bash -c "yarn build  && yarn serve --host --port 3000"
+      bash -c "yarn build && yarn serve --host --port 3000"
     volumes:
       - ./web_ui:/usr/src/app/my-app
       - ./web_ui/logs:/root/.npm/_logs
@@ -57,4 +61,3 @@ networks:
 
 volumes:
   shared_models:
-

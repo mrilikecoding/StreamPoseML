@@ -30,9 +30,11 @@ from stream_pose_ml.stream_pose_client import StreamPoseClient
 from stream_pose_ml.ml_flow_client import MLFlowClient
 from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
 from stream_pose_ml.learning.trained_model import TrainedModel
-from stream_pose_ml.transformers.sequence_transformer import TenFrameFlatColumnAngleTransformer, MLFlowTransformer
+from stream_pose_ml.transformers.sequence_transformer import (
+    TenFrameFlatColumnAngleTransformer,
+    MLFlowTransformer,
+)
 from stream_pose_ml.learning.model_builder import ModelBuilder
-from stream_pose_ml.actuators.bluetooth_device import BluetoothDevice
 
 ### Set the model ###
 mb = ModelBuilder()
