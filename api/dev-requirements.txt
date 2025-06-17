@@ -7,3 +7,24 @@ dnspython==2.2.1
 requests==2.28.2
 python_engineio==4.4.0
 # stream_pose_ml will be installed in editable mode from local directory
+
+# package deps for stream_pose_ml
+imbalanced_learn==0.10.1
+kneed==0.8.5
+matplotlib==3.7.0
+mediapipe>=0.10.5
+numpy==1.24.2
+opencv_contrib_python==4.7.0.68
+pandas==1.5.3
+PyWavelets==1.4.1
+PyYAML
+scikit_learn==1.2.1
+scipy==1.11.2
+seaborn==0.12.2
+tqdm==4.65.0
+tslearn==0.6.2
+xgboost==1.7.4
+pytest
+pytest-emoji
+pytest-cov
+mlflow==2.22.1
