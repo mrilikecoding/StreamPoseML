@@ -31,8 +31,11 @@ RUN apt-get update && apt-get install -y \
   && echo 'eval "$(pyenv init --path)"' >> ~/.bashrc \
   && echo 'eval "$(pyenv init -)"' >> ~/.bashrc
 
+# Install Python 3.11 via pyenv and set as default
+RUN pyenv install 3.11 && pyenv global 3.11
+
 # Install MLflow and any additional base dependencies
-RUN pip install --no-cache-dir virtualenv mlflow==2.22.1 flask requests debugpy
+RUN pip install --no-cache-dir virtualenv mlflow==2.18.0 flask requests debugpy
 
 
 # Expose port 5002 for the Flask API

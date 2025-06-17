@@ -27,4 +27,4 @@ xgboost==1.7.4
 pytest
 pytest-emoji
 pytest-cov
-mlflow==2.22.1
+mlflow==2.18.0
