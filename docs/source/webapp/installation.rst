@@ -32,6 +32,7 @@ The fastest way to get started is using the pre-built Docker images:
    * Pull the necessary Docker images from Docker Hub
    * Start the containers for the API, web UI, and MLflow server
    * Launch the application in your default browser
+   * Use pre-built images rather than building from source code
 
 3. When you're done, stop the application:
 
@@ -39,11 +40,20 @@ The fastest way to get started is using the pre-built Docker images:
 
       make stop
 
-For debugging purposes, you can also start the application with debug output:
+Additional Startup Options
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For debugging purposes, you can start the application with debug output:
 
 .. code-block:: bash
 
    make start-debug
+
+For development purposes, you can build and run from local code:
+
+.. code-block:: bash
+
+   make start-dev
 
 Local Development Installation
 -----------------------------
@@ -57,18 +67,23 @@ For developers who want to modify the web application:
       git clone https://github.com/mrilikecoding/StreamPoseML.git
       cd StreamPoseML
 
-2. Install Tilt and Minikube:
+2. Install Docker and Docker Compose:
    
-   - `Tilt <https://tilt.dev>`_
-   - `Minikube <https://minikube.sigs.k8s.io/docs/>`_
+   - `Docker <https://docs.docker.com/get-docker/>`_
+   - Docker Compose is included with Docker Desktop
 
-3. Start local development:
+3. Start local development with local code:
 
    .. code-block:: bash
 
-      tilt up
+      make start-dev
 
-   This will build the containers locally and start them with live reload for development.
+   This will:
+   
+   * Build containers from the local source code
+   * Hot-reload the API code when you make changes
+   * Mount your local package code into the container
+   * Provide a development environment for making changes to the code
 
 Manual Docker Installation
 -------------------------
