@@ -44,7 +44,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         pip install pytest pytest-cov pytest-emoji
         pip install -e .[dev]
     
@@ -68,12 +68,12 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         # Install main package in development mode
         pip install -e .
         # Install API requirements
         pip install -r api/requirements.txt
-        pip install -r api/dev-requirements.txt
+        pip install -r api/requirements-dev.txt
         pip install pytest pytest-cov pytest-emoji
     
     - name: Run API tests
@@ -99,7 +99,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         pip install build twine
     
     - name: Debug variables
