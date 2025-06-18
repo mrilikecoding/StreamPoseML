@@ -48,3 +48,7 @@ dev = ["pytest", "pytest-emoji", "pytest-cov"]
 [project.urls]
 "Homepage" = "https://github.com/mrilikecoding/StreamPoseML"
 "Bug Tracker" = "https://github.com/mrilikecoding/StreamPoseML/issues"
+
+[tool.setuptools.packages.find]
+include = ["stream_pose_ml*"]
+exclude = ["tmp*", "web_ui*", "mlflow*", "notebooks*", "example_data*", "api*", "tests*", "build*"]
