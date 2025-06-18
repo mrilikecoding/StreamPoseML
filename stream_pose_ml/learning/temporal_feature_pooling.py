@@ -1,6 +1,6 @@
-""" This file has functions useful for taking a 
+"""This file has functions useful for taking a
 list of dictionaries of feature data (float values)
-and computing a single dictionary where each key 
+and computing a single dictionary where each key
 represents some temporal features of the feature's sequence
 """
 

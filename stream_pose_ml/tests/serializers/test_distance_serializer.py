@@ -48,10 +48,10 @@ class TestDistanceSerializer:
         """Test the serialize method."""
         # Given
         serializer = DistanceSerializer()
-        
+
         # When
         result = serializer.serialize(distance)
-        
+
         # Then
         assert result == {
             "type": "Distance",
@@ -68,7 +68,7 @@ class TestDistanceSerializer:
         """Test the serialize method as a static method."""
         # When
         result = DistanceSerializer.serialize(distance)
-        
+
         # Then
         assert result["name"] == "test_distance"
         assert result["type"] == "Distance"

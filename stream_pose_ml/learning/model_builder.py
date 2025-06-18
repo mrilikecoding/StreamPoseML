@@ -478,7 +478,12 @@ class ModelBuilder:
             rfecv.fit(self.X_train, self.y_train)
             pass
 
-    def save_model_and_datasets(self, notes: str, model_type: str = None, model_path: str = "../../data/trained_models"):
+    def save_model_and_datasets(
+        self,
+        notes: str,
+        model_type: str = None,
+        model_path: str = "../../data/trained_models",
+    ):
         """Save the current model and metadata to a pickle / json file.
 
         Args:
@@ -500,17 +505,21 @@ class ModelBuilder:
                 "precision": self.precision,
                 "recall": self.recall,
                 "confusion_matrix": str(self.confusion_matrix),
-                "features": self.feature_importances
-                if hasattr(self, "feature_importances")
-                else None,
+                "features": (
+                    self.feature_importances
+                    if hasattr(self, "feature_importances")
+                    else None
+                ),
             },
             indent=4,
         )
         model_data = {
             "type": model_type,
-            "feature_importances": self.feature_importances
-            if hasattr(self, "feature_importances")
-            else None,
+            "feature_importances": (
+                self.feature_importances
+                if hasattr(self, "feature_importances")
+                else None
+            ),
             "data_file": self.data_file,
             "auc-roc": self.auc,
             "accuracy": self.accuracy,
@@ -530,8 +539,12 @@ class ModelBuilder:
             pickle.dump(model_data, f, pickle.HIGHEST_PROTOCOL)
 
         print(f"Saved model to pickle! {saved_model_path}")
-        
-    def save_model_to_mlflow(self, model: Optional[object] = None, model_path: str = "../../data/trained_models") -> None:
+
+    def save_model_to_mlflow(
+        self,
+        model: Optional[object] = None,
+        model_path: str = "../../data/trained_models",
+    ) -> None:
         """
         Save the model to MLflow in a format compatible with mlflow models serve and create a zipped version alongside the directory.
 
@@ -556,24 +569,38 @@ class ModelBuilder:
         # Resolve the absolute path for model storage
         destination_dir = os.path.abspath(model_path)
         if not os.path.exists(destination_dir):
-            os.makedirs(destination_dir)  # Create the destination directory if it doesn't exist
+            os.makedirs(
+                destination_dir
+            )  # Create the destination directory if it doesn't exist
 
         # Define the path where the model will be saved
         model_save_path = os.path.join(destination_dir, model_name)
 
         # Save the model to the directory using MLflow's save_model
         if isinstance(model_to_save, xgb.XGBClassifier):
-            mlflow.xgboost.save_model(model_to_save, path=model_save_path, signature=signature, input_example=input_example)
+            mlflow.xgboost.save_model(
+                model_to_save,
+                path=model_save_path,
+                signature=signature,
+                input_example=input_example,
+            )
         elif isinstance(model_to_save, RandomForestClassifier):
-            mlflow.sklearn.save_model(model_to_save, path=model_save_path, signature=signature, input_example=input_example)
+            mlflow.sklearn.save_model(
+                model_to_save,
+                path=model_save_path,
+                signature=signature,
+                input_example=input_example,
+            )
         else:
-            raise ValueError(f"Model type {type(model_to_save)} is not supported for logging.")
+            raise ValueError(
+                f"Model type {type(model_to_save)} is not supported for logging."
+            )
 
         print(f"Model '{model_name}' successfully saved to {model_save_path}")
 
         # Zip the saved model directory
         zip_file_path = os.path.join(destination_dir, f"{model_name}.zip")
-        shutil.make_archive(zip_file_path.replace(".zip", ""), 'zip', model_save_path)
+        shutil.make_archive(zip_file_path.replace(".zip", ""), "zip", model_save_path)
         print(f"Zipped model directory to {zip_file_path}")
 
     def retrieve_model_from_pickle(self, file_path: str):

@@ -14,7 +14,9 @@ class BlazePoseSequence:
         BlazePoseFrame
     ]  # a list of BlazePoseFrames representing the sequence data
     joint_positions: list[str]  # required keys for a non-empty joint position object
-    include_geometry: bool  # compute angles / distance measure for each frame based on joint data
+    include_geometry: (
+        bool  # compute angles / distance measure for each frame based on joint data
+    )
 
     def __init__(
         self, name: str, sequence: list = [], include_geometry: bool = False

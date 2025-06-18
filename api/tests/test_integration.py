@@ -8,6 +8,7 @@ from pathlib import Path
 from flask import Flask
 from flask_socketio import SocketIO
 
+
 # Create a dummy app class instead of importing from api
 class DummyStreamPoseMLApp:
     def __init__(self):
@@ -16,7 +17,7 @@ class DummyStreamPoseMLApp:
 
     def set_stream_pose_client(self, client):
         self.stream_pose_client = client
-    
+
     # Create test versions of classes
     class MockClientClass(MagicMock):
         def __init__(self, *args, **kwargs):
@@ -37,13 +38,13 @@ def socketio_client():
     test_app = Flask(__name__)
     test_app.config["TESTING"] = True
     test_socketio = SocketIO(test_app)
-    
+
     # Add a keypoints event handler
     @test_socketio.on("keypoints")
     def handle_keypoints(payload):
         # This is a very simplified version of the handler
         test_socketio.emit("frame_result", {"error": "No model set"})
-    
+
     return test_socketio.test_client(test_app)
 
 
@@ -60,13 +61,13 @@ class TestSocketIntegration:
         # Connect and emit the event
         socketio_client.connect()
         socketio_client.emit("keypoints", "test_payload")
-        
+
         # Get the response
         received = socketio_client.get_received()
         assert len(received) > 0
         assert received[0]["name"] == "frame_result"
         assert received[0]["args"][0] == {"error": "No model set"}
-        
+
         socketio_client.disconnect()
 
     def test_keypoints_event_with_model(self, socketio_client):
@@ -75,13 +76,13 @@ class TestSocketIntegration:
         # Connect and emit the event
         socketio_client.connect()
         socketio_client.emit("keypoints", "test_payload")
-        
+
         # Get the response - with our simplified mock, this will always return the no model error
         received = socketio_client.get_received()
         assert len(received) > 0
         assert received[0]["name"] == "frame_result"
         assert received[0]["args"][0] == {"error": "No model set"}
-        
+
         socketio_client.disconnect()
 
 
@@ -93,22 +94,18 @@ class TestStreamPoseClient:
         client = DummyStreamPoseMLApp.StreamPoseClient()
         client.run_keypoint_pipeline.return_value = True
         client.current_classification = None
-        
+
         # Create test keypoints
-        keypoints = {
-            "landmarks": [
-                [{"x": 0.1, "y": 0.2, "z": 0.3} for _ in range(33)]
-            ]
-        }
-        
+        keypoints = {"landmarks": [[{"x": 0.1, "y": 0.2, "z": 0.3} for _ in range(33)]]}
+
         # First call should return True but not set classification yet
         result = client.run_keypoint_pipeline(keypoints)
         assert result is True
-        
+
         # Second call should set the classification
         client.current_classification = True
         result = client.run_keypoint_pipeline(keypoints)
-        
+
         # Verify result
         assert result is True
         assert client.current_classification is True
@@ -124,23 +121,19 @@ class TestMLFlowClient:
         client.run_keypoint_pipeline.return_value = True
         client.current_classification = None
         client.prediction_processing_time = None
-        
+
         # Create test keypoints
-        keypoints = {
-            "landmarks": [
-                [{"x": 0.1, "y": 0.2, "z": 0.3} for _ in range(33)]
-            ]
-        }
-        
+        keypoints = {"landmarks": [[{"x": 0.1, "y": 0.2, "z": 0.3} for _ in range(33)]]}
+
         # First call should return True but not set classification yet
         result = client.run_keypoint_pipeline(keypoints)
         assert result is True
-        
+
         # Second call should set the classification
         client.current_classification = True
         client.prediction_processing_time = 0.1
         result = client.run_keypoint_pipeline(keypoints)
-        
+
         # Verify result
         assert result is True
         assert client.current_classification is True

@@ -33,10 +33,10 @@ class TestJointSerializer:
         """Test the serialize method."""
         # Given
         serializer = JointSerializer()
-        
+
         # When
         result = serializer.serialize(joint)
-        
+
         # Then
         assert result == {
             "type": "Joint",
@@ -54,7 +54,7 @@ class TestJointSerializer:
         """Test the serialize method as a static method."""
         # When
         result = JointSerializer.serialize(joint)
-        
+
         # Then
         assert result["name"] == "test_joint"
         assert result["type"] == "Joint"

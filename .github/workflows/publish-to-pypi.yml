@@ -48,9 +48,10 @@ jobs:
         pip install pytest pytest-cov pytest-emoji
         pip install -e .[dev]
     
-    - name: Run package tests
+    - name: Run package tests and lint check
       run: |
         pytest stream_pose_ml/tests/ -v
+        python -m black --check stream_pose_ml mlflow
         
   # Second job: Test API on specific Python version
   test-api:
@@ -76,10 +77,12 @@ jobs:
         pip install -r api/requirements-dev.txt
         pip install pytest pytest-cov pytest-emoji
     
-    - name: Run API tests
+    - name: Run API tests and lint check
       run: |
-        cd tests/api
+        cd api/tests
         pytest -v
+        cd ../..
+        python -m black --check api
 
   # Third job: Build and publish (only if tests pass)
   build-and-publish:

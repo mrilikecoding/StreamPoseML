@@ -1,6 +1,7 @@
 """
 Conftest file for module tests.
 """
+
 import sys
 import os
 from pathlib import Path

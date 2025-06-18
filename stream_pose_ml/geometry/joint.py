@@ -17,7 +17,7 @@ class Joint:
     image_dimensions: dict
 
     def __init__(self, name, joint_data: dict) -> None:
-        """ Init a Joint object with required data.
+        """Init a Joint object with required data.
 
         Args:
             name: str
