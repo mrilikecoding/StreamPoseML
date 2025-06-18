@@ -32,8 +32,20 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
-html_theme = 'sphinx_rtd_theme'  # Use ReadTheDocs theme
+html_theme = 'alabaster'
 html_static_path = ['_static']
+
+# -- alabaster theme options -------------------------------------------------
+html_theme_options = {
+    'github_user': 'mrilikecoding',
+    'github_repo': 'StreamPoseML',
+    'github_button': True,
+    'github_type': 'star',
+    'description': 'A toolkit for realtime video classification tasks.',
+    'fixed_sidebar': True,
+    'page_width': '1000px',
+    'sidebar_width': '250px',
+}
 
 # -- Options for autodoc ----------------------------------------------------
 autodoc_member_order = 'groupwise'
