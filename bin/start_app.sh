@@ -37,7 +37,7 @@ docker pull mrilikecoding/stream_pose_ml_api:latest
 docker pull mrilikecoding/stream_pose_ml_web_ui:latest
 docker pull mrilikecoding/stream_pose_ml_mlflow:latest
 
-# Start the services with Docker Compose
+# Start the services with Docker Compose using pre-built images
 COMPOSE_FILE="docker-compose.build.yml"
 
 echo "Starting services with Docker Compose using $COMPOSE_FILE..."

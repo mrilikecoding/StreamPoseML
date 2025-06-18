@@ -27,6 +27,12 @@ start-debug:
 	@echo "Starting StreamPoseML application in debug mode..."
 	@bash $(START_SCRIPT) --debug
 
+# Start application with local code (development mode)
+.PHONY: start-dev
+start-dev:
+	@echo "Starting StreamPoseML application with local code (development mode)..."
+	docker compose -f docker-compose.local.yml up --build
+
 # Stop application
 .PHONY: stop
 stop:
@@ -96,8 +102,9 @@ help:
 	@echo "StreamPoseML Makefile targets:"
 	@echo "  all          - Run the default target (build_images)"
 	@echo "  build_images - Build and push Docker images"
-	@echo "  start        - Start the application containers"
-	@echo "  start-debug  - Start the application containers with debug output"
+	@echo "  start        - Start the application using pre-built DockerHub images"
+	@echo "  start-debug  - Start the application with pre-built images and debug output"
+	@echo "  start-dev    - Start the application by building from local source code (development mode)"
 	@echo "  stop         - Stop the application containers"
 	@echo "  test         - Run all tests"
 	@echo "  test-core    - Run tests for the stream_pose_ml package"
