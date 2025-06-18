@@ -19,3 +19,6 @@ stream_pose_ml/notebooks/mlruns
 stream_pose_ml/notebooks/scratchpad/*
 
 mlflow/models/**/*
+
+# Documentation build directory
+docs/build/
