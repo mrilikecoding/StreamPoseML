@@ -5,376 +5,126 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Supported Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-green)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14298482.svg)](https://doi.org/10.5281/zenodo.14298482)
+[![Documentation Status](https://readthedocs.org/projects/streamposeml/badge/?version=latest)](https://streamposeml.readthedocs.io/en/latest/?badge=latest)
 
-StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on using labeled data alongside captured body keypoint / pose data. The process for building a real-time video classification application typically looks something like this:
+## Overview
 
-1. Collect video data
-2. Label video data
-3. Generate pose keypoints from video
-4. Compute features
-5. Merge annotations/labels with keypoints/features into a dataset
-6. Train a model
-7. Run experiments
-8. Deploy the trained the model
+StreamPoseML is an open-source toolkit for creating real-time, video-based classification applications using body pose data. It provides both a Python package and a web application to help you:
 
-And in our specific use cases:
+1. **Process Video Data** - Extract pose keypoints from videos using MediaPipe
+2. **Build Datasets** - Merge keypoint data with annotations and generate features
+3. **Train Models** - Train and evaluate machine learning models for pose classification
+4. **Deploy Applications** - Run real-time classification in web browsers or Python environments
 
-9. Classify real-time video captured via the web or some other input source
-10. Actuate or send results outside the application (e.g. to a Bluetooth Device)
+## Documentation
 
-StreamPoseML aspires to help with steps 3-10, with the aim of making a system portable enough to be run wherever a Python environment can run in the case of steps 3-7, and wherever a Docker container can run, in the case of steps 8-10.
+Comprehensive documentation is available at **[streamposeml.readthedocs.io](https://streamposeml.readthedocs.io)**
 
-Additionally, StreamPoseML aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a Python dev or data scientist, StreamPoseML provides convenient abstractions for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable, browser-based real-time classification / actuation system.
+- **Getting Started Guide** - Installation and basic usage
+- **API Reference** - Detailed class and method documentation
+- **Workflow Tutorials** - Step-by-step instructions for common tasks
+- **Web Application Guide** - Running and customizing the web application
 
-## Project Structure
+## Components
 
-The StreamPoseML repository is organized into several key components:
+The StreamPoseML project consists of two main parts:
 
-### Core Components
+1. **Python Package** (`stream_pose_ml/`)
+   - Available on PyPI: `pip install stream_pose_ml`
+   - Core tools for video processing, pose extraction, dataset creation, and model training
+   - Can be used independently in your Python projects
 
-- **stream_pose_ml/**: The main Python package containing all pose extraction, feature engineering, and machine learning tools
-  - This package is published to PyPI and can be used independently in your Python projects
-  - Contains utilities for video processing, keypoint extraction, dataset creation, and model training
+2. **Web Application** (Docker-based)
+   - React frontend for webcam capture and visualization
+   - Flask API backend for model serving
+   - MLflow integration for standardized model deployment
+   - Ready-to-use Docker images available on DockerHub
 
-- **api/**: Flask-based backend API for serving trained models
-  - Provides endpoints for real-time video processing and classification
-  - Runs in a Docker container with Python 3.11
+## Quick Start
 
-- **web_ui/**: React frontend application for capturing video and visualizing results
-  - Includes components for webcam capture, model selection, and visualization
-  - Communicates with the API for real-time processing
-
-- **mlflow/**: MLflow model server for standardized model serving
-  - Provides a consistent interface for deploying trained models
-
-### Packaging Structure
-
-The repository follows standard Python packaging conventions:
-
-- **pyproject.toml**: Main package configuration file in the root directory
-- **setup.py**: Minimal compatibility script for older Python packaging tools
-- **.github/workflows/**: CI/CD workflows for automated testing and PyPI publishing
-
-This structure allows for easy installation of the StreamPoseML package while maintaining the web application components separately. When changes are made to the package and merged to main, automated tests run and new versions are published to PyPI.
-
-## Toolkit usage
-
-The two main parts of StreamPoseML are the sample web application and the Python module. The web application is intended to run within a Docker environment. Comprising a basic React front-end and a Flask back-end, it can be pulled from Dockerhub to run as-is or can be modified to suit your needs.
-
-See instructions below for running the out-of-the-box sample web application.
-
-To install the Python module for usage in your own Python project:
-
-```
-pip install stream_pose_ml
-```
-
-Then you can:
-
-```
-import stream_pose_ml
-```
-
-The three packages you'll use likely use directly are the `process_videos_job`, the `build_and_format_dataset_job`, and the `model_builder`. in the example notebooks you'll see these imported like so:
-
-```
-import stream_pose_ml.jobs.process_videos_job as pv
-import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder
-import stream_pose_ml.learning.model_builder  as mb
-```
-
-## Keypoint extraction
-
-StreamPoseML currently uses [Mediapipe](https://developers.google.com/mediapipe), which is based on [BlazePose](https://arxiv.org/abs/2006.10204), to extract body keypoints. This is because StreamPoseML was developed to assist with realtime video classification tasks that could potentially run on relatively ubiquitous devices, perhaps in a therpeutic or live performance setting. The aim is to provide a system to enable anyone with a webcam to be able to classify video in real-time. Additionally, some keypoint coordinates in the video processing steps are computed to be more consistent with [OpenPose](https://github.com/CMU-Perceptual-Computing-Lab/openpose) landmarks.
-
-The process for extracting keypoints looks like this:
-
-```
-import stream_pose_ml.jobs.process_videos_job as pv
-
-pv.ProcessVideosJob().process_videos(
-    src_videos_path='/path/to/source/videos',
-    output_keypoints_data_path='/path/to/output/frame/keypoints',
-    output_sequence_data_path='/path/to/output/video/sequences',
-    write_keypoints_to_file=True,
-    write_serialized_sequence_to_file=True,
-    limit=None,
-    configuration={}, # mediapipe configuration
-    preprocess_video=True,
-    return_output=False
-)
-```
-
-You pass a directory containing your videos. Each video will be run through mediapipe. In the keypoints directory, namespaced to each video, json keypoint representations will be saved. Additionally, the entire video's keypoints will be serialized into a video sequence and stored in a parallel directory. These files can be used directly in a training regime, or you can use StreamPoseML's dataset building tools to format sequence data into other formats.
-
-## Feature engineering
-
-There are currently various options available that take the raw keypoint data and build upon it to generate normalized angle and distance measurements for use in building your dataset.
-
-In particular, there are various segmentation strategies that can be used to organize the raw keypoint data based on combinations of window size, temporal pooling, and various angle and distance measurements. Please explore the notebookes in `./stream_pose_ml/notebooks` for usage examples. However generally speaking it's probably most useful to use a segmentation strategy of `none` to generate your dataset, then from there you can explore different data structure more easily with a tool such as `pandas`.
-
-## Merging annotations with video keypoints / features
-
-A pain point found in related research was the lack of accessible tooling for merging keypoint data from training videos with the actual labeled annotation data. While there are tools that exist to annotate videos for model training, often in research contexts a specific annotation process is used at perhaps a different than the training will occur, making it cumbersome to later merge the annotation data with the video data. This work can be tedious on top of the already tedious task of labeling the data to begin with.
-
-However this task is straightforward with StreamPoseML assuming you have structured annotation data. You'll want to follow the folder structure conventions in this repo, so the best way is to simply clone this repo locally and work within it to process your data.
-
-First, take note of `config.yml` and its defined annotation schema.
-
-To use your own annotations, you'll need to update the annotation schema to match your annotation data. StreamPoseML assumes that you'll have one annotation file for each video you are training on and they can all live within one directory. However make sure they they share their name with the matching video. A single video may have many annotations. Currently StreamPoseML support JSON, but in future work other formats could be used. Your contribution to this area would be welcome!
-
-Here's an example of a valid annotation file for video named `example_video.webm`:
-
-```
-example_video.json
-
- {
-   "name": "example_video.webm",
-   "annotations": [
-     {
-       "label": "Left Step",
-       "metadata": {
-         "system": {
-           "startTime": 5.472133333333334,
-           "endTime": 6.940266666666667,
-           "frame": 164,
-           "endFrame": 208
-         }
-       }
-     }
-     ...
-   ]
- }
-```
-
-Then here's what your annotatoin schema definition in `config.yml` should look like:
-
-```
-annotation_schema: # assume one annotation file per video where there is a list of annotations
-  annotations_key: "annotations" # the key in the annotation file that contains the list of annotations
-  annotation_fields: # the fields in the annotation file that map to the video data
-    label: label # the label field in the annotation list
-    start_frame: metadata.system.frame # the starting video frame for the annotation
-    end_frame: metadata.system.endFrame # the ending video frame for the annotation
-  label_class_mapping: # for each label (Key), map to a class (Value), i.e. Dog: animal, or Truck: vehicle, or 0: has_something
-    Left Step: step_type
-    Right Step: step_type
-    Successful Weight Transfer: weight_transfer_type
-    Failure Weight Transfer: weight_transfer_type
-```
-
-## Creating datasets with features
-
-StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/). From these efforts, you can see a notebook example showing how to use StreamPoseML to build a training dataset.
-
-To get a feel for building your dataset using StreamPoseML, see `/stream_pose_ml/notebooks/example_usage.ipynb`
-
-The process looks like this:
-
-```
-import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder
-
-# This is the main class that does all the work
-db = data_builder.BuildAndFormatDatasetJob()
-
-# Here you'll specify the path to you annotations and StreamPoseML generated sequences
-dataset = db.build_dataset_from_data_files(
-    annotations_data_directory=source_annotations_directory,
-    sequence_data_directory=sequence_data_directory,
-    limit=None,
-)
-
-formatted_dataset = db.format_dataset(
-    dataset=dataset,
-    pool_frame_data_by_clip=False,
-    decimal_precision=4,
-    include_unlabeled_data=True,
-    include_angles=True,
-    include_distances=True,
-    include_normalized=True,
-    segmentation_strategy="flatten_into_columns",
-    segmentation_splitter_label="step_type",
-    segmentation_window=10,
-    segmentation_window_label="weight_transfer_type",
-)
-
-db.write_dataset_to_csv(
-    csv_location=merged_annotation_output_directory,
-    formatted_dataset=formatted_dataset,
-    filename="preprocessed_flatten_on_example_10_frames_5"
-)
-```
-
-For most training tasks you may not want to get too clever with the features and may just want to train on flat representations of raw keypoints.
-
-The simplest approach is:
-
-```
-formatted_dataset = db.format_dataset(
-    dataset=dataset,
-    pool_frame_data_by_clip=False,
-    decimal_precision=4,
-    include_unlabeled_data=True,
-    include_angles=False,
-    include_distances=False,
-    include_normalized=False,
-    segmentation_strategy="none",
-)
-```
-
-This will give you one row per frame with columns for each x, y, z coordinate in addition to your labeled data. From there you can use pandas or whatever you like to further window or segment your data.
-
-## Training models
-
-Once you have a dataset to work with, you can use whatever process you like to train and evaluate your models. But here you'll find some convenience methods for training and evaluation abstracted on top of a few popular machine learning libraries. These are scoped to a Model Builder class created to speed up iterations and model evaluation using the metrics we found useful in our research. It may not suit your particular needs, but have a look and feel free to make contributions.
-
-See the `/stream_pose_ml/notebooks/example_usage.ipynb` for usage examples and see `/stream_pose_ml/stream_pose_ml/learning/model_builder.py` to see what's available.
-
-## Saving your model
-
-If you want to use your trained model in StreamPoseML's web application, you'll need to save it as a "pickle" so that it can be loaded into the application server at runtime. You may need to wrap it in a class before you do this such that when it is loaded it responds with a result when the method "predict" is called on it.
-
-But if you've used StreamPoseML's model builder you can save the model instance like so:
-
-`model_builder.save_model_and_datasets(notes=notes, model_type="gradient-boost")`
-
-In the future, the plan is to use a more standardized approach to saving models, such as [Cog](https://github.com/replicate/cog).
-
-## Running the Sample Web Application
-
-First, as mentioned above, you'll need a trained classifier saved to a pickle file. A sample model is provided in the `example_data` folder. The model should implement a "predict" method that takes an array of examples to classify. For realtime video classification generally you'll want to pass a single example
-
-The pickle object should be shaped like this:
-
-```
-{
-  classifier: <your_trained_model implementing predict method>
-}
-```
-
-You will load this model into the web application to classify streaming keypoint data with it.
-
-Provided is a simple Flask API that sits behind a React UI. The UI was tailored for our specific use case in classifying types of steps captured via webcam, however you can adapt this for your own model classification scheme.
-
-To run the sample app you'll need to pull the latest builds from Dockerhub:
-
-1. Visit docker.com and sign up for an account.
-2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/) client for your system, launch, and log in.
-3. From your terminal, git clone this repo and enter the directory.
-4. Use the provided Make commands to start the application:
+### Python Package
 
 ```bash
-# Start the application
+# Install the package
+pip install stream_pose_ml
+
+# Import core modules
+import stream_pose_ml.jobs.process_videos_job as pv
+import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder
+import stream_pose_ml.learning.model_builder as mb
+```
+
+### Web Application
+
+```bash
+# Clone the repository
+git clone https://github.com/mrilikecoding/StreamPoseML.git
+cd StreamPoseML
+
+# Start using pre-built images
 make start
 
-# Or, to start with debug output:
-make start-debug
-```
+# Or start with local code (development mode)
+make start-dev
 
-This should install the necessary dependencies and then launch the application in your default browser (Chrome-based browsers are recommended for full feature support).
-
-_Note, the MLFlow container pins MLFlow to version 2.18.0. Later versions of MLFlow have switched to FastAPI (uvicorn) from gunicorn, which presents problems loading MLFlow models logged before this change. This will be addressed in a forthcoming update. If you do use this with an MLFlow model logged using a version later than 2.18 you may need to bump the MLFlow version in the MLFlow container manually for now._
-
-5. When you're done, stop the application:
-
-```bash
+# When finished
 make stop
 ```
 
-## Running the web application locally
+## Key Features
 
-The previous method relies on Docker Compose to pull the latest builds from Dockerhub. However, if the web application is of any use to you, you'll probably want to tinker with it to suit your needs. Then you'll want to run it locally or perhaps build and deploy it on your own infrastructre.
+- **MediaPipe Integration** - Uses [MediaPipe](https://developers.google.com/mediapipe)'s BlazePose for efficient pose detection
+- **Feature Engineering** - Generates angles, distances, and normalized measurements from raw keypoints
+- **Annotation Support** - Merges video keypoints with external annotation files
+- **Flexible Dataset Creation** - Various segmentation strategies for time-series data
+- **Model Building Utilities** - Convenience methods for training and evaluation
+- **Real-time Classification** - Browser-based pose classification with webcam input
+- **MLflow Integration** - Standardized model serving and deployment
 
-Local development against local containers is easiest with [Tilt](tilt.dev) and [Minikube](https://minikube.sigs.k8s.io/docs/). Once installed (in addition to Docker), you can simply run `tilt up`.
+## Example Use Case
 
-The app should be available on `localhost:3000`. The API is served on `localhost:5001` and should be accessible from the web app. There is a bluetooth actuation scheme built in, however currently only Chrome supports this.
+StreamPoseML was built while conducting studies of Parkinson's Disease patients in dance therapy settings. This research was done with support from the [McCamish Foundation](https://parkinsons.gatech.edu/).
 
-## Building & Deploying the Web Application
+## Development
 
-After adjusting some of this code for your own use case, you may wish to build and push Docker images to your own registry to deploy an application based on StreamPoseML. There are two main components with respect to StreamPoseML's web application: the API and the UI. For example, to build each:
-
-```
-cd stream_pose_ml && docker build -t myuser/stream_pose_ml_api:latest -f Dockerfile .
-cd web_ui && docker build -t myuser/stream_pose_ml_web_ui:latest -f Dockerfile .
-```
-
-Then you can push them and deploy them however you see fit, e.g. ECR / K8s.
-
-```
-docker push myuser/stream_pose_ml_api:latest
-docker push myuser/stream_pose_ml_web_ui:latest
-```
-
-## Citing
-
-If you use the project in your work or research, please cite this repository or the corresponding paper. See [paper.md](paper.md).
-
-## Contributions
-
-Contributions are welcome! For guidelines and more details for working with this package locallay see:
-
-[CONTRIBUTING.md](CONTRIBUTING.md)
-
-## Package Development and Publishing
-
-The StreamPoseML Python package uses modern Python packaging tools for development and distribution:
-
-- Package configuration is defined in `pyproject.toml`
-- Dependencies are specified directly in `pyproject.toml`
-- Automated CI/CD via GitHub Actions handles testing and publishing
-
-When changes to the package are pushed or merged to the main branch, GitHub Actions will:
-
-1. Run tests across multiple Python versions (3.9-3.13)
-2. Run API tests on Python 3.11 (matching the deployment environment)
-3. Build the package if tests pass
-4. Publish the package to TestPyPI and then PyPI
-
-To run package tests locally:
+A comprehensive developer guide is available in the documentation. Key commands:
 
 ```bash
-# Install package in development mode with test dependencies
+# Install in development mode
 pip install -e .[dev]
 
-# Run all tests
+# Run tests
 make test
+make test-core  # Package tests only
+make test-api   # API tests only
 
-# Run only stream_pose_ml package tests
-make test-core
-
-# Run only API tests
-make test-api
-```
-
-### Make Commands
-
-StreamPoseML provides several Make commands for common development tasks:
-
-```bash
-# Build Docker images for all components
-make build_images
-
-# Start the application
-make start
-
-# Start the application with debug output
-make start-debug
-
-# Stop the application
-make stop
-
-# Run all tests
-make test
-
-# Run only stream_pose_ml package tests
-make test-core
-
-# Run only API tests  
-make test-api
-
-# Clean up Docker resources
-make clean
+# Start application (development mode)
+make start-dev
 
 # Show all available commands
 make help
 ```
+
+## Citing
+
+If you use StreamPoseML in your work or research, please cite:
+
+```bibtex
+@software{streamposeml2023,
+  author = {Green, Nate},
+  title = {StreamPoseML: Toolkit for Real-Time Video Pose Classification},
+  url = {https://github.com/mrilikecoding/StreamPoseML},
+  doi = {10.5281/zenodo.14298482},
+  year = {2023}
+}
+```
+
+See [paper.md](paper.md) for more details.
+
+## Contributions
+
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
