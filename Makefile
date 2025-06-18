@@ -68,6 +68,28 @@ clean:
 	@echo "Cleaning up temporary Docker resources..."
 	@docker system prune -f
 
+# Documentation targets
+.PHONY: docs docs-versioned docs-clean
+
+# Build the documentation
+docs:
+	@echo "Building Sphinx documentation..."
+	@python -m pip install -q sphinx sphinx-multiversion sphinx-autodoc-typehints tomli
+	@cd docs && sphinx-build -b html source build/html
+	@echo "Documentation built in docs/build/html"
+
+# Build versioned documentation
+docs-versioned:
+	@echo "Building versioned Sphinx documentation..."
+	@python -m pip install -q sphinx sphinx-multiversion sphinx-autodoc-typehints tomli
+	@cd docs && sphinx-multiversion source build/html
+	@echo "Versioned documentation built in docs/build/html"
+
+# Clean the documentation build directory
+docs-clean:
+	@echo "Cleaning documentation build directory..."
+	@rm -rf docs/build
+
 # Help target
 .PHONY: help
 help:
@@ -82,5 +104,8 @@ help:
 	@echo "  test-api     - Run tests for the API"
 	@echo "  lint         - Format Python code using Black"
 	@echo "  lint-check   - Check Python code formatting with Black (without modifying)"
+	@echo "  docs         - Build Sphinx documentation"
+	@echo "  docs-versioned - Build versioned Sphinx documentation"
+	@echo "  docs-clean   - Clean documentation build directory"
 	@echo "  clean        - Clean up temporary Docker resources"
 	@echo "  help         - Show this help message"
