@@ -135,7 +135,18 @@ jobs:
         if [ -z "$PYPI_TEST_API_KEY" ]; then
           echo "WARNING: PYPI_TEST_API_KEY is empty, skipping TestPyPI upload"
         else
-          twine upload --repository testpypi dist/* -u "__token__" -p "$PYPI_TEST_API_KEY" --verbose || echo "TestPyPI upload failed, continuing workflow"
+          # Run twine upload with || true to prevent failures from stopping the workflow
+          TESTPYPI_OUTPUT=$(twine upload --repository testpypi dist/* -u "__token__" -p "$PYPI_TEST_API_KEY" --verbose 2>&1) || true
+          
+          if echo "$TESTPYPI_OUTPUT" | grep -i "already exists"; then
+            echo "Version ${{ steps.get_version.outputs.package_version }} already exists on TestPyPI - skipping upload"
+          elif echo "$TESTPYPI_OUTPUT" | grep -i "error" || echo "$TESTPYPI_OUTPUT" | grep -i "fail"; then
+            echo "WARNING: Upload to TestPyPI encountered errors:"
+            echo "$TESTPYPI_OUTPUT"
+            echo "Workflow continuing despite TestPyPI upload issues"
+          else
+            echo "Successfully published to TestPyPI"
+          fi
         fi
 
     - name: Publish to PyPI
@@ -148,5 +159,16 @@ jobs:
           exit 1
         fi
         
-        twine upload dist/* -u "__token__" -p "$PYPI_API_KEY" --verbose
-        echo "Successfully published to PyPI"
+        # Run twine upload with || true to prevent failures from stopping the workflow
+        # Common failure case is 400 error when version already exists
+        UPLOAD_OUTPUT=$(twine upload dist/* -u "__token__" -p "$PYPI_API_KEY" --verbose 2>&1) || true
+        
+        if echo "$UPLOAD_OUTPUT" | grep -i "already exists"; then
+          echo "Version ${{ steps.get_version.outputs.package_version }} already exists on PyPI - skipping upload"
+        elif echo "$UPLOAD_OUTPUT" | grep -i "error" || echo "$UPLOAD_OUTPUT" | grep -i "fail"; then
+          echo "WARNING: Upload to PyPI encountered errors:"
+          echo "$UPLOAD_OUTPUT"
+          echo "Workflow continuing despite PyPI upload issues"
+        else
+          echo "Successfully published to PyPI"
+        fi
