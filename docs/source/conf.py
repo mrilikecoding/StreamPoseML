@@ -1,6 +1,19 @@
 import os
 import sys
 import re
+from unittest.mock import MagicMock
+
+# Mock modules to avoid import errors
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+sys.modules.update((mod_name, Mock()) for mod_name in [
+    'cv2', 'mediapipe', 'matplotlib', 'numpy', 'pandas', 'scikit_learn',
+    'scipy', 'xgboost', 'mlflow', 'PyWavelets', 'tslearn',
+    'imbalanced_learn', 'kneed', 'tqdm', 'seaborn'
+])
 
 sys.path.insert(0, os.path.abspath('../..'))
 
@@ -108,19 +121,9 @@ napoleon_use_admonition_for_references = True
 import os
 on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
-if on_rtd:
-    html_theme = 'alabaster'  # Use the same theme even on RTD
-    html_theme_options = {
-        'github_user': 'mrilikecoding',
-        'github_repo': 'StreamPoseML',
-        'github_button': True,
-        'github_type': 'star',
-        'description': 'A toolkit for realtime video classification tasks.',
-        'fixed_sidebar': True,
-    }
-    
-    # Manual mocking for problematic dependencies (optional)
-    autodoc_mock_imports = [
-        'opencv_contrib_python', 'mediapipe', 'matplotlib', 'numpy', 'pandas',
-        'scikit_learn', 'scipy', 'xgboost', 'mlflow'
-    ]
+# Always mock these dependencies that are hard to install
+autodoc_mock_imports = [
+    'cv2', 'opencv_contrib_python', 'mediapipe', 'matplotlib', 'numpy', 'pandas',
+    'scikit_learn', 'scipy', 'xgboost', 'mlflow', 'PyWavelets', 'tslearn',
+    'imbalanced_learn', 'kneed', 'tqdm', 'seaborn'
+]
