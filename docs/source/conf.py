@@ -1,19 +1,13 @@
 import os
 import sys
-from unittest.mock import MagicMock
 
-# Mock modules to avoid import errors
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-        return MagicMock()
-
+# These modules will be mocked by autodoc_mock_imports
+# No need to manually mock them
 MOCK_MODULES = [
     'cv2', 'opencv_contrib_python', 'mediapipe', 'matplotlib', 'numpy', 'pandas', 
     'scikit_learn', 'scipy', 'xgboost', 'mlflow', 'PyWavelets', 'tslearn',
     'imbalanced_learn', 'kneed', 'tqdm', 'seaborn'
 ]
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 # Add the project root to the path so autodoc can find the modules
 sys.path.insert(0, os.path.abspath('../..'))
@@ -35,7 +29,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
-    'sphinx_autodoc_typehints',
+    # Disabling typehints extension due to issues with mocked modules
+    # 'sphinx_autodoc_typehints',
     'sphinx_multiversion',
 ]
 
@@ -90,4 +85,5 @@ napoleon_use_admonition_for_notes = True
 napoleon_use_admonition_for_references = True
 
 # -- Read the Docs specific settings ------------------------------------------
+# List of modules to be mocked to avoid import errors
 autodoc_mock_imports = MOCK_MODULES
