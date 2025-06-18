@@ -1,5 +1,5 @@
 sphinx>=7.0.0
 alabaster>=0.7.14
-# sphinx-multiversion is not essential, so comment it out for now
-# sphinx-multiversion>=0.2.4
+sphinx-multiversion>=0.2.4
+tomli>=2.0.1
 # Minimal dependencies for a successful build

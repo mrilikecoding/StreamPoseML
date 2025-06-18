@@ -1,10 +1,10 @@
 Quick Start Guide
-===============
+=================
 
 This guide will help you get started with StreamPoseML quickly.
 
 Basic Usage
-----------
+-----------
 
 StreamPoseML provides tools for processing videos, extracting pose keypoints, building datasets, and training models for pose classification.
 
@@ -23,7 +23,7 @@ StreamPoseML provides tools for processing videos, extracting pose keypoints, bu
    import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder
 
 Video Processing
----------------
+----------------
 
 Extract pose keypoints from videos:
 
@@ -39,7 +39,7 @@ Extract pose keypoints from videos:
    )
 
 Creating a Dataset
------------------
+------------------
 
 Merge extracted keypoints with annotations:
 
@@ -71,7 +71,7 @@ Merge extracted keypoints with annotations:
    )
 
 Real-time Classification
------------------------
+------------------------
 
 Use a trained model for real-time pose classification:
 
@@ -104,11 +104,11 @@ Use a trained model for real-time pose classification:
    classification = client.current_classification
 
 Next Steps
----------
+----------
 
 For more detailed information, see:
 
-* :doc:`/workflows/video_processing` - Detailed video processing workflow
-* :doc:`/workflows/dataset_creation` - Creating and formatting datasets
-* :doc:`/workflows/model_training` - Training and evaluating models
-* :doc:`/workflows/realtime_classification` - Real-time classification setup
+* :doc:`../workflows/video_processing` - Detailed video processing workflow
+* :doc:`../guide/concepts` - Core concepts and dataset creation
+* :doc:`../api/clients` - API documentation for model training and usage
+* :doc:`../webapp/usage` - Web application for real-time classification

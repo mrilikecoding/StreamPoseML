@@ -1,5 +1,5 @@
 Web Application
-=============
+===============
 
 StreamPoseML includes a full-featured web application for real-time pose classification. The web application consists of:
 
@@ -10,7 +10,7 @@ StreamPoseML includes a full-featured web application for real-time pose classif
 This section covers the installation, configuration, and usage of the StreamPoseML web application.
 
 MLflow Integration
-----------------
+------------------
 
 A standout feature of the StreamPoseML web application is its **direct integration with MLflow** for model deployment. This provides several advantages:
 
@@ -25,7 +25,4 @@ The web application includes a dedicated MLflow container that handles model loa
    :maxdepth: 2
 
    installation
-   configuration
    usage
-   customization
-   deployment

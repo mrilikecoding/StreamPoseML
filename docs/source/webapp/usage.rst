@@ -48,13 +48,14 @@ StreamPoseML supports two ways to load models: direct pickle files and MLflow-lo
 
 ### Option 2: Using MLflow Models
 
-StreamPoseML has built-in support for models logged with MLflow:
+StreamPoseML has built-in support for models logged with MLflow (compatible with MLflow versions < 2.21):
 
 1. **Log your model with MLflow**:
 
    .. code-block:: python
 
       import mlflow
+      import numpy as np
       
       # Start an MLflow run
       with mlflow.start_run():
@@ -64,8 +65,19 @@ StreamPoseML has built-in support for models logged with MLflow:
           # Log model metrics
           mlflow.log_metrics(metrics)
           
-          # Log the model
-          mlflow.sklearn.log_model(model, "model")
+          # Create sample input for model signature
+          # This is important for automatic serving
+          sample_input = np.array([[...]])  # Your feature array shape
+          
+          # Log the model with input example
+          mlflow.sklearn.log_model(
+              model, 
+              "model",
+              input_example=sample_input
+          )
+   
+   For more details on model logging with signatures and input examples, see the
+   `MLflow Models documentation <https://mlflow.org/docs/latest/models.html#model-signature-and-input-example>`_.
 
 2. **Configure the MLflow connection**:
 
