@@ -48,7 +48,7 @@ test-core:
 .PHONY: test-api
 test-api:
 	@echo "Running API tests..."
-	@python -m pytest tests/api -c api_pytest.ini
+	@python -m pytest api/tests -c api_pytest.ini
 
 # Clean target
 .PHONY: clean
