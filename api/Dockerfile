@@ -15,7 +15,7 @@ COPY requirements.txt dev-requirements.txt ./
 
 # Install requirements based on environment
 RUN if [ "$ENV_TYPE" = "dev" ]; then \
-        pip install -r dev-requirements.txt; \
+        pip install -r requirements-dev.txt; \
     else \
         pip install -r requirements.txt; \
     fi
