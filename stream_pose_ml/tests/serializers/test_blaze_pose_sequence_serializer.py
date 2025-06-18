@@ -8,7 +8,9 @@ project_root = Path(__file__).parents[3]  # Adjust if needed
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from stream_pose_ml.serializers.blaze_pose_sequence_serializer import BlazePoseSequenceSerializer
+from stream_pose_ml.serializers.blaze_pose_sequence_serializer import (
+    BlazePoseSequenceSerializer,
+)
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
 from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 
@@ -19,11 +21,13 @@ class TestBlazePoseSequenceSerializer:
     @pytest.fixture
     def mock_frame_serializer(self):
         """Create a mock for BlazePoseFrameSerializer."""
-        with patch('stream_pose_ml.serializers.blaze_pose_sequence_serializer.BlazePoseFrameSerializer') as mock:
+        with patch(
+            "stream_pose_ml.serializers.blaze_pose_sequence_serializer.BlazePoseFrameSerializer"
+        ) as mock:
             mock.serialize.side_effect = lambda frame: {
                 "type": "BlazePoseFrame",
                 "frame_number": frame.frame_number,
-                "sequence_id": frame.sequence_id
+                "sequence_id": frame.sequence_id,
             }
             yield mock
 
@@ -33,11 +37,11 @@ class TestBlazePoseSequenceSerializer:
         frame1 = MagicMock(spec=BlazePoseFrame)
         frame1.frame_number = 1
         frame1.sequence_id = "seq123"
-        
+
         frame2 = MagicMock(spec=BlazePoseFrame)
         frame2.frame_number = 2
         frame2.sequence_id = "seq123"
-        
+
         return [frame1, frame2]
 
     @pytest.fixture
@@ -52,28 +56,30 @@ class TestBlazePoseSequenceSerializer:
         """Test serializing a sequence as a list."""
         # Given
         serializer = BlazePoseSequenceSerializer()
-        
+
         # When
         result = serializer.serialize(blaze_pose_sequence, key_off_frame_number=False)
-        
+
         # Then
         assert result["name"] == "test_sequence"
         assert result["type"] == "BlazePoseSequence"
         assert isinstance(result["frames"], list)
         assert len(result["frames"]) == 2
-        
+
         # Verify serializer calls
         mock_frame_serializer.serialize.assert_any_call(blaze_pose_sequence.frames[0])
         mock_frame_serializer.serialize.assert_any_call(blaze_pose_sequence.frames[1])
 
-    def test_serialize_keyed_by_frame_number(self, blaze_pose_sequence, mock_frame_serializer):
+    def test_serialize_keyed_by_frame_number(
+        self, blaze_pose_sequence, mock_frame_serializer
+    ):
         """Test serializing a sequence keyed by frame number."""
         # Given
         serializer = BlazePoseSequenceSerializer()
-        
+
         # When
         result = serializer.serialize(blaze_pose_sequence, key_off_frame_number=True)
-        
+
         # Then
         assert result["name"] == "test_sequence"
         assert result["type"] == "BlazePoseSequence"
@@ -81,7 +87,7 @@ class TestBlazePoseSequenceSerializer:
         assert len(result["frames"]) == 2
         assert 1 in result["frames"]
         assert 2 in result["frames"]
-        
+
         # Verify serializer calls
         mock_frame_serializer.serialize.assert_any_call(blaze_pose_sequence.frames[0])
         mock_frame_serializer.serialize.assert_any_call(blaze_pose_sequence.frames[1])
@@ -92,18 +98,18 @@ class TestBlazePoseSequenceSerializer:
         sequence = MagicMock(spec=BlazePoseSequence)
         sequence.name = "empty_sequence"
         sequence.frames = []
-        
+
         serializer = BlazePoseSequenceSerializer()
-        
+
         # When
         result = serializer.serialize(sequence)
-        
+
         # Then
         assert result["name"] == "empty_sequence"
         assert result["type"] == "BlazePoseSequence"
         assert isinstance(result["frames"], list)
         assert len(result["frames"]) == 0
-        
+
         # Verify serializer was not called
         mock_frame_serializer.serialize.assert_not_called()
 
@@ -111,7 +117,7 @@ class TestBlazePoseSequenceSerializer:
         """Test the serialize method as a static method."""
         # When
         result = BlazePoseSequenceSerializer.serialize(blaze_pose_sequence)
-        
+
         # Then
         assert result["name"] == "test_sequence"
         assert result["type"] == "BlazePoseSequence"

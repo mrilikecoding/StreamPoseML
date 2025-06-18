@@ -13,6 +13,7 @@ from pathlib import Path
 # We'll use a different approach - create simple test utilities
 # that don't rely on importing from the actual app
 
+
 @pytest.fixture
 def dummy_flask_app():
     """Create a dummy Flask app for testing."""
@@ -20,14 +21,17 @@ def dummy_flask_app():
     app.config["TESTING"] = True
     return app
 
+
 @pytest.fixture
 def dummy_socketio(dummy_flask_app):
     """Create a dummy SocketIO object for testing."""
     return SocketIO(dummy_flask_app)
 
+
 @pytest.fixture
 def dummy_stream_pose_ml_app():
     """Create a dummy StreamPoseMLApp class for testing."""
+
     class DummyStreamPoseMLApp:
         def __init__(self):
             self.stream_pose_client = None
@@ -38,9 +42,9 @@ def dummy_stream_pose_ml_app():
 
         def set_actuator(self, actuator_type):
             self.actuator = MagicMock()
-            
+
         def actuate(self, data):
-            if hasattr(self, 'actuator') and self.actuator:
+            if hasattr(self, "actuator") and self.actuator:
                 self.actuator.send(data)
                 return self.actuator.receive()
             return None
@@ -54,10 +58,12 @@ def client(dummy_flask_app):
     with dummy_flask_app.test_client() as client:
         yield client
 
+
 @pytest.fixture
 def socketio_client(dummy_flask_app, dummy_socketio):
     """Create a test client for SocketIO."""
     return dummy_socketio.test_client(dummy_flask_app)
+
 
 @pytest.fixture
 def mock_stream_pose(dummy_stream_pose_ml_app):
@@ -74,11 +80,12 @@ def mock_stream_pose(dummy_stream_pose_ml_app):
 class TestAppRoutes:
     def test_status(self, dummy_flask_app, client):
         """Test the status endpoint."""
+
         # Create a route handler for the test app
-        @dummy_flask_app.route('/')
+        @dummy_flask_app.route("/")
         def status():
             return "Server Ready"
-        
+
         # Test the endpoint
         response = client.get("/")
         assert response.status_code == 200
@@ -86,11 +93,15 @@ class TestAppRoutes:
 
     def test_set_model_mlflow_success(self, dummy_flask_app, client):
         """Test the set_model endpoint when MLFlow model loading succeeds."""
+
         # Create a route handler for the test app
-        @dummy_flask_app.route('/set_model', methods=['POST'])
+        @dummy_flask_app.route("/set_model", methods=["POST"])
         def set_model():
-            return jsonify({"result": "MLFlow Ready: classifier set to model.zip."}), 200
-            
+            return (
+                jsonify({"result": "MLFlow Ready: classifier set to model.zip."}),
+                200,
+            )
+
         # Create a test file
         test_file = FileStorage(
             stream=open(os.devnull, "rb"),
@@ -116,11 +127,15 @@ class TestAppRoutes:
 
     def test_set_model_streamposeml_fallback(self, dummy_flask_app, client):
         """Test the set_model endpoint when MLFlow model loading fails."""
+
         # Create a route handler for the test app
-        @dummy_flask_app.route('/set_model', methods=['POST'])
+        @dummy_flask_app.route("/set_model", methods=["POST"])
         def set_model():
-            return jsonify({"result": "StreamPoseML Ready: classifier set to model.zip."}), 200
-        
+            return (
+                jsonify({"result": "StreamPoseML Ready: classifier set to model.zip."}),
+                200,
+            )
+
         # Create a test file
         test_file = FileStorage(
             stream=open(os.devnull, "rb"),
@@ -146,13 +161,14 @@ class TestAppRoutes:
 
     def test_set_model_no_file(self, dummy_flask_app, client):
         """Test the set_model endpoint when no file is provided."""
+
         # Create a route handler for the test app
-        @dummy_flask_app.route('/set_model', methods=['POST'])
+        @dummy_flask_app.route("/set_model", methods=["POST"])
         def set_model():
             if "file" not in request.files:
                 return jsonify({"result": "No file part"}), 400
             return jsonify({"result": "Success"}), 200
-            
+
         response = client.post("/set_model", data={})
         assert response.status_code == 400
         response_data = json.loads(response.data)
@@ -160,12 +176,13 @@ class TestAppRoutes:
 
     def test_set_model_empty_filename(self, dummy_flask_app, client):
         """Test the set_model endpoint when the filename is empty."""
+
         # Create a route handler for the test app
-        @dummy_flask_app.route('/set_model', methods=['POST'])
+        @dummy_flask_app.route("/set_model", methods=["POST"])
         def set_model():
             # Hard-code the response for this test
             return jsonify({"result": "No selected file"}), 400
-            
+
         test_file = FileStorage(
             stream=open(os.devnull, "rb"),
             filename="",
@@ -183,12 +200,13 @@ class TestAppRoutes:
 
     def test_set_model_invalid_file_type(self, dummy_flask_app, client):
         """Test the set_model endpoint with an invalid file type."""
+
         # Create a route handler for the test app
-        @dummy_flask_app.route('/set_model', methods=['POST'])
+        @dummy_flask_app.route("/set_model", methods=["POST"])
         def set_model():
             # Hard-code the response for this test
             return jsonify({"result": "Invalid file type"}), 400
-            
+
         test_file = FileStorage(
             stream=open(os.devnull, "rb"),
             filename="model.invalid",
@@ -211,42 +229,50 @@ class TestHelperFunctions:
         """Test the allowed_file function."""
         # Implement a simple version of the allowed_file function for testing
         ALLOWED_EXTENSIONS = {"zip", "tar.gz", "tar", "pickle", "joblib", "model"}
-        
+
         def allowed_file(filename):
-            return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-        
+            return (
+                "." in filename
+                and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+            )
+
         assert allowed_file("model.zip") is True
         # Checking tar.gz extension
-        assert "tar.gz".rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS or "tar" in ALLOWED_EXTENSIONS
+        assert (
+            "tar.gz".rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+            or "tar" in ALLOWED_EXTENSIONS
+        )
         assert allowed_file("model.pickle") is True
         assert allowed_file("model.invalid") is False
         assert allowed_file("model") is False
 
     def test_load_model_in_mlflow_success(self):
         """Test the load_model_in_mlflow function when successful."""
+
         # Implement a simplified version of the function
         def load_model_in_mlflow(model_path):
             model_name = os.path.basename(model_path)
             mlflow_model_path = os.path.join("/models", model_name)
-            
+
             # Mock the response by calling a test helper that assumes success
             try:
                 # Simulate successful response (normally would call requests.post)
                 return True
             except:
                 return False
-        
+
         # Test the function
         with patch("requests.post") as mock_post:
             mock_response = MagicMock()
             mock_response.status_code = 200
             mock_post.return_value = mock_response
-            
+
             result = load_model_in_mlflow("/path/to/model")
             assert result is True
 
     def test_load_model_in_mlflow_failure(self):
         """Test the load_model_in_mlflow function when request fails."""
+
         # Implement a simplified version that we'll force to fail
         def load_model_in_mlflow(model_path):
             try:
@@ -255,9 +281,12 @@ class TestHelperFunctions:
                 return response.status_code == 200
             except requests.exceptions.RequestException:
                 return False
-        
+
         # Test the function
-        with patch("requests.post", side_effect=requests.exceptions.RequestException("Connection error")):
+        with patch(
+            "requests.post",
+            side_effect=requests.exceptions.RequestException("Connection error"),
+        ):
             result = load_model_in_mlflow("/path/to/model")
             assert result is False
 
@@ -280,10 +309,10 @@ class TestStreamPoseMLApp:
         # Create app instance with the dummy class
         StreamPoseMLApp = dummy_stream_pose_ml_app
         app_instance = StreamPoseMLApp()
-        
+
         # Test the method (the dummy class mocks BluetoothDevice)
         app_instance.set_actuator("bluetooth_device")
-        
+
         # Verify that actuator was set
         assert app_instance.actuator is not None
 
@@ -292,7 +321,7 @@ class TestStreamPoseMLApp:
         # Create app instance with the dummy class
         StreamPoseMLApp = dummy_stream_pose_ml_app
         app_instance = StreamPoseMLApp()
-        
+
         # Set up mock actuator
         app_instance.actuator = MagicMock()
         app_instance.actuator.receive.return_value = "response"
@@ -310,18 +339,18 @@ class TestSocketIOHandlers:
         """Test handling keypoints when no model is set."""
         # Get app and socketio from fixture
         app_test, socketio_test = simple_test_app
-        
+
         # Create a handler that returns the "no model" error
         @socketio_test.on("keypoints")
         def test_handler(payload):
             socketio_test.emit("frame_result", {"error": "No model set"})
-            
+
         # Create a test client
         client = socketio_test.test_client(app_test)
-        
+
         # Send the test event
         client.emit("keypoints", "test_payload")
-        
+
         # Verify the response
         received = client.get_received()
         assert len(received) > 0
@@ -332,7 +361,7 @@ class TestSocketIOHandlers:
         """Test handling keypoints when classification is available."""
         # Get app and socketio from fixture
         app_test, socketio_test = simple_test_app
-        
+
         # Create a handler that returns classification results
         @socketio_test.on("keypoints")
         def test_handler(payload):
@@ -341,16 +370,16 @@ class TestSocketIOHandlers:
                 "timestamp": "1617283945000000000",
                 "pipeline processing time (s)": 0.2,
                 "prediction processing time (s)": 0.1,
-                "frame rate capacity (hz)": 5.0
+                "frame rate capacity (hz)": 5.0,
             }
             socketio_test.emit("frame_result", result_payload)
-            
+
         # Create a test client
         client = socketio_test.test_client(app_test)
-        
+
         # Send the test event
         client.emit("keypoints", "test_payload")
-        
+
         # Verify the response
         received = client.get_received()
         assert len(received) > 0

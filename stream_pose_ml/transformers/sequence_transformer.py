@@ -10,21 +10,23 @@ import stream_pose_ml.services.segmentation_service as ss
 class SequenceTransformer(ABC):
     """
     Abstract base class for sequence data transformers.
-    
+
     TODO: Improve interface with better type annotations and documentation.
     TODO: Define a clear data structure schema for inputs and outputs.
     TODO: Add validation methods for input data structures.
     """
-    
+
     @abstractmethod
-    def transform(self, data: Any, columns: List[str]) -> Union[Tuple[pd.DataFrame, Dict], Tuple[Dict, Dict]]:
+    def transform(
+        self, data: Any, columns: List[str]
+    ) -> Union[Tuple[pd.DataFrame, Dict], Tuple[Dict, Dict]]:
         """
         Transform the passed data into a row with the passed columns.
-        
+
         Args:
             data: Input data containing sequence information
             columns: List of column names to include in the output
-            
+
         Returns:
             Tuple containing:
             - Either a DataFrame or Dict (depending on implementation) with transformed data

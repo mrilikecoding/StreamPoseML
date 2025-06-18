@@ -50,6 +50,18 @@ test-api:
 	@echo "Running API tests..."
 	@python -m pytest api/tests -c api_pytest.ini
 
+# Format Python code using Black
+.PHONY: lint
+lint:
+	@echo "Formatting Python code with Black..."
+	@python -m black stream_pose_ml api mlflow
+	
+# Check Python code formatting with Black (without modifying)
+.PHONY: lint-check
+lint-check:
+	@echo "Checking Python code formatting with Black..."
+	@python -m black --check stream_pose_ml api mlflow
+
 # Clean target
 .PHONY: clean
 clean:
@@ -68,5 +80,7 @@ help:
 	@echo "  test         - Run all tests"
 	@echo "  test-core    - Run tests for the stream_pose_ml package"
 	@echo "  test-api     - Run tests for the API"
+	@echo "  lint         - Format Python code using Black"
+	@echo "  lint-check   - Check Python code formatting with Black (without modifying)"
 	@echo "  clean        - Clean up temporary Docker resources"
 	@echo "  help         - Show this help message"

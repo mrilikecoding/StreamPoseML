@@ -18,10 +18,12 @@ class TestProcessVideoJob:
     @pytest.fixture
     def mock_video_data_service(self):
         """Create a mock for VideoDataService."""
-        with patch('stream_pose_ml.jobs.process_video_job.VideoDataService') as mock_service:
+        with patch(
+            "stream_pose_ml.jobs.process_video_job.VideoDataService"
+        ) as mock_service:
             mock_instance = MagicMock()
             mock_service.return_value = mock_instance
-            mock_instance.process_video.return_value = {'mock': 'data'}
+            mock_instance.process_video.return_value = {"mock": "data"}
             yield mock_service
 
     def test_process_video_success(self, mock_video_data_service):
@@ -31,7 +33,7 @@ class TestProcessVideoJob:
         video_input_path = "/path/to/videos"
         output_keypoint_data_path = "/path/to/keypoints"
         output_sequence_data_path = "/path/to/sequences"
-        
+
         # When
         result = ProcessVideoJob.process_video(
             input_filename=input_filename,
@@ -41,11 +43,11 @@ class TestProcessVideoJob:
             write_keypoints_to_file=True,
             write_serialized_sequence_to_file=True,
             configuration={"mock": "config"},
-            preprocess_video=True
+            preprocess_video=True,
         )
-        
+
         # Then
-        assert result == {'mock': 'data'}
+        assert result == {"mock": "data"}
         mock_video_data_service.return_value.process_video.assert_called_once_with(
             input_filename=input_filename,
             video_input_path=video_input_path,
@@ -54,7 +56,7 @@ class TestProcessVideoJob:
             write_keypoints_to_file=True,
             write_serialized_sequence_to_file=True,
             configuration={"mock": "config"},
-            preprocess_video=True
+            preprocess_video=True,
         )
 
     def test_process_video_no_keypoint_path(self, mock_video_data_service):
@@ -62,18 +64,21 @@ class TestProcessVideoJob:
         # Given
         input_filename = "test_video.mp4"
         video_input_path = "/path/to/videos"
-        
+
         # When/Then
-        with pytest.raises(ProcessVideoJobError, match="No output location specified for keypoints files."):
+        with pytest.raises(
+            ProcessVideoJobError,
+            match="No output location specified for keypoints files.",
+        ):
             ProcessVideoJob.process_video(
                 input_filename=input_filename,
                 video_input_path=video_input_path,
                 output_keypoint_data_path=None,
                 output_sequence_data_path="/path/to/sequences",
                 write_keypoints_to_file=True,
-                write_serialized_sequence_to_file=False
+                write_serialized_sequence_to_file=False,
             )
-        
+
         # Verify the service was not called
         mock_video_data_service.return_value.process_video.assert_not_called()
 
@@ -82,18 +87,21 @@ class TestProcessVideoJob:
         # Given
         input_filename = "test_video.mp4"
         video_input_path = "/path/to/videos"
-        
+
         # When/Then
-        with pytest.raises(ProcessVideoJobError, match="No output location specified for sequence data files."):
+        with pytest.raises(
+            ProcessVideoJobError,
+            match="No output location specified for sequence data files.",
+        ):
             ProcessVideoJob.process_video(
                 input_filename=input_filename,
                 video_input_path=video_input_path,
                 output_keypoint_data_path="/path/to/keypoints",
                 output_sequence_data_path=None,
                 write_keypoints_to_file=False,
-                write_serialized_sequence_to_file=True
+                write_serialized_sequence_to_file=True,
             )
-        
+
         # Verify the service was not called
         mock_video_data_service.return_value.process_video.assert_not_called()
 
@@ -102,7 +110,7 @@ class TestProcessVideoJob:
         # Given
         input_filename = "test_video.mp4"
         video_input_path = "/path/to/videos"
-        
+
         # When
         result = ProcessVideoJob.process_video(
             input_filename=input_filename,
@@ -110,11 +118,11 @@ class TestProcessVideoJob:
             output_keypoint_data_path=None,
             output_sequence_data_path=None,
             write_keypoints_to_file=False,
-            write_serialized_sequence_to_file=False
+            write_serialized_sequence_to_file=False,
         )
-        
+
         # Then
-        assert result == {'mock': 'data'}
+        assert result == {"mock": "data"}
         mock_video_data_service.return_value.process_video.assert_called_once_with(
             input_filename=input_filename,
             video_input_path=video_input_path,
@@ -123,5 +131,5 @@ class TestProcessVideoJob:
             write_keypoints_to_file=False,
             write_serialized_sequence_to_file=False,
             configuration={},
-            preprocess_video=False
+            preprocess_video=False,
         )

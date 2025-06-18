@@ -47,10 +47,10 @@ class TestAngleSerializer:
         """Test the serialize method."""
         # Given
         serializer = AngleSerializer()
-        
+
         # When
         result = serializer.serialize(angle)
-        
+
         # Then
         assert result == {
             "type": "Angle",
@@ -67,7 +67,7 @@ class TestAngleSerializer:
         """Test the serialize method as a static method."""
         # When
         result = AngleSerializer.serialize(angle)
-        
+
         # Then
         assert result["name"] == "test_angle"
         assert result["type"] == "Angle"

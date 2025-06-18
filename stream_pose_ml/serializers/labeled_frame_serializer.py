@@ -38,13 +38,15 @@ class LabeledFrameSerializer:
         """
         row = {
             "video_id": frame["video_id"],
-            "step_frame_id": 0
-            if (frame["weight_transfer_type"] and frame["step_type"])
-            else "NULL",
+            "step_frame_id": (
+                0 if (frame["weight_transfer_type"] and frame["step_type"]) else "NULL"
+            ),
             "frame_number": frame["data"]["frame_number"],
-            "weight_transfer_type": frame["weight_transfer_type"]
-            if frame["weight_transfer_type"]
-            else "NULL",
+            "weight_transfer_type": (
+                frame["weight_transfer_type"]
+                if frame["weight_transfer_type"]
+                else "NULL"
+            ),
             "step_type": frame["step_type"] if frame["step_type"] else "NULL",
         }
 

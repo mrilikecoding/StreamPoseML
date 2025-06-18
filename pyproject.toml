@@ -41,7 +41,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-emoji", "pytest-cov"]
+dev = ["pytest", "pytest-emoji", "pytest-cov", "black"]
 
 [project.urls]
 "Homepage" = "https://github.com/mrilikecoding/StreamPoseML"

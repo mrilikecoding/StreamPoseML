@@ -25,25 +25,31 @@ class BlazePoseFrameSerializer:
             "frame_number": blaze_pose_frame.frame_number,
             "image_dimensions": blaze_pose_frame.image_dimensions,
             "has_joint_positions": blaze_pose_frame.has_joint_positions,
-            "joint_positions": {
-                joint_name: JointSerializer().serialize(joint_object)
-                for (joint_name, joint_object) in blaze_pose_frame.joints.items()
-            }
-            if blaze_pose_frame.has_joint_positions
-            else {},
-            "angles": {
-                angle_name: AngleSerializer().serialize(angle_object)
-                for (angle_name, angle_object) in blaze_pose_frame.angles.items()
-            }
-            if blaze_pose_frame.has_joint_positions
-            else {},
-            "distances": {
-                distance_name: DistanceSerializer().serialize(distance_object)
-                for (
-                    distance_name,
-                    distance_object,
-                ) in blaze_pose_frame.distances.items()
-            }
-            if blaze_pose_frame.has_joint_positions
-            else {},
+            "joint_positions": (
+                {
+                    joint_name: JointSerializer().serialize(joint_object)
+                    for (joint_name, joint_object) in blaze_pose_frame.joints.items()
+                }
+                if blaze_pose_frame.has_joint_positions
+                else {}
+            ),
+            "angles": (
+                {
+                    angle_name: AngleSerializer().serialize(angle_object)
+                    for (angle_name, angle_object) in blaze_pose_frame.angles.items()
+                }
+                if blaze_pose_frame.has_joint_positions
+                else {}
+            ),
+            "distances": (
+                {
+                    distance_name: DistanceSerializer().serialize(distance_object)
+                    for (
+                        distance_name,
+                        distance_object,
+                    ) in blaze_pose_frame.distances.items()
+                }
+                if blaze_pose_frame.has_joint_positions
+                else {}
+            ),
         }

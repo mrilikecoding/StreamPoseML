@@ -59,10 +59,10 @@ class TestVectorSerializer:
         """Test the serialize method."""
         # Given
         serializer = VectorSerializer()
-        
+
         # When
         result = serializer.serialize(vector)
-        
+
         # Then
         assert result == {
             "type": "Vector",
@@ -72,7 +72,11 @@ class TestVectorSerializer:
             "direction_2d": [0.5, 0.5],
             "direction_3d": [0.3, 0.3, 0.3],  # Fixed: Now using the correct 3D value
             "direction_reverse_2d": [-0.5, -0.5],
-            "direction_reverse_3d": [-0.3, -0.3, -0.3],  # Fixed: Now using the correct 3D value
+            "direction_reverse_3d": [
+                -0.3,
+                -0.3,
+                -0.3,
+            ],  # Fixed: Now using the correct 3D value
             "x1": 10,
             "y1": 20,
             "z1": 30,
@@ -91,7 +95,7 @@ class TestVectorSerializer:
         """Test the serialize method as a static method."""
         # When
         result = VectorSerializer.serialize(vector)
-        
+
         # Then
         assert result["name"] == "test_vector"
         assert result["type"] == "Vector"
