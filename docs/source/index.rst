@@ -1,5 +1,5 @@
 Welcome to StreamPoseML Documentation
-==================================
+=====================================
 
 StreamPoseML is an open-source, end-to-end toolkit for creating realtime, video-based classification experiments that rely on using labeled data alongside captured body keypoint / pose data.
 
@@ -30,7 +30,7 @@ Features
 * Integrate with web applications for browser-based deployment
 
 Getting Started
---------------
+---------------
 
 .. toctree::
    :maxdepth: 2
@@ -48,28 +48,18 @@ Workflows
    :caption: Workflows
 
    workflows/video_processing
-   workflows/dataset_creation
-   workflows/model_training
-   workflows/realtime_classification
 
 Python Package
---------------
+---------------
 
 .. toctree::
    :maxdepth: 2
    :caption: Python Package
 
    api/clients
-   api/blaze_pose
-   api/geometry
-   api/jobs
-   api/learning
-   api/serializers
-   api/services
-   api/utils
 
 Web Application
---------------
+---------------
 
 .. toctree::
    :maxdepth: 2
@@ -86,13 +76,9 @@ Examples
    :maxdepth: 2
    :caption: Examples
 
-   guide/examples
-
 Contributing
------------
+------------
 
 .. toctree::
    :maxdepth: 2
    :caption: Contributing
-
-   guide/contributing

@@ -1,5 +1,7 @@
 import os
 import sys
+import re
+import tomli
 
 # These modules will be mocked by autodoc_mock_imports
 MOCK_MODULES = [
@@ -11,8 +13,14 @@ MOCK_MODULES = [
 # Add the project root to the path so autodoc can find the modules
 sys.path.insert(0, os.path.abspath('../..'))
 
-# Hardcode version to avoid parsing issues
-version = '0.2.1'
+# Read version from pyproject.toml
+try:
+    with open(os.path.join(os.path.abspath('../..'), 'pyproject.toml'), 'rb') as f:
+        pyproject_data = tomli.load(f)
+    version = pyproject_data['project']['version']
+except (FileNotFoundError, KeyError, ImportError):
+    # Fall back to hardcoded version if there's an error
+    version = '0.2.1'
 
 # -- Project information -----------------------------------------------------
 project = 'StreamPoseML'
@@ -25,11 +33,19 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    # 'sphinx_multiversion',  # Disabled for now until basic docs work
+    'sphinx_multiversion',  # Enabled for multi-version documentation
 ]
 
 templates_path = ['_templates']
 exclude_patterns = []
+
+# -- sphinx-multiversion configuration --------------------------------------------
+smv_remote_whitelist = r'^origin$'
+smv_branch_whitelist = r'^main$'
+smv_tag_whitelist = r'^v\d+\.\d+\.\d+$'
+smv_released_pattern = r'^v\d+\.\d+\.\d+$'
+smv_outputdir_format = '{ref.name}'
+smv_prefer_remote_refs = False
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'alabaster'
@@ -45,6 +61,17 @@ html_theme_options = {
     'fixed_sidebar': True,
     'page_width': '1000px',
     'sidebar_width': '250px',
+}
+
+# Add the versioning template to the sidebar
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'versioning.html',
+    ]
 }
 
 # -- Options for autodoc ----------------------------------------------------
