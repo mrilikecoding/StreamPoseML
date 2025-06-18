@@ -15,6 +15,10 @@ http://localhost:5001
 Loading a Model
 -------------
 
+StreamPoseML supports two ways to load models: direct pickle files and MLflow-logged models.
+
+### Option 1: Using Pickle Files
+
 1. **Prepare your model**:
    
    Your trained model should be saved as a pickle file with a structure like:
@@ -41,6 +45,46 @@ Loading a Model
    - Go to Settings
    - Select your model from the dropdown
    - Click "Apply Changes"
+
+### Option 2: Using MLflow Models
+
+StreamPoseML has built-in support for models logged with MLflow:
+
+1. **Log your model with MLflow**:
+
+   .. code-block:: python
+
+      import mlflow
+      
+      # Start an MLflow run
+      with mlflow.start_run():
+          # Log model parameters
+          mlflow.log_params(params)
+          
+          # Log model metrics
+          mlflow.log_metrics(metrics)
+          
+          # Log the model
+          mlflow.sklearn.log_model(model, "model")
+
+2. **Configure the MLflow connection**:
+
+   The StreamPoseML web application includes a dedicated MLflow container that connects to your MLflow tracking server. By default, it looks for models in the local MLflow server instance running at `http://localhost:5002`.
+
+3. **Select the MLflow model in the UI**:
+
+   - Open the web UI at http://localhost:3000
+   - Go to Settings > Models
+   - Choose the "MLflow" model source
+   - Select your model from the available MLflow models
+   - Click "Apply Changes"
+
+4. **Advantages of MLflow Integration**:
+
+   - Standardized model serving interface
+   - Access to model versions and metadata
+   - Consistent experience across different model types
+   - Easier deployment of complex models
 
 Using the Webcam Interface
 ------------------------
