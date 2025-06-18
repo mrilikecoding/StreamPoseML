@@ -18,3 +18,6 @@ sphinx:
 python:
    install:
    - requirements: docs/requirements.txt
+   # Install our package in a way that doesn't require import dependencies
+   - method: setuptools
+     path: .
