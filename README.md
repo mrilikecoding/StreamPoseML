@@ -261,13 +261,25 @@ To run the sample app you'll need to pull the latest builds from Dockerhub:
 1. Visit docker.com and sign up for an account.
 2. Download the [Docker Desktop](https://www.docker.com/products/docker-desktop/) client for your system, launch, and log in.
 3. From your terminal, git clone this repo and enter the directory.
-4. Run `start.sh` to pull down the latest images (backend, frontend, and MLFlow) and spin them up with Docker Compose.
+4. Use the provided Make commands to start the application:
+
+```bash
+# Start the application
+make start
+
+# Or, to start with debug output:
+make start-debug
+```
 
 This should install the necessary dependencies and then launch the application in your default browser (Chrome-based browsers are recommended for full feature support).
 
 _Note, the MLFlow container pins MLFlow to version 2.18.0. Later versions of MLFlow have switched to FastAPI (uvicorn) from gunicorn, which presents problems loading MLFlow models logged before this change. This will be addressed in a forthcoming update. If you do use this with an MLFlow model logged using a version later than 2.18 you may need to bump the MLFlow version in the MLFlow container manually for now._
 
-5. When you're done, run `stop.sh` to gracefully end the application processes.
+5. When you're done, stop the application:
+
+```bash
+make stop
+```
 
 ## Running the web application locally
 
@@ -321,6 +333,48 @@ When changes to the package are pushed or merged to the main branch, GitHub Acti
 To run package tests locally:
 
 ```bash
-pip install -e .[dev]  # Install package in development mode with test dependencies
-pytest stream_pose_ml/tests/
+# Install package in development mode with test dependencies
+pip install -e .[dev]
+
+# Run all tests
+make test
+
+# Run only stream_pose_ml package tests
+make test-core
+
+# Run only API tests
+make test-api
+```
+
+### Make Commands
+
+StreamPoseML provides several Make commands for common development tasks:
+
+```bash
+# Build Docker images for all components
+make build_images
+
+# Start the application
+make start
+
+# Start the application with debug output
+make start-debug
+
+# Stop the application
+make stop
+
+# Run all tests
+make test
+
+# Run only stream_pose_ml package tests
+make test-core
+
+# Run only API tests  
+make test-api
+
+# Clean up Docker resources
+make clean
+
+# Show all available commands
+make help
 ```

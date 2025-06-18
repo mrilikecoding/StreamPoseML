@@ -20,7 +20,7 @@ WEB_UI_IMAGE="mrilikecoding/stream_pose_ml_web_ui:latest"
 MLFLOW_IMAGE="mrilikecoding/stream_pose_ml_mlflow:latest"
 
 # Define build contexts
-API_CONTEXT="./stream_pose_ml"
+API_CONTEXT="./api"
 WEB_UI_CONTEXT="./web_ui"
 MLFLOW_CONTEXT="./mlflow"
 
