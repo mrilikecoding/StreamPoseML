@@ -37,7 +37,8 @@ dependencies = [
   "tqdm==4.65.0",
   "tslearn==0.6.2",
   "xgboost==1.7.4",
-  "mlflow==2.18.0",
+  "mlflow>=2.18.0,<2.21.0",
+  "setuptools>=68.0.0",
 ]
 
 [project.optional-dependencies]
