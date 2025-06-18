@@ -26,6 +26,37 @@ StreamPoseML aspires to help with steps 3-10, with the aim of making a system po
 
 Additionally, StreamPoseML aims to provide flexibility with respect to coding and classification schemes. There are ready-baked video annotation + classification solutions out there, however they can be costly and not suited for every task. For a Python dev or data scientist, StreamPoseML provides convenient abstractions for working with video data in a way that can mesh with your own workflow, on your own hardware, for free, and provides a starting point for creating your own portable, browser-based real-time classification / actuation system.
 
+## Project Structure
+
+The StreamPoseML repository is organized into several key components:
+
+### Core Components
+
+- **stream_pose_ml/**: The main Python package containing all pose extraction, feature engineering, and machine learning tools
+  - This package is published to PyPI and can be used independently in your Python projects
+  - Contains utilities for video processing, keypoint extraction, dataset creation, and model training
+
+- **api/**: Flask-based backend API for serving trained models
+  - Provides endpoints for real-time video processing and classification
+  - Runs in a Docker container with Python 3.11
+
+- **web_ui/**: React frontend application for capturing video and visualizing results
+  - Includes components for webcam capture, model selection, and visualization
+  - Communicates with the API for real-time processing
+
+- **mlflow/**: MLflow model server for standardized model serving
+  - Provides a consistent interface for deploying trained models
+
+### Packaging Structure
+
+The repository follows standard Python packaging conventions:
+
+- **pyproject.toml**: Main package configuration file in the root directory
+- **setup.py**: Minimal compatibility script for older Python packaging tools
+- **.github/workflows/**: CI/CD workflows for automated testing and PyPI publishing
+
+This structure allows for easy installation of the StreamPoseML package while maintaining the web application components separately. When changes are made to the package and merged to main, automated tests run and new versions are published to PyPI.
+
 ## Toolkit usage
 
 The two main parts of StreamPoseML are the sample web application and the Python module. The web application is intended to run within a Docker environment. Comprising a basic React front-end and a Flask back-end, it can be pulled from Dockerhub to run as-is or can be modified to suit your needs.
@@ -271,3 +302,25 @@ If you use the project in your work or research, please cite this repository or 
 Contributions are welcome! For guidelines and more details for working with this package locallay see:
 
 [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Package Development and Publishing
+
+The StreamPoseML Python package uses modern Python packaging tools for development and distribution:
+
+- Package configuration is defined in `pyproject.toml`
+- Dependencies are specified directly in `pyproject.toml`
+- Automated CI/CD via GitHub Actions handles testing and publishing
+
+When changes to the package are pushed or merged to the main branch, GitHub Actions will:
+
+1. Run tests across multiple Python versions (3.9-3.13)
+2. Run API tests on Python 3.11 (matching the deployment environment)
+3. Build the package if tests pass
+4. Publish the package to TestPyPI and then PyPI
+
+To run package tests locally:
+
+```bash
+pip install -e .[dev]  # Install package in development mode with test dependencies
+pytest stream_pose_ml/tests/
+```

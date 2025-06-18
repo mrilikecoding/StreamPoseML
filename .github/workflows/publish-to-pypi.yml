@@ -1,0 +1,149 @@
+name: Test and Publish to PyPI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'stream_pose_ml/**'
+      - 'api/**'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/publish-to-pypi.yml'
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - 'stream_pose_ml/**'
+      - 'api/**'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/publish-to-pypi.yml'
+  workflow_dispatch:  # Enables manual trigger from GitHub UI
+
+jobs:
+  # First job: Test package across all Python versions
+  test-package:
+    name: Test Package on Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-emoji
+        pip install -e .[dev]
+    
+    - name: Run package tests
+      run: |
+        pytest stream_pose_ml/tests/ -v
+        
+  # Second job: Test API on specific Python version
+  test-api:
+    name: Test API on Python 3.11 (Dockerfile version)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # Install main package in development mode
+        pip install -e .
+        # Install API requirements
+        pip install -r api/requirements.txt
+        pip install -r api/dev-requirements.txt
+        pip install pytest pytest-cov pytest-emoji
+    
+    - name: Run API tests
+      run: |
+        cd tests/api
+        pytest -v
+
+  # Third job: Build and publish (only if tests pass)
+  build-and-publish:
+    name: Build and publish package
+    needs: [test-package, test-api]  # This job runs only after both test jobs complete successfully
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.10"  # Use a stable Python version for building
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+    
+    - name: Debug variables
+      run: |
+        echo "GitHub Event Name: ${{ github.event_name }}"
+        echo "GitHub Ref: ${{ github.ref }}"
+        echo "GitHub Head Ref: ${{ github.head_ref }}"
+        echo "GitHub Base Ref: ${{ github.base_ref }}"
+        echo "Will publish to PyPI after build"
+    
+    - name: Build package
+      run: |
+        python -m build
+        echo "Package contents:"
+        ls -la dist/
+        twine check dist/*
+      
+    - name: Extract version
+      id: get_version
+      run: |
+        VERSION=$(grep 'version = ' pyproject.toml | sed -E 's/.*version = "([^"]+)".*/\1/')
+        echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Building version: $VERSION"
+
+    - name: Publish to TestPyPI
+      env:
+        PYPI_TEST_API_KEY: ${{ secrets.PYPI_TEST_API_KEY }}
+      run: |
+        echo "Uploading version ${{ steps.get_version.outputs.package_version }} to TestPyPI..."
+        if [ -z "$PYPI_TEST_API_KEY" ]; then
+          echo "WARNING: PYPI_TEST_API_KEY is empty, skipping TestPyPI upload"
+        else
+          twine upload --repository testpypi dist/* -u "__token__" -p "$PYPI_TEST_API_KEY" --verbose || echo "TestPyPI upload failed, continuing workflow"
+        fi
+
+    - name: Publish to PyPI
+      env:
+        PYPI_API_KEY: ${{ secrets.PYPI_API_KEY }}
+      run: |
+        echo "Uploading version ${{ steps.get_version.outputs.package_version }} to PyPI..."
+        if [ -z "$PYPI_API_KEY" ]; then
+          echo "ERROR: PYPI_API_KEY is empty"
+          exit 1
+        fi
+        
+        twine upload dist/* -u "__token__" -p "$PYPI_API_KEY" --verbose
+        echo "Successfully published to PyPI"
