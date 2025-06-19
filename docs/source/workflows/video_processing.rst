@@ -191,3 +191,14 @@ Video processing can be computationally intensive. Consider:
 - Using the ``limit`` parameter for testing before full processing
 - Ensuring sufficient RAM for large videos
 - Using a machine with GPU acceleration for faster processing
+
+Next Steps
+----------
+
+After processing videos, you'll typically want to:
+
+1. Create :doc:`../guide/annotations` for your videos
+2. Use annotations and sequences to build a dataset
+3. Train a model on the resulting dataset
+
+See :doc:`../guide/annotations` for details on the annotation format and how to create datasets.

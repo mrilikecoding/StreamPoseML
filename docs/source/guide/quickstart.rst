@@ -1,7 +1,12 @@
 Quick Start Guide
 =================
 
-This guide will help you get started with StreamPoseML quickly.
+This guide will help you get started with StreamPoseML quickly, whether you want to use the Python package for data processing and model building, or deploy the web application for real-time classification.
+
+StreamPoseML has two main components:
+
+1. **Python Package**: For processing videos, extracting keypoints, and training models
+2. **Web Application**: For real-time pose classification in a browser
 
 Basic Usage
 -----------
@@ -106,9 +111,14 @@ Use a trained model for real-time pose classification:
 Next Steps
 ----------
 
-For more detailed information, see:
+**For Python Package Users:**
 
 * :doc:`../workflows/video_processing` - Detailed video processing workflow
 * :doc:`../guide/concepts` - Core concepts and dataset creation
-* :doc:`../api/clients` - API documentation for model training and usage
-* :doc:`../webapp/usage` - Web application for real-time classification
+* :doc:`../api/clients` - Package reference for model training and usage
+* :doc:`../examples/index` - Complete example workflows
+
+**For Web Application Users:**
+
+* :doc:`../webapp/installation` - Setting up the web application
+* :doc:`../webapp/usage` - Using the web application
