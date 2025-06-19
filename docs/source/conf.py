@@ -61,6 +61,11 @@ html_theme_options = {
     'fixed_sidebar': True,
     'page_width': '1000px',
     'sidebar_width': '250px',
+    'show_relbars': True,
+    'show_relbar_bottom': True,
+    'show_relbar_top': True,
+    'globaltoc_collapse': False,
+    'globaltoc_includehidden': False,
 }
 
 # Add the versioning template to the sidebar

@@ -19,6 +19,11 @@ StreamPoseML has two main components:
 1. **Python Package**: A library for pose extraction, dataset creation, and model training
 2. **Web Application**: A full-featured web app for real-time pose classification
 
+This documentation is organized by use case. If you're primarily interested in:
+
+- Using the **Python Package** for data processing and model training, focus on the "Getting Started", "Workflows", "StreamPoseML Package Reference", and "Examples" sections.
+- Deploying the **Web Application** for real-time classification, focus on the "Web Application" section.
+
 Features
 --------
 
@@ -29,52 +34,18 @@ Features
 * Deploy models for real-time classification from video streams
 * Integrate with web applications for browser-based deployment
 
-Getting Started
----------------
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
-
-   guide/installation
-   guide/quickstart
-   guide/concepts
-
-Workflows
----------
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Workflows
-
-   workflows/video_processing
-
-Python Package
----------------
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Python Package
-
-   api/clients
-
-Web Application
----------------
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Web Application
-
-   webapp/index
-   webapp/installation
-   webapp/usage
-
-Examples
+Contents
 --------
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples
+   :caption: Contents
+   
+   guide/index
+   workflows/index
+   api/index
+   webapp/index
+   examples/index
 
 Contributing
 ------------

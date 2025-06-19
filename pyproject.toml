@@ -49,4 +49,13 @@ dev = ["pytest", "pytest-emoji", "pytest-cov", "black"]
 
 [tool.setuptools.packages.find]
 include = ["stream_pose_ml*"]
-exclude = ["tmp*", "web_ui*", "mlflow*", "notebooks*", "example_data*", "api*", "tests*", "build*"]
+exclude = [
+  "tmp*",
+  "web_ui*",
+  "mlflow*",
+  "notebooks*",
+  "example_data*",
+  "api*",
+  "tests*",
+  "build*",
+]

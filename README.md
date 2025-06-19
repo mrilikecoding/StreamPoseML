@@ -105,6 +105,16 @@ make start-dev
 make help
 ```
 
+## Publications
+
+Research using StreamPoseML:
+
+1. **Closed-loop Neuromotor Training System Pairing Transcutaneous Vagus Nerve Stimulation with Video-based Real-time Movement Classification**  
+   [https://www.medrxiv.org/content/10.1101/2025.05.23.25327218v1](https://www.medrxiv.org/content/10.1101/2025.05.23.25327218v1)
+
+2. **StreamPoseML: An End-to-End Open-Source Web Application and Python Toolkit for Real-Time Video Pose Classification and Machine Learning**  
+   [https://joss.theoj.org/papers/10.21105/joss.06392](https://joss.theoj.org/papers/10.21105/joss.06392)
+
 ## Citing
 
 If you use StreamPoseML in your work or research, please cite:

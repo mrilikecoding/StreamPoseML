@@ -12,8 +12,21 @@ The API is available at:
 
 http://localhost:5001
 
-Loading a Model
--------------
+Web Interface Components
+-----------------------
+
+The StreamPoseML web interface consists of several main components:
+
+1. **Model Configuration Panel** - For selecting and configuring models
+2. **Classification Results** - Displays real-time classification output
+3. **Camera Control** - For starting/stopping webcam capture
+4. **Visualization Area** - Shows video feed with pose overlay
+5. **Bluetooth Integration** - For connecting to external devices
+
+Model Configuration
+------------------
+
+### Loading a Model
 
 StreamPoseML supports two ways to load models: direct pickle files and MLflow-logged models.
 
@@ -31,20 +44,13 @@ StreamPoseML supports two ways to load models: direct pickle files and MLflow-lo
 
    The model should implement a ``predict`` method that takes an array of examples to classify.
 
-2. **Place your model**:
-
-   Copy your model file to the designated models directory. By default, this is:
-
-   .. code-block:: none
-
-      /path/to/StreamPoseML/models/
-
-3. **Select the model in the UI**:
+2. **Select the model in the UI**:
 
    - Open the web UI at http://localhost:3000
    - Go to Settings
-   - Select your model from the dropdown
-   - Click "Apply Changes"
+   - Click the file input to browse and select your model file from anywhere on your system
+   - Configure the Frame Window Size and Prediction Frame Overlap as needed
+   - Click "Set Model"
 
 ### Option 2: Using MLflow Models
 
@@ -86,10 +92,10 @@ StreamPoseML has built-in support for models logged with MLflow (compatible with
 3. **Select the MLflow model in the UI**:
 
    - Open the web UI at http://localhost:3000
-   - Go to Settings > Models
-   - Choose the "MLflow" model source
-   - Select your model from the available MLflow models
-   - Click "Apply Changes"
+   - Go to Settings
+   - Upload your MLflow model file (gzip format with all needed assets)
+   - Configure the Frame Window Size and Prediction Frame Overlap as needed
+   - Click "Set Model"
 
 4. **Advantages of MLflow Integration**:
 
@@ -98,50 +104,88 @@ StreamPoseML has built-in support for models logged with MLflow (compatible with
    - Consistent experience across different model types
    - Easier deployment of complex models
 
-Using the Webcam Interface
+Camera and Visualization
 ------------------------
 
-1. **Start the webcam**:
-   
-   Click the "Start Camera" button on the UI.
+### Starting the Camera
 
-2. **Position yourself**:
-   
-   Position yourself in the camera frame where your full body is visible.
+1. Click the "Classify from webcam stream" button on the UI to start the camera.
+2. The button will toggle to "Stop streaming" when the camera is active.
+3. The webcam feed will appear with pose detection overlay.
 
-3. **Observe classifications**:
-   
-   The interface will display:
-   
-   - Real-time pose detection overlay
-   - Classification results
-   - Confidence scores (if available)
+### Positioning for Best Results
 
-4. **Control panel options**:
-   
-   - Toggle pose detection visualization
-   - Adjust model parameters
-   - View performance metrics
+1. Position yourself in the camera frame where your full body is visible.
+2. Ensure adequate lighting for better pose detection accuracy.
+3. Maintain a clear background if possible to improve detection.
+
+### Viewing Classification Results
+
+The interface will display classification output in real-time:
+
+1. **Raw Classification Output** - JSON display of model predictions
+2. **Status Indicators** - Visual feedback on classification status
+3. **Frame Information** - Details about processed frames
+
+### Visualization Options
+
+The pose detection visualization includes:
+
+1. **Keypoint Markers** - Points identifying detected body joints
+2. **Skeleton Connections** - Lines connecting related joints
+3. **Real-time Updates** - Continuous tracking of movement
 
 Bluetooth Device Integration
 --------------------------
 
-If your deployment includes bluetooth device integration:
+### Connecting to Bluetooth Devices
 
-1. Click "Connect Device" in the UI
-2. Select your bluetooth device from the list
-3. Authorize the connection in your browser
-4. The device will now receive classification results
+StreamPoseML supports sending classification results to bluetooth devices:
+
+1. Click the "Connect to Bluetooth" button in the UI.
+2. Select your bluetooth device from the browser's device picker.
+3. Authorize the connection in your browser.
+4. The device status indicator will turn green when connected.
+
+### Bluetooth Configuration
+
+Expand the "Settings" section to configure bluetooth options:
+
+1. **Service UUID** - Configure the bluetooth service UUID
+2. **Characteristic UUID** - Configure the characteristic UUID for communication
+3. **Response Strings** - Set message strings sent on positive/negative classifications
+
+### Monitoring Bluetooth Communication
+
+Expand the "Logs" section to view bluetooth communication:
+
+1. **Connection Status** - Shows current connection status
+2. **Sent/Received Data** - Displays data transmitted to and from the device
+3. **Log History** - Complete history of bluetooth operations
 
 *Note: Bluetooth integration currently only works in Chrome and Edge browsers.*
 
-Viewing Performance Metrics
--------------------------
+Performance and Optimization
+---------------------------
 
-The web UI provides real-time performance metrics:
+### Real-time Performance Metrics
 
-- Frame processing rate
-- Classification latency
-- Model prediction time
+The web UI provides real-time performance information:
 
-These metrics can help you optimize your model and parameters for real-time performance.
+- **Frame Processing Rate** - Frames processed per second
+- **Classification Latency** - Time between frame capture and classification
+- **Model Prediction Time** - Time taken by the model to classify a frame
+
+### Optimizing Performance
+
+To improve real-time performance:
+
+1. **Adjust Frame Window Size** - Decrease to reduce latency, increase for better accuracy
+2. **Modify Prediction Frame Overlap** - Control how frequently the model makes predictions
+3. **Use Simpler Models** - Less complex models typically run faster but may be less accurate
+
+### Browser Recommendations
+
+- Use Chrome or Edge for best performance and full feature support
+- Ensure hardware acceleration is enabled in your browser
+- Close unnecessary browser tabs and applications for smoother operation
