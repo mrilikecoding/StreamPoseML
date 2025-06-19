@@ -170,40 +170,129 @@ Example: Complete Annotation Workflow
 4. **Format the dataset** with appropriate segmentation and features
 5. **Train a model** using the formatted dataset
 
+Below is a complete workflow example based on the actual code in the ``example_usage.ipynb`` notebook:
+
 .. code-block:: python
 
-   # Step 1: Process videos to extract poses
+   # Step 1: Set up input and output directories
+   import os
+   import time
+   
+   # Inputs
+   example_input_directory = "../../example_data/input"
+   example_output_directory = f"../../example_data/output-{time.time_ns()}"
+   
+   source_annotations_directory = os.path.join(example_input_directory, "source_annotations")
+   source_videos_directory = os.path.join(example_input_directory, "source_videos")
+   
+   # Outputs
+   sequence_data_directory = os.path.join(example_output_directory, "sequences")
+   keypoints_data_directory = os.path.join(example_output_directory, "keypoints")
+   merged_annotation_output_directory = os.path.join(example_output_directory, "datasets")
+   trained_models_output_directory = os.path.join(example_output_directory, "trained_models")
+   
+   for directory in [sequence_data_directory, keypoints_data_directory, 
+                     merged_annotation_output_directory, trained_models_output_directory]:
+       os.makedirs(directory, exist_ok=True)
+   
+   # Step 2: Process videos to extract poses
    import stream_pose_ml.jobs.process_videos_job as pv
-   job = pv.ProcessVideosJob()
-   job.process_videos(
-       src_videos_path='videos/',
-       output_keypoints_data_path='keypoints/',
-       output_sequence_data_path='sequences/'
+   
+   folder = f"run-preproccessed-{time.time_ns()}"  
+   keypoints_path = f"{keypoints_data_directory}/{folder}"
+   sequence_path = f"{sequence_data_directory}/{folder}"
+   
+   data = pv.ProcessVideosJob().process_videos(
+       src_videos_path=source_videos_directory,
+       output_keypoints_data_path=keypoints_path,
+       output_sequence_data_path=sequence_path,
+       write_keypoints_to_file=True,
+       write_serialized_sequence_to_file=True,
+       limit=None,
+       configuration={},
+       preprocess_video=True,
+       return_output=False
    )
-
-   # Step 2: Build dataset from annotations and sequences
+   
+   # Step 3: Build dataset from annotations and sequences
    import stream_pose_ml.jobs.build_and_format_dataset_job as data_builder
+   
    db = data_builder.BuildAndFormatDatasetJob()
+   dataset_file_name = "preprocessed_flatten_on_example_10_frames"
    
    dataset = db.build_dataset_from_data_files(
-       annotations_data_directory='annotations/',
-       sequence_data_directory='sequences/'
+       annotations_data_directory=source_annotations_directory,
+       sequence_data_directory=sequence_data_directory,
+       limit=None,
    )
-
-   # Step 3: Format dataset with desired features
+   
+   # Step 4: Format dataset with desired features
    formatted_dataset = db.format_dataset(
        dataset=dataset,
+       pool_frame_data_by_clip=False,
+       decimal_precision=4,
+       include_unlabeled_data=True,
        include_angles=True,
        include_distances=True,
-       segmentation_strategy="flatten_on_example",
-       segmentation_window=10
+       include_normalized=True,
+       segmentation_strategy="flatten_into_columns",
+       segmentation_splitter_label="step_type",
+       segmentation_window=10,
+       segmentation_window_label="weight_transfer_type",
    )
-
-   # Step 4: Write dataset to CSV
+   
+   # Step 5: Write dataset to CSV
    db.write_dataset_to_csv(
-       csv_location='datasets/',
+       csv_location=merged_annotation_output_directory,
        formatted_dataset=formatted_dataset,
-       filename="my_training_dataset"
+       filename=dataset_file_name
+   )
+   
+   # Step 6: Train a model using the dataset
+   from stream_pose_ml.learning import model_builder as mb
+   
+   # Mapping string categories to numerical values
+   value_map = {
+       "weight_transfer_type": {
+           "Failure Weight Transfer": 0,
+           "Successful Weight Transfer": 1,
+       },
+       "step_type": {
+           "Left Step": 0,
+           "Right Step": 1,
+       },
+   }
+   # Columns to drop from training
+   drop_list = ["video_id", "step_frame_id", "frame_number", "step_type"]
+   
+   model_builder = mb.ModelBuilder()
+   
+   model_builder.load_and_prep_dataset_from_csv(
+       path=os.path.join(merged_annotation_output_directory, f"{dataset_file_name}.csv"),
+       target="weight_transfer_type",
+       value_map=value_map,
+       column_whitelist=[],
+       drop_list=drop_list,
+   )
+   
+   model_builder.set_train_test_split(
+       balance_off_target=True,
+       upsample_minority=True,
+       downsample_majority=False,
+       use_SMOTE=False,
+       random_state=40002,
+   )
+   
+   # Train a gradient boost model
+   model_builder.train_gradient_boost()
+   model_builder.evaluate_model()
+   
+   # Save the model for use in the Web Application
+   notes = """Gradient Boost classifier trained on dataset with 10 frame window"""
+   model_builder.save_model_and_datasets(
+       notes=notes, 
+       model_type="gradient-boost", 
+       model_path=trained_models_output_directory
    )
 
 Tips for Effective Annotations

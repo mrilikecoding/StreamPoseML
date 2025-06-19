@@ -127,11 +127,13 @@ For more control, you can process individual videos:
 
    from stream_pose_ml.jobs.process_video_job import ProcessVideoJob
 
-   single_video_job = ProcessVideoJob()
-   result = single_video_job.process_video(
-       src_video_path='/path/to/video.mp4',
-       output_keypoints_path='/path/to/output/keypoints',
-       output_sequence_path='/path/to/output/sequence',
+   # From stream_pose_ml/jobs/process_video_job.py
+   # This shows how to process a single video
+   result = ProcessVideoJob.process_video(
+       input_filename='example_video.mp4',
+       video_input_path='/path/to/videos',
+       output_keypoint_data_path='/path/to/output/keypoints',
+       output_sequence_data_path='/path/to/output/sequences',
        write_keypoints_to_file=True,
        write_serialized_sequence_to_file=True,
        configuration={},
