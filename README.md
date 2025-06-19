@@ -30,7 +30,7 @@ Comprehensive documentation is available at **[streamposeml.readthedocs.io](http
 The StreamPoseML project consists of two main parts:
 
 1. **Python Package** (`stream_pose_ml/`)
-   - Available on PyPI: `pip install stream_pose_ml`
+   - Available on PyPI: `pip install stream-pose-ml`
    - Core tools for video processing, pose extraction, dataset creation, and model training
    - Can be used independently in your Python projects
 
@@ -46,7 +46,7 @@ The StreamPoseML project consists of two main parts:
 
 ```bash
 # Install the package
-pip install stream_pose_ml
+pip install stream-pose-ml
 
 # Import core modules
 import stream_pose_ml.jobs.process_videos_job as pv

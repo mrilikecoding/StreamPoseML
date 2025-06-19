@@ -10,3 +10,5 @@ This section provides the fundamental information needed to understand and use S
    quickstart
    concepts
    annotations
+   segmentation_strategies
+   openpose_mediapipe_conversion
