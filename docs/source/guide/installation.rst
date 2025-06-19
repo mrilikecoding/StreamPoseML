@@ -16,7 +16,7 @@ The easiest way to install StreamPoseML is via pip:
 
 .. code-block:: bash
 
-   pip install stream_pose_ml
+   pip install stream-pose-ml
 
 This will automatically install all required dependencies.
 

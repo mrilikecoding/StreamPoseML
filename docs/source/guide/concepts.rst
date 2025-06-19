@@ -1,24 +1,37 @@
 Core Concepts
 =============
 
+Understanding how StreamPoseML works
+----------------------------------
+
+This guide explains the key concepts behind StreamPoseML in simple, clear terms. Whether you're new to pose estimation or an experienced ML practitioner, this will help you understand how the system works.
+
+.. figure:: /_static/logo.png
+   :align: center
+   :alt: StreamPoseML workflow visualization
+   
+   *StreamPoseML transforms videos of people moving into useful machine learning insights*
+
 Pose Detection and Keypoint Extraction
 -------------------------------------
 
-Introduction to Pose Detection
+How computers see human movement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-StreamPoseML uses MediaPipe's BlazePose model to detect and track human poses in video. The pose detection pipeline extracts keypoints (or landmarks) from each frame, which represent the positions of various body joints like shoulders, elbows, wrists, hips, knees, and ankles.
+At the heart of StreamPoseML is the ability to "see" how people move in videos. The system uses MediaPipe's BlazePose technology to detect and track human poses. Think of it like a digital skeleton that follows along with a person's movements in video.
 
-Keypoint Representation
-~~~~~~~~~~~~~~~~~~~~~
+Understanding Keypoints: The Digital Skeleton
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Each keypoint contains:
+When StreamPoseML processes a video, it identifies key points on the human body in each frame. Think of these as digital push pins placed at important joints and body parts.
 
-* 3D coordinates (x, y, z) in pixel space
-* Normalized coordinates relative to a reference point (typically hip width)
-* Visibility and confidence scores
+Each keypoint contains valuable information:
 
-These keypoints are organized into a ``BlazePoseFrame`` for each video frame, which can then be combined into a ``BlazePoseSequence`` representing a continuous motion.
+* **Position**: Where is this body part in 3D space? (x, y, z coordinates)
+* **Normalized position**: Adjusted coordinates that work regardless of image size or person's distance from camera
+* **Confidence**: How sure is the system that it correctly identified this body part?
+
+For each video frame, these keypoints are wrapped into a neat package called a ``BlazePoseFrame``. When you put multiple frames together in sequence, you get a ``BlazePoseSequence`` - essentially a digital record of how someone moved over time.
 
 Here's how keypoint data is structured in the codebase:
 
@@ -57,33 +70,34 @@ Here's how keypoint data is structured in the codebase:
        )
    }
 
-BlazePose Keypoints
-~~~~~~~~~~~~~~~~~
+The Digital Body Map: What Points Are Tracked
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The system uses MediaPipe's standard keypoints which include:
+StreamPoseML tracks a comprehensive set of points on the human body using MediaPipe's technology:
 
-* Facial landmarks (nose, eyes, ears)
-* Upper body landmarks (shoulders, elbows, wrists, hands)
-* Lower body landmarks (hips, knees, ankles, feet)
+* **Face**: Nose, eyes, ears, and mouth
+* **Upper Body**: Shoulders, elbows, wrists, hands, and fingers
+* **Lower Body**: Hips, knees, ankles, and feet
 
-OpenPose Compatibility
-~~~~~~~~~~~~~~~~~~~~
+Think of it as placing motion-tracking dots on an actor, but done entirely through video analysis - no special suits or equipment needed!
 
-StreamPoseML includes utilities for transforming BlazePose keypoints to formats compatible with OpenPose's Body-25 model, allowing for compatibility with datasets and models trained on OpenPose data.
+**Compatibility with Other Systems**: If you've worked with OpenPose before (another popular pose estimation system), don't worry! StreamPoseML can convert its data format to be compatible with OpenPose's Body-25 model, making it easy to work with existing datasets and models.
 
-Sequence Processing
------------------
+From Frames to Movement: Sequence Processing
+----------------------------------------
 
-Frame Sequences
-~~~~~~~~~~~~~
+Capturing Motion Over Time
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Video data is processed as sequences of frames, where each frame contains pose keypoints. A ``BlazePoseSequence`` represents a continuous segment of frames with associated metadata.
+Movement happens over time, not in a single snapshot. That's why StreamPoseML processes videos as sequences of frames. Imagine flipping through a flipbook animation - each page shows a slightly different position, and together they create fluid motion.
 
-Key concepts:
+In StreamPoseML, a ``BlazePoseSequence`` represents a continuous segment of movement across multiple video frames. This is crucial for analyzing dynamic movements like dance steps, sports techniques, or rehabilitation exercises.
 
-* **Frame Window**: Number of consecutive frames considered as a single sequence
-* **Frame Overlap**: Number of overlapping frames between consecutive sequences (for MLFlowClient)
-* **Sequence Generation**: Process of converting raw frames into structured sequences
+Important concepts to understand:
+
+* **Frame Window**: How many consecutive frames are grouped together as one movement unit (like analyzing 30 frames = 1 second of video)
+* **Frame Overlap**: How many frames are shared between consecutive windows (helps create smoother analysis)
+* **Sequence Generation**: The process that transforms individual frame data into meaningful sequences
 
 Here's how frame sequences are created in the code:
 
@@ -106,17 +120,19 @@ Here's how frame sequences are created in the code:
            data, meta = self.transformer.transform(data=sequence_data, columns=columns)
            self.current_classification = bool(self.model.predict(data=data)[0])
 
-Feature Engineering
-~~~~~~~~~~~~~~~~
+Making Movement Measurable: Feature Engineering
+------------------------------------------
 
-From raw keypoints, StreamPoseML can compute various derived features:
+Raw keypoint positions are just the beginning. To really understand movement patterns, StreamPoseML calculates meaningful measurements from those positions. This process, called feature engineering, transforms raw data points into insightful metrics about how the body is moving.
 
-* **Angles**: Angular relationships between body segments (e.g., elbow angle)
-* **Distances**: Spatial relationships between keypoints
-* **Vectors**: Directional relationships between joints
-* **Normalized Features**: Features scaled relative to body proportions
+StreamPoseML automatically calculates these types of features:
 
-These features enhance the discriminative power of the data for classification tasks.
+* **Angles**: How bent is an elbow or knee? What's the angle between torso and arm?
+* **Distances**: How far apart are the hands? What's the distance from foot to hip?
+* **Vectors**: In which direction is the arm moving? What's the relationship between head and shoulder movement?
+* **Normalized Features**: Measurements that work regardless of the person's size or distance from camera
+
+These calculated features are what make machine learning models truly powerful. For example, the difference between a correct and incorrect dance step might be detected in the angle of a knee bend or the relationship between torso angle and arm extension.
 
 Here's how feature selection works when formatting a dataset:
 
@@ -140,18 +156,20 @@ Here's how feature selection works when formatting a dataset:
        segmentation_window_label="weight_transfer_type" # Label for window
    )
 
-Dataset Creation
---------------
+Building Your Movement Library: Dataset Creation
+--------------------------------------------
 
-Dataset Structure
-~~~~~~~~~~~~~~
+What Makes a Great Movement Dataset?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-StreamPoseML datasets combine keypoint data with annotations/labels. The typical structure includes:
+To train a computer to recognize specific movements, you need examples - lots of them! StreamPoseML helps you build rich datasets that combine movement data with meaningful labels.
 
-* **Sequences**: Time series of pose keypoints
-* **Annotations**: Labels with start/end frame information
-* **Features**: Raw and derived features from keypoints
-* **Metadata**: Additional information about the sequences
+A StreamPoseML dataset contains:
+
+* **Movement Sequences**: Time-ordered series of keypoints showing how people moved
+* **Labels/Annotations**: Information about what each movement represents ("correct form", "exercise type A", etc.)
+* **Calculated Features**: All those angles, distances, and other measurements we talked about
+* **Context Information**: Additional details about the video source, recording conditions, etc.
 
 Here's how datasets are built in the code:
 
@@ -172,26 +190,30 @@ Here's how datasets are built in the code:
        unlabeled_frames=annotated_video_data["unlabeled_frames"],
    )
 
-Annotation Integration
-~~~~~~~~~~~~~~~~~~~
+Adding Meaning: Annotation Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Annotations are typically provided as JSON files with:
+To make sense of movement data, we need to label what's happening in the video. For example, which frames show a "correct dance step" versus an "incorrect step"?
 
-* Label information
-* Start and end frames
-* Additional metadata
+StreamPoseML works with annotation files (typically in JSON format) that contain:
 
-StreamPoseML provides tools to merge these annotations with extracted keypoint data.
+* **Labels**: What movement is being performed?
+* **Timing Information**: Which frames contain this movement? (start/end points)
+* **Additional Context**: Any other relevant information about the movement
 
-Segmentation Strategies
-~~~~~~~~~~~~~~~~~~~~
+The system seamlessly merges these human-provided annotations with the computer-detected keypoints, creating a rich dataset that connects movements with their meanings.
 
-When building datasets, different segmentation strategies can be applied:
+Organizing Movement Data: Segmentation Strategies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **None**: Raw frame-by-frame data
-* **Flatten into columns**: Temporal data represented as separate columns
-* **Window-based**: Fixed-size windows with potential overlap
-* **Custom**: User-defined segmentation logic
+Movements happen over time, so how should we package this time-based data for machine learning? StreamPoseML offers several approaches:
+
+* **Frame-by-Frame**: Each individual frame is treated as a separate data point (like analyzing a single snapshot)
+* **Flattened Time Windows**: Multiple frames are combined into a single row of data (like watching 10 frames at once)
+* **Sliding Windows**: Overlapping segments of frames (like a moving spotlight tracking through time)
+* **Custom Segmentation**: Your own approach to organizing the time-series data
+
+Choosing the right segmentation strategy depends on your goals. For instance, recognizing a dance step might require looking at 30 consecutive frames together, while detecting a fall might need a different approach.
 
 Here are examples of different segmentation strategies from the example notebook:
 
@@ -227,27 +249,27 @@ Here are examples of different segmentation strategies from the example notebook
        segmentation_window_label="weight_transfer_type"
    )
 
-Model Training
-------------
+Teaching Computers to Recognize Movements: Model Training
+--------------------------------------------------
 
-Dataset Preparation
-~~~~~~~~~~~~~~~~
+Preparing Your Data for Learning
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before training, datasets typically undergo:
+Once you have your movement dataset, there are a few key steps to prepare it for machine learning:
 
-* Feature selection
-* Normalization
-* Train/test splitting
-* Handling class imbalance (if necessary)
+* **Feature Selection**: Choosing which measurements are most important (Do we need all 33 angles? Or just the knee and elbow angles?)
+* **Normalization**: Adjusting values to comparable scales (so height differences between people don't confuse the model)
+* **Train/Test Splitting**: Setting aside some data to evaluate how well the model generalizes
+* **Handling Imbalanced Data**: Making sure the model sees enough examples of rare movements
 
-Model Types
-~~~~~~~~~
+Choosing Your Learning Approach
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-StreamPoseML is agnostic to the model type and supports:
+StreamPoseML is flexible about what kind of machine learning models you use. It works well with:
 
-* Traditional ML models (Random Forest, XGBoost)
-* Deep learning models (via integration with external libraries)
-* Custom model architectures
+* **Traditional ML Models**: Fast, interpretable models like Random Forest and Gradient Boosting that work well for many movement classification tasks
+* **Deep Learning Models**: More complex neural networks for challenging movement patterns
+* **Your Custom Models**: If you've developed your own special approach
 
 Here's how to train different model types using the codebase:
 
@@ -306,31 +328,35 @@ Here's how to train different model types using the codebase:
        random_state=123
    )
 
-Evaluation
-~~~~~~~~
+How Good Is Your Model? Evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Model evaluation considers:
+Once you've trained your model, you need to know how well it performs. StreamPoseML provides comprehensive evaluation tools that consider multiple aspects of performance:
 
-* Accuracy metrics
-* Precision and recall
-* F1 score
-* Confusion matrices
-* Cross-validation results
+* **Accuracy**: Overall percentage of correct predictions
+* **Precision and Recall**: Balancing between false positives and false negatives
+* **F1 Score**: Harmonic mean of precision and recall
+* **Confusion Matrix**: Detailed breakdown of prediction successes and errors by class
+* **Cross-Validation**: Testing performance across different subsets of your data
 
-Real-time Classification
----------------------
+These metrics help you refine your approach and ensure your movement classifier is reliable before deployment.
 
-Pipeline Structure
-~~~~~~~~~~~~~~
+Putting It All Together: Real-time Classification
+---------------------------------------------
 
-The real-time classification pipeline involves:
+How Live Classification Works
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-1. Capturing video frames
-2. Extracting pose keypoints
-3. Maintaining a buffer of recent frames
-4. Computing features
-5. Applying the trained model
-6. Producing classification results
+The magic happens when StreamPoseML classifies movements in real time. Here's the process that runs continuously as someone moves in front of a camera:
+
+1. **Frame Capture**: The system continuously grabs video frames from a camera feed
+2. **Pose Detection**: For each frame, it detects the person and their pose keypoints
+3. **Sequence Management**: It maintains a rolling window of recent frames (e.g., the last 30 frames)
+4. **Feature Calculation**: It computes angles, distances, and other features from the keypoints
+5. **Model Prediction**: Your trained model examines these features and makes a classification
+6. **Result Delivery**: Classification results are returned for immediate feedback
+
+This entire pipeline runs many times per second, providing smooth, responsive feedback about the movements being performed.
 
 Here's the implementation of the real-time classification pipeline from the codebase:
 
@@ -367,20 +393,33 @@ Here's the implementation of the real-time classification pipeline from the code
            
        return True
 
-Integration Models
-~~~~~~~~~~~~~~~
+Integrating with Your Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-StreamPoseML provides two main integration models:
+StreamPoseML gives you two primary ways to integrate movement classification into your own applications:
 
-* **Direct Integration** via StreamPoseClient
-* **MLflow-based Integration** via MLFlowClient
+* **Direct Integration**: Using the `StreamPoseClient` class for simple, self-contained applications
+* **MLflow Integration**: Using the `MLFlowClient` for advanced, scalable deployment with model versioning
 
-Performance Considerations
-~~~~~~~~~~~~~~~~~~~~~~~
+The direct approach is simpler, while MLflow integration provides more robust model management features.
 
-Real-time classification requires:
+Keeping Things Fast: Performance Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Efficient frame processing
-* Optimized feature computation
-* Fast model inference
-* Proper buffer management to balance accuracy and latency
+Real-time movement classification requires balancing accuracy with speed. StreamPoseML optimizes for:
+
+* **Efficient Video Processing**: Quickly extracting pose information from frames
+* **Smart Feature Computation**: Calculating only the features needed for your specific models
+* **Fast Model Inference**: Ensuring predictions happen quickly enough for real-time feedback
+* **Intelligent Frame Management**: Finding the right balance between historical context and responsiveness
+
+By carefully considering these factors, StreamPoseML enables smooth, responsive real-time classification even on modest hardware.
+
+Where to Go From Here
+------------------
+
+Now that you understand the core concepts, you're ready to start working with StreamPoseML! Check out:
+
+* :doc:`../workflows/video_processing` - Step-by-step guide for processing videos
+* :doc:`../examples/notebook_walkthrough` - Complete example workflow from video to classification
+* :doc:`../api/clients` - Details on integrating StreamPoseML into your applications
