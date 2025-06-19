@@ -131,9 +131,19 @@ If you use StreamPoseML in your work or research, please cite:
 
 See [paper.md](paper.md) for more details.
 
-## Contributions
+## Contribute to StreamPoseML
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+We're actively seeking contributors! Whether you're fixing bugs, adding features, improving documentation, or sharing your use cases, your contribution matters.
+
+### Ways to Contribute
+
+- **Code**: Fix bugs, implement new features, or improve performance
+- **Documentation**: Help improve or translate documentation
+- **Testing**: Create tests or report bugs
+- **Examples**: Share your use cases or implementation examples
+- **Research**: Cite us in your research or suggest new features based on research needs
+
+Check our [contribution guidelines](CONTRIBUTING.md) and [open issues](https://github.com/mrilikecoding/StreamPoseML/issues) to get started. New contributors are welcome - we've labeled some issues as "good first issue" to help you begin!
 
 ## License
 
