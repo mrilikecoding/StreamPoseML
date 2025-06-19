@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: StreamPoseML Documentation
+    url: https://streamposeml.readthedocs.io/
+    about: Check our documentation before opening an issue
+  - name: Questions & Discussions
+    url: https://github.com/mrilikecoding/StreamPoseML/discussions
+    about: For questions or discussions, please use GitHub Discussions
