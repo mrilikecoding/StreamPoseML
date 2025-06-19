@@ -4,13 +4,20 @@ Your contributions would be welcome! How can this project benefit more people?
 
 ## Getting Started
 
-To get your environment set up to run StreamPoseML, you'll need Python and Pip installed on your machine. Ideally you'll want an isolated Python environment. If you want to run the web application, a Docker environment is recommended.
+To get your environment set up to run StreamPoseML, you'll need Python 3.10 or 3.11 and Pip installed on your machine. We recommend using an isolated Python environment (virtualenv, conda, etc.). If you want to run the web application, Docker is required.
 
 ### Installation for Development
 
 ```bash
+# Create and activate a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 # Install in development mode with dev dependencies
 pip install -e .[dev]
+
+# Run setup.py to set paths correctly
+python setup.py
 ```
 
 ## Workflow
@@ -22,6 +29,7 @@ Follow the [GitHub Flow Workflow](https://guides.github.com/introduction/flow/):
 1.  Create a feature branch
 1.  Write code and tests for your change
 1.  From your branch, make a pull request against `https://github.com/mrilikecoding/StreamPoseML`
+1.  Complete the pull request template with all relevant information
 1.  Get your change reviewed
 1.  Wait for your change to be pulled into `https://github.com/mrilikecoding/StreamPoseML/main`
 1.  Delete your feature branch
@@ -82,21 +90,13 @@ make lint-check
 
 ## Issues
 
-When creating an issue please try to ahere to the following format:
+We use issue templates to make it easier to report bugs, request features, or suggest documentation improvements. When creating a new issue, you'll be prompted to select an issue type:
 
-    module-name: One line summary of the issue (less than 72 characters)
+- **Bug Report** - For reporting problems or unexpected behavior
+- **Feature Request** - For suggesting new functionality or improvements
+- **Documentation** - For reporting issues with documentation or suggesting improvements
 
-    ### Expected behavior
-
-    As concisely as possible, describe the expected behavior.
-
-    ### Actual behavior
-
-    As concisely as possible, describe the observed behavior.
-
-    ### Steps to reproduce the behavior
-
-    List all relevant steps to reproduce the observed behavior.
+Please fill out the template as completely as possible, providing all the requested information. This helps maintainers understand and address your issue more effectively.
 
 ## Documentation
 
