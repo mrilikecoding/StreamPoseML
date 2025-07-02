@@ -18,7 +18,7 @@ Pose Detection and Keypoint Extraction
 How computers see human movement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-At the heart of StreamPoseML is the ability to "see" how people move in videos. The system uses MediaPipe's BlazePose technology to detect and track human poses. Think of it like a digital skeleton that follows along with a person's movements in video.
+StreamPoseML detects how people move in videos. The system uses MediaPipe's BlazePose technology to detect and track human poses. Think of it like a digital skeleton that follows along with a person's movements in video.
 
 Understanding Keypoints: The Digital Skeleton
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -123,7 +123,7 @@ Here's how frame sequences are created in the code:
 Making Movement Measurable: Feature Engineering
 ------------------------------------------
 
-Raw keypoint positions are just the beginning. To really understand movement patterns, StreamPoseML calculates meaningful measurements from those positions. This process, called feature engineering, transforms raw data points into insightful metrics about how the body is moving.
+StreamPoseML calculates features from raw keypoint positions to identify movement patterns. This process, called feature engineering, transforms raw data points into insightful metrics about how the body is moving.
 
 StreamPoseML automatically calculates these types of features:
 
@@ -159,10 +159,10 @@ Here's how feature selection works when formatting a dataset:
 Building Your Movement Library: Dataset Creation
 --------------------------------------------
 
-What Makes a Great Movement Dataset?
+Building Movement Datasets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To train a computer to recognize specific movements, you need examples - lots of them! StreamPoseML helps you build rich datasets that combine movement data with meaningful labels.
+Training movement recognition models requires multiple labeled examples. StreamPoseML helps you build rich datasets that combine movement data with meaningful labels.
 
 A StreamPoseML dataset contains:
 

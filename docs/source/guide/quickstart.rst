@@ -1,7 +1,7 @@
 Quick Start Guide
 =================
 
-Welcome to StreamPoseML! This guide will help you get up and running in just a few minutes. Whether you're a researcher, developer, or artist, we've made it easy to start processing videos and classifying movements.
+Welcome to StreamPoseML! This guide will help you get up and running in just a few minutes. This guide shows you how to process videos and classify movements.
 
 In this guide, you'll learn how to:
 
@@ -27,7 +27,7 @@ Let's start by installing StreamPoseML and its dependencies:
 Basic Usage
 -----------
 
-StreamPoseML provides intuitive tools for analyzing human movement in videos. Let's import the modules we'll need:
+StreamPoseML provides tools for analyzing human movement in videos. Let's import the modules we'll need:
 
 .. code-block:: python
 
