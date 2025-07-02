@@ -18,7 +18,7 @@ StreamPoseML is an open-source toolkit for creating real-time, video-based class
 
 ## Documentation
 
-Comprehensive documentation is available at **[streamposeml.readthedocs.io](https://streamposeml.readthedocs.io)**
+Full documentation is available at **[streamposeml.readthedocs.io](https://streamposeml.readthedocs.io)**
 
 - **Getting Started Guide** - Installation and basic usage
 - **API Reference** - Detailed class and method documentation
