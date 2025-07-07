@@ -42,16 +42,16 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install pytest pytest-cov pytest-emoji black
-        pip install -e .[dev]
+      run: uv sync --dev
     
     - name: Run package tests and lint check
       run: |
-        pytest stream_pose_ml/tests/ -v
-        python -m black --check stream_pose_ml mlflow
+        uv run pytest stream_pose_ml/tests/ -v
+        uv run python -m black --check stream_pose_ml mlflow
         
   # Second job: Test API on specific Python version
   test-api:
@@ -67,22 +67,18 @@ jobs:
       with:
         python-version: "3.11"
     
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        # Install main package in development mode
-        pip install -e .
-        # Install API requirements
-        pip install -r api/requirements.txt
-        pip install -r api/requirements-dev.txt
-        pip install pytest pytest-cov pytest-emoji black
+      run: uv sync --dev
     
     - name: Run API tests and lint check
       run: |
         cd api/tests
-        pytest -v
+        uv run pytest -v
         cd ../..
-        python -m black --check api
+        uv run python -m black --check api
 
   # Third job: Build and publish (only if tests pass)
   build-and-publish:
@@ -100,10 +96,11 @@ jobs:
       with:
         python-version: "3.10"  # Use a stable Python version for building
     
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        pip install build twine
+    - name: Install uv
+      run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+    - name: Install build dependencies
+      run: uv pip install --system build twine
     
     - name: Debug variables
       run: |
@@ -123,8 +120,8 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(grep 'version = ' pyproject.toml | sed -E 's/.*version = "([^"]+)".*/\1/')
-        echo "package_version=$VERSION" >> $GITHUB_OUTPUT
+        VERSION=$(grep 'version = ' pyproject.toml | sed -E 's/.*version = "([^"]+)"'.*/\1/')
+        echo "::set-output name=package_version::$VERSION"
         echo "Building version: $VERSION"
 
     - name: Publish to TestPyPI
