@@ -132,7 +132,7 @@ jobs:
     - name: Extract version
       id: get_version
       run: |
-        VERSION=$(grep 'version = ' pyproject.toml | sed -E 's/.*version = "([^"]+)"'.*/\1/')
+        VERSION=$(grep 'version = ' pyproject.toml | sed -n 's/version = "\(.*\)"/\1/p')
         echo "::set-output name=package_version::$VERSION"
         echo "Building version: $VERSION"
 
