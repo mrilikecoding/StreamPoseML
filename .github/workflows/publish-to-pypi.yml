@@ -75,7 +75,10 @@ jobs:
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Install dependencies
-      run: uv sync --extra dev
+      run: |
+        uv sync --extra dev
+        uv pip install -r api/requirements.txt
+        uv pip install -r api/requirements-dev.txt
     
     - name: Run API tests and lint check
       run: |
