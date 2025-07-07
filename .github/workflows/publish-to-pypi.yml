@@ -50,8 +50,8 @@ jobs:
     
     - name: Run package tests and lint check
       run: |
-        uv run pytest stream_pose_ml/tests/ -v
-        uv run python -m black --check stream_pose_ml mlflow
+        uv run -- pytest stream_pose_ml/tests/ -v
+        uv run -- python -m black --check stream_pose_ml mlflow
         
   # Second job: Test API on specific Python version
   test-api:
@@ -76,9 +76,9 @@ jobs:
     - name: Run API tests and lint check
       run: |
         cd api/tests
-        uv run pytest -v
+        uv run -- pytest -v
         cd ../..
-        uv run python -m black --check api
+        uv run -- python -m black --check api
 
   # Third job: Build and publish (only if tests pass)
   build-and-publish:
