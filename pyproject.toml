@@ -59,7 +59,7 @@ packages = ["stream_pose_ml"]
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ["py311"]
 
 [tool.ruff]
 target-version = "py311"
