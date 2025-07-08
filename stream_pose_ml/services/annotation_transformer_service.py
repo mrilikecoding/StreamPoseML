@@ -46,7 +46,7 @@ class AnnotationTransformerService:
 
     @staticmethod
     def update_video_data_with_annotations(
-        annotation_data: dict, video_data: dict, schema: dict = None
+        annotation_data: dict, video_data: dict, schema: dict | None = None
     ) -> tuple:
         """Merged video and annotation data.
 

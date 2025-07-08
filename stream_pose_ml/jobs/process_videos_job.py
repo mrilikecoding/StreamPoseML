@@ -56,6 +56,10 @@ class ProcessVideosJob:
         job_count = 0
         results = []
         video_files = []
+
+        if src_videos_path is None:
+            raise ProcessVideosJobError("src_videos_path cannot be None")
+
         # TODO better way to enforce filetypes?
         for extension in ["webm", "mp4"]:
             video_files += path_utility.get_file_paths_in_directory(
@@ -70,11 +74,11 @@ class ProcessVideosJob:
             result = ProcessVideoJob.process_video(
                 input_filename=filename,
                 video_input_path=video_input_path,
-                output_keypoint_data_path=output_keypoints_data_path,
-                output_sequence_data_path=output_sequence_data_path,
+                output_keypoint_data_path=output_keypoints_data_path or "",
+                output_sequence_data_path=output_sequence_data_path or "",
                 write_keypoints_to_file=write_keypoints_to_file,
                 write_serialized_sequence_to_file=write_serialized_sequence_to_file,
-                configuration=configuration,
+                configuration=configuration or {},
                 preprocess_video=preprocess_video,
             )
             results.append(result)

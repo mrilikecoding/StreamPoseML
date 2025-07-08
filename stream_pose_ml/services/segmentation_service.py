@@ -1,5 +1,6 @@
 import typing
 from enum import Enum
+from typing import Any
 
 if typing.TYPE_CHECKING:
     from stream_pose_ml.learning.dataset import Dataset
@@ -36,9 +37,9 @@ class SegmentationService:
     TODO should this be merged into the Dataset class?
     """
 
-    segemetation_strategy: str
+    segemetation_strategy: SegmentationStrategy
     include_unlabeled_data: bool
-    segmentation_window: int
+    segmentation_window: int | None
 
     def __init__(
         self,
@@ -64,7 +65,7 @@ class SegmentationService:
         self.segmentation_splitter_label = segmentation_splitter_label
         self.segmentation_window_label = segmentation_window_label
         self.include_unlabeled_data = include_unlabeled_data
-        self.merged_data = []
+        self.merged_data: list[dict] = []
 
     def segment_dataset(self, dataset: "Dataset") -> "Dataset":
         """Segment the data in a dataset into various training examples.
@@ -92,7 +93,7 @@ class SegmentationService:
         return dataset
 
     @staticmethod
-    def flatten_segment_into_row(frame_segment: list):
+    def flatten_segment_into_row(frame_segment: list[dict]) -> dict:
         """Flatten a list of frames into a single row object
 
         For this scheme want to store nested joint / angle / distance data per frame
@@ -111,7 +112,7 @@ class SegmentationService:
 
         """
         # Set top level keys from last frame
-        flattened = {
+        flattened: dict[str, Any] = {
             key: value
             for key, value in frame_segment[-1].items()
             if (isinstance(value, str) or value is None)
@@ -126,7 +127,7 @@ class SegmentationService:
                 # Merge all frame data for this segment into frame specific keys
                 if isinstance(value, dict):
                     for k, v in value.items():
-                        flattened["data"][key][f"frame-{i+1}-{k}"] = v
+                        flattened["data"][key][f"frame-{i + 1}-{k}"] = v
                 else:
                     # Let the last frame set the top level value here
                     # when we don't have nested data
@@ -268,7 +269,7 @@ class SegmentationService:
         segment_splitter_label = self.segmentation_splitter_label
         segmented_video_data_list = []
         for video in labeled_frame_videos:
-            segmented_frames = {}
+            segmented_frames: dict[int, list[dict]] = {}
             segment_counter = 0
             for i, frame in enumerate(video):
                 # if this is the last frame don't compare to next

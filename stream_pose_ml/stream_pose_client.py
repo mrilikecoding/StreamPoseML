@@ -2,9 +2,10 @@ import base64
 import typing
 import time
 import numpy as np
+from typing import Union
 
-import mediapipe as mp
-import cv2
+import mediapipe as mp  # type: ignore[import-untyped]
+import cv2  # type: ignore[import-untyped]
 from collections import deque
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
 from stream_pose_ml.services import segmentation_service as ss
@@ -22,20 +23,20 @@ class StreamPoseClient:
     def __init__(
         self,
         frame_window: int = 25,
-        mediapipe_client_instance: type["MediaPipeClient"] = None,
-        trained_model: type["TrainedModel"] = None,
-        data_transformer: type["SequenceTransformer"] = None,
+        mediapipe_client_instance: Union["MediaPipeClient", None] = None,
+        trained_model: Union["TrainedModel", None] = None,
+        data_transformer: Union["SequenceTransformer", None] = None,
     ):
         self.frame_window = frame_window
         self.model = trained_model
         self.transformer = data_transformer
         self.mpc = mediapipe_client_instance
-        self.frames = deque([], maxlen=self.frame_window)
-        # mp_pose = mp.solutions.pose
-        # self.pose = mp_pose.Pose(
-        #     min_detection_confidence=0.5, min_tracking_confidence=0.5
-        # )
-        self.current_classification = None
+        self.frames: deque[typing.Any] = deque([], maxlen=self.frame_window)
+        mp_pose = mp.solutions.pose
+        self.pose = mp_pose.Pose(
+            min_detection_confidence=0.5, min_tracking_confidence=0.5
+        )
+        self.current_classification: Union[bool, None] = None
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Run some basic image preprocessing steps. Currently just contrast enhance
@@ -54,7 +55,7 @@ class StreamPoseClient:
         l, a, b = cv2.split(lab)
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
         cl = clahe.apply(l)
-        enhanced_img = cv2.merge((cl, a, b))
+        enhanced_img = cv2.merge([cl, a, b])  # type: ignore[arg-type]
         enhanced_img = cv2.cvtColor(enhanced_img, cv2.COLOR_LAB2BGR)
 
         return enhanced_img
@@ -62,6 +63,9 @@ class StreamPoseClient:
     def run_keypoint_pipeline(self, keypoints):
         current_frames = self.update_frame_data_from_js_client_keypoints(keypoints)
         if len(current_frames) == self.frame_window:
+            if self.model is None or self.transformer is None:
+                return False
+
             sequence = BlazePoseSequence(
                 name=f"sequence-{time.time_ns()}",
                 sequence=list(current_frames),
@@ -79,6 +83,9 @@ class StreamPoseClient:
         results = self.get_keypoints(image)
         current_frames = self.update_frame_data(results)
         if len(current_frames) == self.frame_window:
+            if self.model is None or self.transformer is None:
+                return False
+
             sequence = BlazePoseSequence(
                 name=f"sequence-{time.time_ns()}",
                 sequence=list(current_frames),

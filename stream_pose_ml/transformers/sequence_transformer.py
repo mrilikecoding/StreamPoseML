@@ -46,7 +46,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
 
     """
 
-    def transform(self, data: any, columns: list) -> any:
+    def transform(self, data: Any, columns: list) -> Any:
         # TODO -
         # take the data and pass into segmentation service
         # may need to alter some SegService strategy to
@@ -64,7 +64,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
         # ss.SegmentationService.flatten_into_columns()
         # Set top level keys from last frame
         frame_segment = data["frames"]
-        flattened = {
+        flattened: dict[str, Any] = {
             key: value
             for key, value in frame_segment[-1].items()
             if (isinstance(value, str) or value is None)
@@ -77,7 +77,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
                 if isinstance(value, dict):
                     value_items = value.items()
                     for k, v in value_items:
-                        flattened_data_key[f"frame-{i+1}-{k}"] = v
+                        flattened_data_key[f"frame-{i + 1}-{k}"] = v
                 else:
                     flattened_data_key = value
 
@@ -92,12 +92,12 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
 
 # TODO create concrete classes for different schemes
 class MLFlowTransformer(SequenceTransformer):
-    def transform(self, data: any, columns) -> any:
+    def transform(self, data: Any, columns) -> Any:
         # TDOD this def needs a refactor, but working for now
         frame_segment = data["frames"]
 
         # Flatten the frame data with default 0.0 where values are missing
-        flattened = {
+        flattened: dict[str, Any] = {
             key: value if value is not None else 0.0  # default to 0.0 if value is None
             for key, value in frame_segment[-1].items()
             if isinstance(value, (str, type(None)))
@@ -110,7 +110,7 @@ class MLFlowTransformer(SequenceTransformer):
 
                 if isinstance(value, dict):
                     for k, v in value.items():
-                        flattened_data_key[f"frame-{i+1}-{k}"] = (
+                        flattened_data_key[f"frame-{i + 1}-{k}"] = (
                             v if v is not None else 0.0
                         )  # default to 0.0 if None
                 else:

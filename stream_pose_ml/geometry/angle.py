@@ -45,7 +45,7 @@ class Angle:
         except:
             raise AngleError("There was a problem instantiating the angle.")
 
-    def unit_vector(self, vector: tuple) -> float:
+    def unit_vector(self, vector: tuple) -> tuple:
         """Determine the directional unit vector of a passed tuple of two points.
 
         Given a passed vector with beginning and end points
@@ -62,7 +62,8 @@ class Angle:
                 regardless of normalized values
         """
         try:
-            return vector / np.linalg.norm(vector)
+            vector_array = np.array(vector)
+            return tuple(vector_array / np.linalg.norm(vector_array))
         except:
             raise AngleError("There was an error computing the unit vector")
 
@@ -96,7 +97,7 @@ class Angle:
         try:
             v1_u = self.unit_vector(vector_1)
             v2_u = self.unit_vector(vector_2)
-            return np.arccos(np.clip(np.dot(v1_u, v2_u.T), -1.0, 1.0))
+            return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
         except:
             raise AngleError("There was an error computing the vector angle.")
 

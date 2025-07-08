@@ -110,7 +110,7 @@ class TestVideoDataService:
         mock_media_pipe_client.assert_called_once_with(
             video_input_filename=input_filename,
             video_input_path=video_input_path,
-            video_output_prefix=None,
+            video_output_prefix="",
             id=123456789,
             configuration={},
             preprocess_video=False,
@@ -261,7 +261,7 @@ class TestVideoDataService:
         mock_media_pipe_client.assert_called_once_with(
             video_input_filename=input_filename,
             video_input_path=video_input_path,
-            video_output_prefix=None,
+            video_output_prefix="",
             id=mock_media_pipe_client.call_args[1]["id"],  # Use dynamic ID
             configuration=custom_config,
             preprocess_video=False,

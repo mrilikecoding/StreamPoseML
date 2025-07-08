@@ -41,7 +41,9 @@ class TestVideoDataMergeService:
                     else (
                         "video2"
                         if omit_extension
-                        else "video1.json" if "video1" in path else "video2.json"
+                        else "video1.json"
+                        if "video1" in path
+                        else "video2.json"
                     )
                 )
             )
@@ -132,9 +134,7 @@ class TestVideoDataMergeService:
         # Then
         assert service.annotations_data_directory == annotations_dir
         assert service.video_directory == video_dir
-        assert service.output_keypoints_path == (
-            keypoints_path,
-        )  # Note: This is a tuple in the implementation
+        assert service.output_keypoints_path == keypoints_path
         assert service.process_videos is True
         assert isinstance(service.transformer, MagicMock)  # Our mocked transformer
 

@@ -55,7 +55,7 @@ class DatasetSerializer:
                 "There is no segmented data to serialize on this dataset."
             )
         segmented_dataset = dataset.segmented_data
-        rows = []
+        rows: list[dict] = []
         clip_serializer = LabeledClipSerializer(
             include_angles=self.include_angles,
             include_joints=self.include_joints,
@@ -66,15 +66,16 @@ class DatasetSerializer:
         for clip in segmented_dataset:
             if self.pool_rows:
                 # append pooled frame data to rows
-                rows.append(
-                    clip_serializer.serialize(labeled_clip=clip, pool_rows=True)
-                )
+                clip_data = clip_serializer.serialize(labeled_clip=clip, pool_rows=True)
+                if isinstance(clip_data, dict):
+                    rows.append(clip_data)
             else:
                 # append list of frame data to rows
                 clip_data = clip_serializer.serialize(
                     labeled_clip=clip, pool_rows=False
                 )
-                rows = rows + clip_data
+                if isinstance(clip_data, list):
+                    rows.extend(clip_data)
 
         if self.pool_rows:
             return rows

@@ -151,21 +151,21 @@ class TestProcessVideosJob:
         mock_process_video_job.process_video.assert_any_call(
             input_filename="video1.webm",
             video_input_path="/path/to",
-            output_keypoint_data_path=None,
-            output_sequence_data_path=None,
+            output_keypoint_data_path="",
+            output_sequence_data_path="",
             write_keypoints_to_file=False,
             write_serialized_sequence_to_file=False,
-            configuration=None,
+            configuration={},
             preprocess_video=False,
         )
 
         mock_process_video_job.process_video.assert_any_call(
             input_filename="video2.mp4",
             video_input_path="/path/to",
-            output_keypoint_data_path=None,
-            output_sequence_data_path=None,
+            output_keypoint_data_path="",
+            output_sequence_data_path="",
             write_keypoints_to_file=False,
             write_serialized_sequence_to_file=False,
-            configuration=None,
+            configuration={},
             preprocess_video=False,
         )

@@ -21,4 +21,4 @@ class Dataset:
         self.all_frames = all_frames
         self.labeled_frames = labeled_frames
         self.unlabeled_frames = unlabeled_frames
-        self.segmented_data = None
+        self.segmented_data: list | None = None

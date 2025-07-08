@@ -31,7 +31,7 @@ class MLFlowClient:
         self.model = trained_model
         self.transformer = data_transformer
         self.mpc = mediapipe_client_instance
-        self.frames = deque([], maxlen=self.frame_window)
+        self.frames: deque = deque([], maxlen=self.frame_window)
         self.current_classification = None
         self.predict_fn = predict_fn
         self.input_example = input_example

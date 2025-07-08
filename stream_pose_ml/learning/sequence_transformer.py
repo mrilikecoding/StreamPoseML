@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 import pandas as pd
 import numpy as np
@@ -8,7 +9,7 @@ import stream_pose_ml.services.segmentation_service as ss
 
 class SequenceTransformer(ABC):
     @abstractmethod
-    def transform(self, data: any, columns: list) -> any:
+    def transform(self, data: Any, columns: list) -> Any:
         """Transform the passed data into a row with the passed columns"""
         pass
 
@@ -27,7 +28,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
 
     """
 
-    def transform(self, data: any, columns: list) -> any:
+    def transform(self, data: Any, columns: list) -> Any:
         # TODO -
         # take the data and pass into segmentation service
         # may need to alter some SegService strategy to
@@ -45,7 +46,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
         # ss.SegmentationService.flatten_into_columns()
         # Set top level keys from last frame
         frame_segment = data["frames"]
-        flattened = {
+        flattened: dict[str, Any] = {
             key: value
             for key, value in frame_segment[-1].items()
             if (isinstance(value, str) or value is None)
@@ -58,7 +59,7 @@ class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
                 if isinstance(value, dict):
                     value_items = value.items()
                     for k, v in value_items:
-                        flattened_data_key[f"frame-{i+1}-{k}"] = v
+                        flattened_data_key[f"frame-{i + 1}-{k}"] = v
                 else:
                     flattened_data_key = value
 

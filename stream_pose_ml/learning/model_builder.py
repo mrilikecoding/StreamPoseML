@@ -1,6 +1,6 @@
 from copy import copy
 import json
-import joblib
+import joblib  # type: ignore[import-untyped]
 import os
 import pickle
 import shutil
@@ -10,8 +10,8 @@ from typing import Optional
 
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib.pyplot as plt  # type: ignore[import-untyped]
+import seaborn as sns  # type: ignore[import-untyped]
 
 # MLFlow integration
 import mlflow
@@ -19,33 +19,33 @@ import mlflow.sklearn
 import mlflow.xgboost
 
 # Modeling
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import RandomizedSearchCV, train_test_split
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import cross_val_score
+from sklearn.decomposition import PCA  # type: ignore[import-untyped]
+from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
+from sklearn.ensemble import RandomForestClassifier  # type: ignore[import-untyped]
+from sklearn.linear_model import LogisticRegression  # type: ignore[import-untyped]
+from sklearn.model_selection import RandomizedSearchCV, train_test_split  # type: ignore[import-untyped]
+from sklearn.model_selection import GridSearchCV  # type: ignore[import-untyped]
+from sklearn.model_selection import RepeatedStratifiedKFold  # type: ignore[import-untyped]
+from sklearn.model_selection import StratifiedKFold  # type: ignore[import-untyped]
+from sklearn.model_selection import cross_val_score  # type: ignore[import-untyped]
 
 # Unsupervised
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from kneed import KneeLocator
+from sklearn.cluster import KMeans  # type: ignore[import-untyped]
+from sklearn.metrics import silhouette_score  # type: ignore[import-untyped]
+from kneed import KneeLocator  # type: ignore[import-untyped]
 
 import xgboost as xgb
 
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
+from sklearn.pipeline import Pipeline  # type: ignore[import-untyped]
 
 # upsampling / downsampling
-from sklearn.utils import resample
-from imblearn.over_sampling import SMOTE
+from sklearn.utils import resample  # type: ignore[import-untyped]
+from imblearn.over_sampling import SMOTE  # type: ignore[import-untyped]
 
 # feature selection
-from sklearn.feature_selection import RFE
-from sklearn.feature_selection import RFECV
+from sklearn.feature_selection import RFE  # type: ignore[import-untyped]
+from sklearn.feature_selection import RFECV  # type: ignore[import-untyped]
 
 # Reporting
 from sklearn.metrics import (
@@ -340,7 +340,7 @@ class ModelBuilder:
             output.append({feature: f"{importance * 100}%"})
         return output
 
-    def set_model_signature(self, X_train: pd.DataFrame = None):
+    def set_model_signature(self, X_train: pd.DataFrame | None = None):
         if not X_train:
             X_train = self.X_train
         if not self.model:
@@ -481,7 +481,7 @@ class ModelBuilder:
     def save_model_and_datasets(
         self,
         notes: str,
-        model_type: str = None,
+        model_type: str | None = None,
         model_path: str = "../../data/trained_models",
     ):
         """Save the current model and metadata to a pickle / json file.
@@ -639,10 +639,10 @@ class ModelBuilder:
 
     def find_k_means_clusters(
         self,
-        X: pd.DataFrame = None,
+        X: pd.DataFrame | None = None,
         n_clusters: int = 3,
-        random_state: int = None,
-        cluster_range: tuple[int, int] = None,
+        random_state: int | None = None,
+        cluster_range: tuple[int, int] | None = None,
     ) -> KMeans:
         """Trains a Kmeans algorithm based on passed number of clusters.
         Or finds optimal number of clusters based on passed range
@@ -701,7 +701,7 @@ class ModelBuilder:
             )
             return kmeans
 
-    def k_means_metrics(self, kmeans: KMeans, X: pd.DataFrame = None) -> None:
+    def k_means_metrics(self, kmeans: KMeans, X: pd.DataFrame | None = None) -> None:
         print("K Means Evaluation")
         if X is None:
             X = self.X

@@ -136,7 +136,7 @@ class TestBuildAndFormatDatasetJob:
 
         # Verify VideoDataMergeService was created correctly
         mock_video_data_merge_service.assert_called_once_with(
-            annotations_directory=annotations_directory,
+            annotations_data_directory=annotations_directory,
             video_directory=video_directory,
             process_videos=True,
         )
@@ -171,7 +171,7 @@ class TestBuildAndFormatDatasetJob:
         # Verify SegmentationService was created with correct parameters
         mock_segmentation_service.assert_called_once_with(
             include_unlabeled_data=False,
-            segmentation_strategy=None,
+            segmentation_strategy="none",
             segmentation_splitter_label=None,
             segmentation_window=None,
             segmentation_window_label=None,

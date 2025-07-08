@@ -1,3 +1,4 @@
+from typing import Any
 from stream_pose_ml.learning.labeled_clip import LabeledClip
 from .labeled_frame_serializer import LabeledFrameSerializer
 from stream_pose_ml.learning import temporal_feature_pooling as tfp
@@ -64,7 +65,7 @@ class LabeledClipSerializer:
             frame_data_list: list[dict]
                 a list of serialized frame data for every frame in the clip
         """
-        clip_data = {"frame_length": len(labeled_clip.frames)}
+        clip_data: dict[str, Any] = {"frame_length": len(labeled_clip.frames)}
         frame_rows = []
 
         frame_serializer = LabeledFrameSerializer(

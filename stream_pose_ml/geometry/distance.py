@@ -81,7 +81,7 @@ class Distance:
         if len(joint_coords) == 3:
             x1, y1, z1 = vector[0]
             x2, y2, z2 = vector[1]
-            midpoint = ((x1 + x2 / 2), (y1 + y2 / 2), (z1 + z2) / 2)
+            midpoint: tuple[float, ...] = ((x1 + x2 / 2), (y1 + y2 / 2), (z1 + z2) / 2)
         else:
             x1, y1 = vector[0]
             x2, y2 = vector[1]

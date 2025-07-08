@@ -9,7 +9,7 @@ from flask import Flask, request, jsonify
 
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-from engineio.payload import Payload
+from engineio.payload import Payload  # type: ignore[import-untyped]
 from werkzeug.utils import secure_filename
 
 import zipfile
@@ -221,7 +221,7 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 
 # Web Socket - TODO there is some optimization to be done here - need to look at these options
 Payload.max_decode_packets = 2000
-socketio = SocketIO(
+socketio: SocketIO = SocketIO(
     app,
     async_mode="eventlet",
     ping_timeout=30,
@@ -231,7 +231,6 @@ socketio = SocketIO(
 
 
 def load_model_in_mlflow(model_path):
-
     # The path needs to be adjusted for the mlflow container
     # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' corresponds to '/models' in 'mlflow'
     model_name = os.path.basename(model_path)

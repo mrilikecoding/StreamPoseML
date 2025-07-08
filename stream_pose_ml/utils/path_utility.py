@@ -2,10 +2,11 @@ import os
 import glob
 import json
 from pathlib import Path
+from typing import Any
 
 
 def get_file_paths_in_directory(
-    directory: str, extension: str | list = None
+    directory: str, extension: str | list[Any] | None = None
 ) -> list[str]:
     """Recursively get a list of file paths in a directory.
 

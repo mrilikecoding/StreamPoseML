@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class LabeledFrame:
     """Labeled frame data"""
 
@@ -6,7 +9,7 @@ class LabeledFrame:
         frame_data: dict,
         video_frame_number: int,
         clip_frame_number: int,
-        video_id: str = None,
+        video_id: str | None = None,
         labels: list[str] | None = None,
     ) -> None:
         self.frame_data = frame_data
@@ -15,4 +18,4 @@ class LabeledFrame:
         self.clip_frame_number = clip_frame_number  # step frame id
         self.video_id = video_id
         self.labels = labels
-        self.label_data = {}
+        self.label_data: dict[str, Any] = {}

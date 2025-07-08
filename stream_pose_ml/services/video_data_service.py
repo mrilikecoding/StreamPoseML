@@ -78,7 +78,7 @@ class VideoDataService:
         mpc = MediaPipeClient(
             video_input_filename=input_filename,
             video_input_path=video_input_path,
-            video_output_prefix=output_keypoint_data_path,
+            video_output_prefix=output_keypoint_data_path or "",
             id=id,
             configuration=configuration,
             preprocess_video=preprocess_video,
@@ -109,7 +109,7 @@ class VideoDataService:
 
         if write_serialized_sequence_to_file:
             path_utility.write_to_json_file(
-                output_sequence_data_path,
+                output_sequence_data_path or "",
                 f"{input_filename}_sequence.json",
                 sequence_data,
             )

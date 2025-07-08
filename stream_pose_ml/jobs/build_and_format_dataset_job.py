@@ -62,7 +62,7 @@ class BuildAndFormatDatasetJob:
                 the location of videos to be processed
         """
         vdms = VideoDataMergeService(
-            annotations_directory=annotations_directory,
+            annotations_data_directory=annotations_directory,
             video_directory=video_directory,
             process_videos=True,
         )
@@ -116,7 +116,7 @@ class BuildAndFormatDatasetJob:
         """
         segmentation_service = SegmentationService(
             include_unlabeled_data=include_unlabeled_data,
-            segmentation_strategy=segmentation_strategy,
+            segmentation_strategy=segmentation_strategy or "none",
             segmentation_splitter_label=segmentation_splitter_label,
             segmentation_window=segmentation_window,
             segmentation_window_label=segmentation_window_label,
@@ -143,7 +143,7 @@ class BuildAndFormatDatasetJob:
 
     @staticmethod
     def write_dataset_to_csv(
-        csv_location: str, formatted_dataset: list, filename: str = None
+        csv_location: str, formatted_dataset: list, filename: str | None = None
     ):
         """Write the passed serialized dataset to a csv.
 

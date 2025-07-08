@@ -4,8 +4,7 @@ import numpy as np
 from pathlib import Path
 import json
 import cv2
-import mediapipe as mp
-
+import mediapipe as mp  # type: ignore[import-untyped]
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 
 
@@ -17,17 +16,18 @@ class MediaPipeClient:
 
     frame_count: int
     frame_data_list: list
-    video_input_filename: str
+    video_input_filename: str | None
     video_input_path: str
     video_output_prefix: str
     id: int
     joints: list  # an ordered list of joints corresponding to MediaPipe BlazePose model
     configuration: dict  # options to pass into mediapipe pose
     preprocess_video: bool  # whether to preprocess the video frame
+    dummy_client: bool
 
     def __init__(
         self,
-        video_input_filename: str = None,
+        video_input_filename: str | None = None,
         video_input_path: str = ".stream_pose_ml/test_videos",
         video_output_prefix: str = ".tmp/data/keypoints",
         id: int = int(time.time_ns()),
@@ -37,22 +37,22 @@ class MediaPipeClient:
     ) -> None:
         """Initalize a mediapipe client object.
 
-        Args:
-            video_input_filename: str
-                the name of the file - "some_file.mp4"
-            video_input_path: str
-                "path/to/file"
-            video_output_prefix: str
-                "where/to/put/keypoints"
-            id: int
-                The id for this client - this will be used to set the output sub-directory
-            dummy_client: bool
-                If true, no input file is needed. Use this when only calling static methods
+            Args:
+        video_input_filename: str | None                the name of the file - "some_file.mp4"
+                video_input_path: str
+                    "path/to/file"
+                video_output_prefix: str
+                    "where/to/put/keypoints"
+                id: int
+                    The id for this client - this will be used to set the output sub-directory
+                dummy_client: bool
+                    If true, no input file is needed. Use this when only calling static methods
 
         """
         self.configuration = configuration
         self.preprocess_video = preprocess_video
-        self._results_raw = []
+        self.dummy_client = dummy_client
+        self._results_raw: list = []
         self.joints = [joint.name for joint in BlazePoseJoints]
         self.frame_count = 0
         self.id = id
@@ -63,8 +63,7 @@ class MediaPipeClient:
         self.frame_data_list = []
 
         if video_input_filename:
-            self.video_input_filename = video_input_filename
-            pre = Path(self.video_input_filename).stem
+            pre = Path(video_input_filename).stem
             self.json_output_path = f"{self.video_output_prefix}/{pre}-{id}"
         elif not dummy_client:
             raise MediaPipeClientError("No input file specified")
@@ -73,9 +72,9 @@ class MediaPipeClient:
         if self.dummy_client:
             return
         else:
-            import mediapipe as mp
+            pass
 
-    def process_video(self, limit: int = None) -> "MediaPipeClient":
+    def process_video(self, limit: int | None = None) -> "MediaPipeClient":
         """This method runs mediapipe on a video referenced by this object.
 
         This method is responsible for iterating through frames in the input video
@@ -101,7 +100,7 @@ class MediaPipeClient:
         pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
         # start video processing
-        cap = cv2.VideoCapture(f"{self.video_input_path}/{self.video_input_filename}")
+        cap = cv2.VideoCapture(f"{self.video_input_path}/{self.video_input_filename}")  # type: ignore[call-arg]
         if cap.isOpened() == False:
             raise MediaPipeClientError(
                 f"Error opening file: {self.video_input_path}/{self.video_input_filename}"
@@ -110,7 +109,7 @@ class MediaPipeClient:
             # TODO refactor this into stages
             # bail if we go over processing limit
             if limit is not None and self.frame_count >= limit:
-                return
+                return self
             ret, image = cap.read()
             if not ret:
                 break
@@ -189,7 +188,7 @@ class MediaPipeClient:
         l, a, b = cv2.split(lab)
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
         cl = clahe.apply(l)
-        enhanced_img = cv2.merge((cl, a, b))
+        enhanced_img = cv2.merge([cl, a, b])  # type: ignore[arg-type]
         enhanced_img = cv2.cvtColor(enhanced_img, cv2.COLOR_LAB2BGR)
 
         return enhanced_img
@@ -229,7 +228,7 @@ class MediaPipeClient:
         Returns:
             Euclidean distance between the two joint coordinates.
         """
-        return np.linalg.norm(np.array(joint_1) - np.array(joint_2))
+        return float(np.linalg.norm(np.array(joint_1) - np.array(joint_2)))
 
     @staticmethod
     def calculate_reference_point_midpoint(

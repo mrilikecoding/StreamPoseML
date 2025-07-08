@@ -1,4 +1,5 @@
 import pickle
+from typing import Any
 
 
 class TrainedModel:
@@ -13,15 +14,17 @@ class TrainedModel:
         self.data_transformer = None
         self.notes = "There are no notes for this model saved."
 
-    def transform_data(self, data: any) -> any:
-        if self.data_transformer is not None and hasattr("transform"):
+    def transform_data(self, data: Any) -> Any:
+        if self.data_transformer is not None and hasattr(
+            self.data_transformer, "transform"
+        ):
             return self.data_transformer.transform(data)
         else:
             raise ValueError(
                 "No transformer is set on this model, or the transformer does not have a 'transform' function"
             )
 
-    def predict(self, data: any) -> any:
+    def predict(self, data: Any) -> Any:
         """Runs predict on the instance's trained model.
 
         Args:
@@ -41,7 +44,7 @@ class TrainedModel:
         """Transform passed sequence data into the right format for the loaded model"""
         self.data_transformer = transformer
 
-    def set_model(self, model: any, model_data: any, notes: str = None) -> None:
+    def set_model(self, model: Any, model_data: Any, notes: str | None = None) -> None:
         """Sets the passed model as this instance's mdoel if it has a predict method
 
         Args:

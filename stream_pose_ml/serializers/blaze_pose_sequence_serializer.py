@@ -1,3 +1,4 @@
+from typing import Any
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
 from .blaze_pose_frame_serializer import (
     BlazePoseFrameSerializer,
@@ -23,7 +24,7 @@ class BlazePoseSequenceSerializer:
                 A dict containing the sequence name and its serialized frame data
         """
         if key_off_frame_number:
-            frame_data = {
+            frame_data: dict[int, Any] | list[Any] = {
                 frame.frame_number: BlazePoseFrameSerializer.serialize(frame)
                 for frame in blaze_pose_sequence.frames
             }

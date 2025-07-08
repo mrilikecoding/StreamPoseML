@@ -19,10 +19,10 @@ class VideoDataMergeService:
     """
 
     annotations_data_directory: str
-    output_keypoints_path: str
-    sequence_data_directory: str
+    output_keypoints_path: str | None
+    sequence_data_directory: str | None
     process_videos: bool
-    video_directory: str
+    video_directory: str | None
 
     def __init__(
         self,
@@ -30,7 +30,7 @@ class VideoDataMergeService:
         output_keypoints_path: str | None = None,
         sequence_data_directory: str | None = None,
         process_videos: bool = False,
-        video_directory: str = None,
+        video_directory: str | None = None,
     ) -> None:
         """Upon initialization set data source directories and initialize storage dicts.
 
@@ -52,13 +52,13 @@ class VideoDataMergeService:
         self.annotations_data_directory = annotations_data_directory
         self.video_directory = video_directory
         self.sequence_data_directory = sequence_data_directory
-        self.output_keypoints_path = (output_keypoints_path,)
-        self.annotation_video_map = {}
-        self.video_annotation_map = {}
-        self.annotation_sequence_map = {}
-        self.sequence_annotation_map = {}
+        self.output_keypoints_path = output_keypoints_path
+        self.annotation_video_map: dict[str, str] = {}
+        self.video_annotation_map: dict[str, str] = {}
+        self.annotation_sequence_map: dict[str, str] = {}
+        self.sequence_annotation_map: dict[str, str] = {}
         self.process_videos = process_videos
-        self.merged_data = []
+        self.merged_data: list[dict] = []
 
         self.transformer = AnnotationTransformerService()
 
@@ -117,7 +117,7 @@ class VideoDataMergeService:
 
     def generate_annotated_video_data(
         self,
-        limit: int = None,
+        limit: int | None = None,
     ) -> dict:
         """Use this object's generated map to create a nested dataset
 
@@ -167,9 +167,7 @@ class VideoDataMergeService:
         }
         return annotated_data
 
-    def generate_video_data_from_sequence_data(
-        self, limit: int = None
-    ) -> tuple[dict, dict]:
+    def generate_video_data_from_sequence_data(self, limit: int | None = None) -> None:
         process_counter = 0
         for annotation, sequence in self.annotation_sequence_map.items():
             if limit and process_counter == limit:
@@ -184,9 +182,8 @@ class VideoDataMergeService:
             self.merged_data.append(
                 {"video_data": video_data, "annotation_data": annotation_data}
             )
-        return True
 
-    def generate_video_data_from_videos(self, limit: int = None) -> tuple[dict, dict]:
+    def generate_video_data_from_videos(self, limit: int | None = None) -> None:
         video_data_service = vds.VideoDataService()
         process_counter = 0
         for annotation, video in self.annotation_video_map.items():
@@ -196,7 +193,6 @@ class VideoDataMergeService:
             video_data = video_data_service.process_video(
                 input_filename=os.path.basename(video),
                 video_input_path=os.path.split(video)[0],
-                output_data_path=self.output_keypoints_path,
                 output_keypoint_data_path=self.output_keypoints_path,
                 write_keypoints_to_file=False,
                 write_serialized_sequence_to_file=True,
@@ -207,7 +203,6 @@ class VideoDataMergeService:
         self.merged_data.append(
             {"video_data": video_data, "annotation_data": annotation_data}
         )
-        return True
 
 
 class VideoDataMergeServiceError(Exception):
