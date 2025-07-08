@@ -45,10 +45,7 @@ jobs:
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Install dependencies
-      run: uv sync --all-groups
-
-    - name: Install build and twine
-      run: uv add --group dev build twine
+      run: uv sync --all-groups --dev
 
     - name: Debug variables
       run: |
