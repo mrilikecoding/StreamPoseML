@@ -6,4 +6,3 @@ class App(Flask):
 
 app: App
 socketio: SocketIO
-
