@@ -2,12 +2,7 @@
 Stream Pose ML module.
 """
 
-# Add all top-level modules for easier importing
-import os
-import sys
-from pathlib import Path
-
 # Make top-level components accessible directly from the module
-from stream_pose_ml.stream_pose_client import StreamPoseClient
+from stream_pose_ml.stream_pose_client import StreamPoseClient as StreamPoseClient
 
-from .ml_flow_client import MLFlowClient
+from .ml_flow_client import MLFlowClient as MLFlowClient
