@@ -161,7 +161,7 @@ class TestAnnotationTransformerService:
         # Then
         assert result == expected_schema
         mock_find_project_root.assert_called_once()
-        mock_open_file.assert_called_once_with("/path/to/project/config.yml", "r")
+        mock_open_file.assert_called_once_with("/path/to/project/config.yml")
         mock_yaml.load.assert_called_once_with(
             mock_open_file.return_value, Loader=mock_yaml.FullLoader
         )
