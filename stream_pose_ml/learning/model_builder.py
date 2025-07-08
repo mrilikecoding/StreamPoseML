@@ -732,7 +732,7 @@ class ModelBuilder:
 
         # Between Clusters Sum of Squares (BCSS)
         WCSS = kmeans.inertia_
-        total_sum_of_squares = np.sum(np.var(X, axis=0) * (X.shape[0] - 1))
+        total_sum_of_squares: float = np.sum(np.var(X, axis=0) * (X.shape[0] - 1))
         BCSS = total_sum_of_squares - WCSS
         print("")
         print("Between Clusters Sum of Squares (BCSS):", BCSS)
@@ -744,7 +744,7 @@ class ModelBuilder:
         # Maximum Radius
         clusters = kmeans.cluster_centers_
         distances = np.linalg.norm(X - clusters[kmeans.labels_], axis=1)
-        max_radius = np.max(distances)
+        max_radius: float = np.max(distances)
         print("")
         print("Maximum Radius:", max_radius)
 
