@@ -1,13 +1,14 @@
 """Tests for the OpenPoseMediapipeTransformer class."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
+import pytest
+
+from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.blaze_pose.openpose_mediapipe_transformer import (
     OpenPoseMediapipeTransformer,
     OpenPoseMediapipeTransformerError,
 )
-from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.geometry.joint import Joint
 from stream_pose_ml.geometry.vector import Vector
 

@@ -1,4 +1,3 @@
-import pytest
 
 from stream_pose_ml.utils.utils import round_nested_dict
 

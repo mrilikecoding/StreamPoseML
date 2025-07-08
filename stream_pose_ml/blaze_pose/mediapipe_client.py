@@ -1,10 +1,12 @@
+import json
 import os
 import time
-import numpy as np
 from pathlib import Path
-import json
+
 import cv2
 import mediapipe as mp  # type: ignore[import-untyped]
+import numpy as np
+
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 
 

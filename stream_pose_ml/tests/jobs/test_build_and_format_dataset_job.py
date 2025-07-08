@@ -1,8 +1,8 @@
-import pytest
-from unittest.mock import patch, MagicMock
-import pandas as pd
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[3]  # Adjust if needed

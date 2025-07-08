@@ -1,18 +1,18 @@
-from threading import current_thread
 import time
 import typing
-
 from collections import deque
+
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
-from stream_pose_ml.services import segmentation_service as ss
+
 from .serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
 )
 
 if typing.TYPE_CHECKING:
     from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
-    from .learning.trained_model import TrainedModel
     from stream_pose_ml.transformers.sequence_transformer import SequenceTransformer
+
+    from .learning.trained_model import TrainedModel
 
 
 class MLFlowClient:

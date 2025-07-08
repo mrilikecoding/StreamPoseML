@@ -1,13 +1,10 @@
 """Tests for the enumerations in the blaze_pose module."""
 
-import pytest
+import sys
 from enum import Enum
+from pathlib import Path
 
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints, blaze_pose_joints
-
-
-import sys
-from pathlib import Path
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

@@ -1,12 +1,12 @@
-import pytest
 import os
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import mock_open, patch
+
+import pytest
 
 from stream_pose_ml.services.annotation_transformer_service import (
     AnnotationTransformerService,
-    AnnotationTransformerServiceError,
-    get_nested_key,
     find_project_root,
+    get_nested_key,
 )
 
 

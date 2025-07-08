@@ -1,16 +1,15 @@
 """Tests for the Angle class."""
 
-import pytest
-import numpy as np
-from unittest.mock import patch, MagicMock
-
-from stream_pose_ml.geometry.angle import Angle, AngleError
-from stream_pose_ml.geometry.vector import Vector
-from stream_pose_ml.geometry.joint import Joint
-
-
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import numpy as np
+import pytest
+
+from stream_pose_ml.geometry.angle import Angle, AngleError
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

@@ -1,4 +1,5 @@
 from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
+
 from .angle_serializer import AngleSerializer
 from .distance_serializer import DistanceSerializer
 from .joint_serializer import JointSerializer

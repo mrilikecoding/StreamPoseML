@@ -1,7 +1,9 @@
 from typing import Any
-from stream_pose_ml.learning.labeled_clip import LabeledClip
-from .labeled_frame_serializer import LabeledFrameSerializer
+
 from stream_pose_ml.learning import temporal_feature_pooling as tfp
+from stream_pose_ml.learning.labeled_clip import LabeledClip
+
+from .labeled_frame_serializer import LabeledFrameSerializer
 
 
 class LabeledClipSerializer:

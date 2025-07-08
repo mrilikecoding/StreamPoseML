@@ -39,7 +39,7 @@ def compute_max(dict_list: list[dict]) -> dict:
     keys = list(dict_list[0].keys())
 
     # Initialize the max-pooled features dictionary with zeros
-    max_pooled = {key: 0 for key in keys}
+    max_pooled = dict.fromkeys(keys, 0)
 
     # Loop over the sequence of feature dictionaries and update the max-pooled values
     for feature in dict_list:
@@ -64,7 +64,7 @@ def compute_sum(dict_list: list[dict]) -> dict:
     keys = list(dict_list[0].keys())
 
     # Initialize the sum-pooled features dictionary with zeros
-    sum_pooled = {key: 0 for key in keys}
+    sum_pooled = dict.fromkeys(keys, 0)
 
     # Loop over the sequence of feature dictionaries and accumulate the values
     for feature in dict_list:

@@ -1,14 +1,13 @@
 """Tests for the Vector class."""
 
-import pytest
-from unittest.mock import patch, MagicMock
-
-from stream_pose_ml.geometry.vector import Vector, VectorError
-from stream_pose_ml.geometry.joint import Joint
-
-
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector, VectorError
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

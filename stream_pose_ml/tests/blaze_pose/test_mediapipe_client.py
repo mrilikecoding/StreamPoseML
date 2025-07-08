@@ -1,16 +1,16 @@
 """Tests for the MediaPipeClient class."""
 
-import pytest
-import os
-import numpy as np
-from unittest.mock import patch, MagicMock, PropertyMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+import numpy as np
+import pytest
+
+from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 from stream_pose_ml.blaze_pose.mediapipe_client import (
     MediaPipeClient,
     MediaPipeClientError,
 )
-from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 
 
 @pytest.fixture
@@ -488,7 +488,6 @@ class TestMediaPipeClientPreprocessing:
 
 
 import sys
-from pathlib import Path
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

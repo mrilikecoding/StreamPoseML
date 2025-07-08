@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 # Use TYPE_CHECKING to avoid circular imports at runtime
 if TYPE_CHECKING:
-    from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
+    pass
 
 
 class OpenPoseMediapipeTransformer:

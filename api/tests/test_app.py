@@ -2,13 +2,13 @@
 
 import json
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
 import requests
-from unittest.mock import MagicMock, patch, mock_open
 from flask import Flask, jsonify, request
 from flask_socketio import SocketIO
 from werkzeug.datastructures import FileStorage
-from pathlib import Path
 
 # We'll use a different approach - create simple test utilities
 # that don't rely on importing from the actual app
@@ -251,14 +251,11 @@ class TestHelperFunctions:
 
         # Implement a simplified version of the function
         def load_model_in_mlflow(model_path):
-            model_name = os.path.basename(model_path)
-            mlflow_model_path = os.path.join("/models", model_name)
-
             # Mock the response by calling a test helper that assumes success
             try:
                 # Simulate successful response (normally would call requests.post)
                 return True
-            except:
+            except Exception:
                 return False
 
         # Test the function

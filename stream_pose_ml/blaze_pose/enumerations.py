@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 blaze_pose_joints = (
     "nose",
     "left_eye_inner",

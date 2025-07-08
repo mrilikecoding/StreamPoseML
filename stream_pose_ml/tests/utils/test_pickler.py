@@ -1,8 +1,9 @@
-import pytest
 import pickle
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import mock_open, patch
 
-from stream_pose_ml.utils.pickler import save_to_pickle, load_from_pickle
+import pytest
+
+from stream_pose_ml.utils.pickler import load_from_pickle, save_to_pickle
 
 
 class TestSaveToPickle:

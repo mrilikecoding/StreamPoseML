@@ -1,14 +1,15 @@
 """Tests for the BlazePoseSequence class."""
 
-import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
+import pytest
+
+from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import (
     BlazePoseSequence,
     BlazePoseSequenceError,
 )
-from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 
 
@@ -311,7 +312,6 @@ class TestBlazePoseSequenceSerialization:
 
 
 import sys
-from pathlib import Path
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

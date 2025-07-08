@@ -1,6 +1,6 @@
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
-import json
-from unittest.mock import patch, mock_open, MagicMock
 
 from stream_pose_ml.services.video_data_merge_service import (
     VideoDataMergeService,

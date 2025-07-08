@@ -1,17 +1,18 @@
-import pytest
-from unittest.mock import MagicMock, patch
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[3]  # Adjust if needed
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.serializers.blaze_pose_frame_serializer import (
     BlazePoseFrameSerializer,
 )
-from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 
 
 class TestBlazePoseFrameSerializer:

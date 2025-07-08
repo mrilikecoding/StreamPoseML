@@ -1,24 +1,20 @@
-import time
-import os
-from pathlib import Path
-import logging
 import json
-import requests
-
-from flask import Flask, request, jsonify
-
-from flask_cors import CORS
-from flask_socketio import SocketIO, emit
-from engineio.payload import Payload  # type: ignore[import-untyped]
-from werkzeug.utils import secure_filename
-
-import zipfile
-import tarfile
+import logging
+import os
 
 # Import the core module and its components
 import sys
-import os
+import tarfile
+import time
+import zipfile
 from pathlib import Path
+
+import requests
+from engineio.payload import Payload  # type: ignore[import-untyped]
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from flask_socketio import SocketIO, emit
+from werkzeug.utils import secure_filename
 
 # Add the root directory to the Python path (needed for imports)
 root_dir = str(Path(__file__).parents[1])
@@ -26,15 +22,16 @@ if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
 # Now import the modules
-from stream_pose_ml.stream_pose_client import StreamPoseClient
-from stream_pose_ml.ml_flow_client import MLFlowClient
+# ruff: noqa: E402
 from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
-from stream_pose_ml.learning.trained_model import TrainedModel
-from stream_pose_ml.transformers.sequence_transformer import (
-    TenFrameFlatColumnAngleTransformer,
-    MLFlowTransformer,
-)
 from stream_pose_ml.learning.model_builder import ModelBuilder
+from stream_pose_ml.learning.trained_model import TrainedModel
+from stream_pose_ml.ml_flow_client import MLFlowClient
+from stream_pose_ml.stream_pose_client import StreamPoseClient
+from stream_pose_ml.transformers.sequence_transformer import (
+    MLFlowTransformer,
+    TenFrameFlatColumnAngleTransformer,
+)
 
 ### Set the model ###
 mb = ModelBuilder()
@@ -57,9 +54,10 @@ class StreamPoseMLApp:
         self.stream_pose_client = stream_pose_client
 
     def set_actuator(self, actuator="bluetooth_device"):
-        # TODO this is deprecated as we're calling bluetooth from the front end currently
+        # TODO this is deprecated as we're calling bluetooth from the front end
         if actuator == "bluetooth_device":
-            self.actuator = BluetoothDevice()
+            # self.actuator = BluetoothDevice()  # TODO: Import or remove
+            pass
 
     def actuate(self, data):
         self.actuator.send(data)
@@ -143,7 +141,7 @@ def set_model():
             input_example_path = os.path.join(model_path, "input_example.json")
             input_example = None
             if os.path.exists(input_example_path):
-                with open(input_example_path, "r") as json_file:
+                with open(input_example_path) as json_file:
                     input_example = json.load(json_file)
             set_ml_flow_client(
                 input_example=input_example,
@@ -219,7 +217,7 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 
 ### SocketIO Listeners ###
 
-# Web Socket - TODO there is some optimization to be done here - need to look at these options
+# Web Socket - TODO there is some optimization to be done here - need to look at options
 Payload.max_decode_packets = 2000
 socketio: SocketIO = SocketIO(
     app,
@@ -232,7 +230,7 @@ socketio: SocketIO = SocketIO(
 
 def load_model_in_mlflow(model_path):
     # The path needs to be adjusted for the mlflow container
-    # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' corresponds to '/models' in 'mlflow'
+    # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' -> '/models' in 'mlflow'
     model_name = os.path.basename(model_path)
     mlflow_model_path = os.path.join("/models", model_name)
     data = {"model_path": mlflow_model_path}

@@ -2,12 +2,9 @@
 Fixtures for API tests.
 """
 
-import sys
-import os
-import pytest
 from unittest.mock import MagicMock, patch
-from pathlib import Path
-import inspect
+
+import pytest
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -47,7 +44,7 @@ def mock_api_dependencies():
     sequence_transformer_mock = MagicMock()
     model_builder_mock = MagicMock()
 
-    mediapipe_client_mock.MediaPipeClient.return_value.serialize_pose_landmarks.return_value = [
+    mediapipe_client_mock.MediaPipeClient.return_value.serialize_pose_landmarks.return_value = [  # noqa: E501
         {"x": 0.1, "y": 0.2, "z": 0.3} for _ in range(33)
     ]
 

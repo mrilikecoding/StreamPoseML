@@ -1,22 +1,24 @@
 import base64
-import typing
 import time
-import numpy as np
+import typing
+from collections import deque
 from typing import Union
 
-import mediapipe as mp  # type: ignore[import-untyped]
 import cv2  # type: ignore[import-untyped]
-from collections import deque
+import mediapipe as mp  # type: ignore[import-untyped]
+import numpy as np
+
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
-from stream_pose_ml.services import segmentation_service as ss
+
 from .serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
 )
 
 if typing.TYPE_CHECKING:
     from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
-    from .learning.trained_model import TrainedModel
     from stream_pose_ml.transformers.sequence_transformer import SequenceTransformer
+
+    from .learning.trained_model import TrainedModel
 
 
 class StreamPoseClient:
@@ -36,7 +38,7 @@ class StreamPoseClient:
         self.pose = mp_pose.Pose(
             min_detection_confidence=0.5, min_tracking_confidence=0.5
         )
-        self.current_classification: Union[bool, None] = None
+        self.current_classification: bool | None = None
 
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Run some basic image preprocessing steps. Currently just contrast enhance

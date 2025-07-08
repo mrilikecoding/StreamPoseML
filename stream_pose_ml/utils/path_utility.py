@@ -1,6 +1,6 @@
-import os
 import glob
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -40,7 +40,7 @@ def get_file_paths_in_directory(
 
     else:
         file_paths = [
-            file_path for file_path in glob.iglob(directory + f"/**/*", recursive=True)
+            file_path for file_path in glob.iglob(directory + "/**/*", recursive=True)
         ]
 
     return file_paths

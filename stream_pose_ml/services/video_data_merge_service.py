@@ -1,14 +1,12 @@
-import os
 import json
+import os
+
+from stream_pose_ml.services import video_data_service as vds
 from stream_pose_ml.utils import path_utility
 
 from .annotation_transformer_service import (
     AnnotationTransformerService,
 )
-
-
-from stream_pose_ml.learning.labeled_clip import LabeledClip
-from stream_pose_ml.services import video_data_service as vds
 
 
 class VideoDataMergeService:
@@ -147,7 +145,7 @@ class VideoDataMergeService:
         merged_video_data = [data["video_data"] for data in self.merged_data]
         merged_annotation_data = [data["annotation_data"] for data in self.merged_data]
         for video_data, annotation_data in zip(
-            merged_video_data, merged_annotation_data
+            merged_video_data, merged_annotation_data, strict=False
         ):
             (
                 all_frames,

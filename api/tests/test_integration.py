@@ -1,10 +1,8 @@
 """Integration tests for the API module."""
 
+from unittest.mock import MagicMock
+
 import pytest
-import json
-from unittest.mock import MagicMock, patch
-import numpy as np
-from pathlib import Path
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -77,7 +75,7 @@ class TestSocketIntegration:
         socketio_client.connect()
         socketio_client.emit("keypoints", "test_payload")
 
-        # Get the response - with our simplified mock, this will always return the no model error
+        # Get the response - with our simplified mock, this returns no model error
         received = socketio_client.get_received()
         assert len(received) > 0
         assert received[0]["name"] == "frame_result"

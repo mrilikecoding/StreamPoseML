@@ -1,14 +1,10 @@
-import pytest
-import os
-import glob
-import json
 from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import mock_open, patch
 
 from stream_pose_ml.utils.path_utility import (
-    get_file_paths_in_directory,
     get_base_path,
     get_file_name,
+    get_file_paths_in_directory,
     write_to_json_file,
 )
 
@@ -203,7 +199,6 @@ class TestWriteToJsonFile:
 
 
 import sys
-from pathlib import Path
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

@@ -1,64 +1,58 @@
-from copy import copy
 import json
-import joblib  # type: ignore[import-untyped]
 import os
 import pickle
 import shutil
-import tempfile  # For creating temporary directories
 import time
-from typing import Optional
 
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt  # type: ignore[import-untyped]
+import numpy as np
+import pandas as pd
 import seaborn as sns  # type: ignore[import-untyped]
-
-# MLFlow integration
-import mlflow
-import mlflow.sklearn
-import mlflow.xgboost
-
-# Modeling
-from sklearn.decomposition import PCA  # type: ignore[import-untyped]
-from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
-from sklearn.ensemble import RandomForestClassifier  # type: ignore[import-untyped]
-from sklearn.linear_model import LogisticRegression  # type: ignore[import-untyped]
-from sklearn.model_selection import RandomizedSearchCV, train_test_split  # type: ignore[import-untyped]
-from sklearn.model_selection import GridSearchCV  # type: ignore[import-untyped]
-from sklearn.model_selection import RepeatedStratifiedKFold  # type: ignore[import-untyped]
-from sklearn.model_selection import StratifiedKFold  # type: ignore[import-untyped]
-from sklearn.model_selection import cross_val_score  # type: ignore[import-untyped]
+import xgboost as xgb
+from imblearn.over_sampling import SMOTE  # type: ignore[import-untyped]
+from kneed import KneeLocator  # type: ignore[import-untyped]
 
 # Unsupervised
 from sklearn.cluster import KMeans  # type: ignore[import-untyped]
-from sklearn.metrics import silhouette_score  # type: ignore[import-untyped]
-from kneed import KneeLocator  # type: ignore[import-untyped]
 
-import xgboost as xgb
-
-from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
-from sklearn.pipeline import Pipeline  # type: ignore[import-untyped]
-
-# upsampling / downsampling
-from sklearn.utils import resample  # type: ignore[import-untyped]
-from imblearn.over_sampling import SMOTE  # type: ignore[import-untyped]
+# Modeling
+from sklearn.decomposition import PCA  # type: ignore[import-untyped]
+from sklearn.ensemble import RandomForestClassifier  # type: ignore[import-untyped]
 
 # feature selection
-from sklearn.feature_selection import RFE  # type: ignore[import-untyped]
-from sklearn.feature_selection import RFECV  # type: ignore[import-untyped]
+from sklearn.feature_selection import (
+    RFE,  # type: ignore[import-untyped]
+    RFECV,  # type: ignore[import-untyped]
+)
+from sklearn.linear_model import LogisticRegression  # type: ignore[import-untyped]
 
 # Reporting
 from sklearn.metrics import (
     accuracy_score,
+    classification_report,
     confusion_matrix,
     f1_score,
+    matthews_corrcoef,
     precision_score,
     recall_score,
-    roc_curve,
     roc_auc_score,
-    classification_report,
-    matthews_corrcoef,
+    roc_curve,
+    silhouette_score,  # type: ignore[import-untyped]
 )
+from sklearn.model_selection import (  # type: ignore[import-untyped]
+    GridSearchCV,  # type: ignore[import-untyped]
+    RandomizedSearchCV,
+    StratifiedKFold,  # type: ignore[import-untyped]
+    train_test_split,
+)
+from sklearn.pipeline import Pipeline  # type: ignore[import-untyped]
+from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
+
+# upsampling / downsampling
+from sklearn.utils import resample  # type: ignore[import-untyped]
+
+# MLFlow integration
+import mlflow
 
 
 class ModelBuilder:
@@ -336,7 +330,7 @@ class ModelBuilder:
         feature_names = np.array(self.X.columns)
         sorted_features = feature_names[sorted_indices]
         output = []
-        for feature, importance in zip(sorted_features, np.sort(importances)[::-1]):
+        for feature, importance in zip(sorted_features, np.sort(importances)[::-1], strict=False):
             output.append({feature: f"{importance * 100}%"})
         return output
 
@@ -452,7 +446,7 @@ class ModelBuilder:
             # Get the feature rankings (1 means selected)
             feature_ranking = rfe.ranking_
 
-            ranked_features = list(zip(self.X.columns, feature_ranking))
+            ranked_features = list(zip(self.X.columns, feature_ranking, strict=False))
             sorted_ranked_features = sorted(ranked_features, key=lambda x: x[1])
             # Print the feature names and their rankings
             print("Feature Ranks (top 15)")
@@ -542,7 +536,7 @@ class ModelBuilder:
 
     def save_model_to_mlflow(
         self,
-        model: Optional[object] = None,
+        model: object | None = None,
         model_path: str = "../../data/trained_models",
     ) -> None:
         """
@@ -552,11 +546,11 @@ class ModelBuilder:
             model (Optional[object]): The model to be saved. If not provided, defaults to self.model.
             model_path (str): The path where the model artifact will be stored. Defaults to "../../data/trained_models".
         """
-        import os
-        import mlflow
+        import time
+
         import xgboost as xgb
         from sklearn.ensemble import RandomForestClassifier
-        import time
+
 
         # Use the provided model or default to self.model
         model_to_save = model if model else self.model

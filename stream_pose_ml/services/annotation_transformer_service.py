@@ -1,5 +1,6 @@
-import yaml
 import os
+
+import yaml
 
 
 def get_nested_key(data: dict, key: str):
@@ -41,7 +42,7 @@ class AnnotationTransformerService:
         project_root = find_project_root()
         schema_path = os.path.join(project_root, schema_filename)
 
-        with open(schema_path, "r") as ymlfile:
+        with open(schema_path) as ymlfile:
             return yaml.load(ymlfile, Loader=yaml.FullLoader)["annotation_schema"]
 
     @staticmethod
@@ -95,7 +96,7 @@ class AnnotationTransformerService:
 
         video_name = video_data["name"]
         for frame, frame_data in video_data["frames"].items():
-            data = {column: None for column in label_columns}
+            data = dict.fromkeys(label_columns)
             # For each frame, assign top level column values to their appropriate labels
             for annotation in clip_annotation_map:
                 label_column = label_hierarchy[annotation["label"]]

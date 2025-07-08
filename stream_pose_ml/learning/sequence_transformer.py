@@ -2,9 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import pandas as pd
-import numpy as np
-
-import stream_pose_ml.services.segmentation_service as ss
 
 
 class SequenceTransformer(ABC):

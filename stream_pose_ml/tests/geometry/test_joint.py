@@ -1,13 +1,11 @@
 """Tests for the Joint class."""
 
-import pytest
-from unittest.mock import patch, MagicMock
-
-from stream_pose_ml.geometry.joint import Joint, JointError
-
-
 import sys
 from pathlib import Path
+
+import pytest
+
+from stream_pose_ml.geometry.joint import Joint, JointError
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[

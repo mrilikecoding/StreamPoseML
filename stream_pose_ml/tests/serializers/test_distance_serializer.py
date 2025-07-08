@@ -1,17 +1,18 @@
-import pytest
-from unittest.mock import MagicMock
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[3]  # Adjust if needed
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from stream_pose_ml.serializers.distance_serializer import DistanceSerializer
 from stream_pose_ml.geometry.distance import Distance
 from stream_pose_ml.geometry.joint import Joint
 from stream_pose_ml.geometry.vector import Vector
+from stream_pose_ml.serializers.distance_serializer import DistanceSerializer
 
 
 class TestDistanceSerializer:

@@ -1,12 +1,12 @@
-import pytest
+from unittest.mock import patch
+
 import pandas as pd
-import numpy as np
-from unittest.mock import MagicMock, patch
+import pytest
 
 from stream_pose_ml.transformers.sequence_transformer import (
+    MLFlowTransformer,
     SequenceTransformer,
     TenFrameFlatColumnAngleTransformer,
-    MLFlowTransformer,
 )
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 
-from stream_pose_ml.geometry.vector import Vector
 from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 
 class Distance:

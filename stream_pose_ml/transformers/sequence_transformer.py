@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Tuple, Union
-import pandas as pd
-import numpy as np
 from collections import defaultdict
+from typing import Any
 
-import stream_pose_ml.services.segmentation_service as ss
+import numpy as np
+import pandas as pd
 
 
 class SequenceTransformer(ABC):
@@ -18,8 +17,8 @@ class SequenceTransformer(ABC):
 
     @abstractmethod
     def transform(
-        self, data: Any, columns: List[str]
-    ) -> Union[Tuple[pd.DataFrame, Dict], Tuple[Dict, Dict]]:
+        self, data: Any, columns: list[str]
+    ) -> tuple[pd.DataFrame, dict] | tuple[dict, dict]:
         """
         Transform the passed data into a row with the passed columns.
 

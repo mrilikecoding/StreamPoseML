@@ -1,11 +1,12 @@
-from flask import Flask, request, jsonify
-import subprocess
-import requests
-import threading
+import logging
 import os
 import signal
+import subprocess
+import threading
 import time
-import logging
+
+import requests
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 

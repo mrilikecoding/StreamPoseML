@@ -1,11 +1,12 @@
-from stream_pose_ml.geometry.joint import Joint
-from stream_pose_ml.geometry.vector import Vector
 from stream_pose_ml.geometry.angle import Angle
 from stream_pose_ml.geometry.distance import Distance
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
+
+from .enumerations import BlazePoseJoints
 from .openpose_mediapipe_transformer import (
     OpenPoseMediapipeTransformer,
 )
-from .enumerations import BlazePoseJoints
 
 
 class BlazePoseFrame:
@@ -193,7 +194,7 @@ class BlazePoseFrame:
         """
         if not self.has_joint_positions:
             raise BlazePoseFrameError(
-                f"There are no joint data to generate distances from"
+                "There are no joint data to generate distances from"
             )
         if not self.has_openpose_joints_and_vectors:
             self.has_openpose_joints_and_vectors = (
@@ -220,7 +221,7 @@ class BlazePoseFrame:
         """
         if not self.has_joint_positions:
             raise BlazePoseFrameError(
-                f"There are no joint data to generate angles from"
+                "There are no joint data to generate angles from"
             )
         if not self.has_openpose_joints_and_vectors:
             self.has_openpose_joints_and_vectors = (

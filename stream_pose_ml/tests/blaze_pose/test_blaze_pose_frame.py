@@ -1,18 +1,19 @@
 """Tests for the BlazePoseFrame class."""
 
-import pytest
-from unittest.mock import patch, MagicMock, PropertyMock
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from stream_pose_ml.blaze_pose.blaze_pose_frame import (
     BlazePoseFrame,
     BlazePoseFrameError,
 )
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
-from stream_pose_ml.geometry.joint import Joint
-from stream_pose_ml.geometry.vector import Vector
 from stream_pose_ml.geometry.angle import Angle
 from stream_pose_ml.geometry.distance import Distance
+from stream_pose_ml.geometry.joint import Joint
+from stream_pose_ml.geometry.vector import Vector
 
 
 @pytest.fixture
@@ -497,8 +498,8 @@ class TestBlazePoseFrameIntegration:
     @pytest.fixture
     def blaze_pose_sequence(self, example_data_path):
         """Create a real BlazePoseSequence using example data."""
-        from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
         from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
+        from stream_pose_ml.blaze_pose.mediapipe_client import MediaPipeClient
 
         # Skip this test if example_data directory doesn't exist or is empty
         input_path = example_data_path / "input" / "source_videos"
@@ -575,7 +576,6 @@ class TestBlazePoseFrameIntegration:
 
 
 import sys
-from pathlib import Path
 
 # Add the project root to the Python path
 project_root = Path(__file__).parents[
