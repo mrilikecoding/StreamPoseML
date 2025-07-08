@@ -579,7 +579,6 @@ class ModelBuilder:
         import xgboost as xgb
         from sklearn.ensemble import RandomForestClassifier
 
-
         # Use the provided model or default to self.model
         model_to_save = model if model else self.model
         signature = None if self.signature is None else self.signature

@@ -223,9 +223,7 @@ class BlazePoseFrame:
                 dictionary mapping the named angle measure to an Angle object
         """
         if not self.has_joint_positions:
-            raise BlazePoseFrameError(
-                "There are no joint data to generate angles from"
-            )
+            raise BlazePoseFrameError("There are no joint data to generate angles from")
         if not self.has_openpose_joints_and_vectors:
             self.has_openpose_joints_and_vectors = (
                 OpenPoseMediapipeTransformer.create_openpose_joints_and_vectors(self)

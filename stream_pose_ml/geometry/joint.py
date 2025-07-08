@@ -37,7 +37,6 @@ class Joint:
             exception: JointError
         """
         try:
-
             required_keys = [
                 "x",
                 "y",

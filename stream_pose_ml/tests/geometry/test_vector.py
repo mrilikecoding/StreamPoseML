@@ -105,9 +105,7 @@ class TestVector:
         THEN VectorError is raised
         """
         # Act & Assert
-        with pytest.raises(
-            VectorError, match="Error instantiating Vector object"
-        ):
+        with pytest.raises(VectorError, match="Error instantiating Vector object"):
             # Passing a non-Joint object should cause an error
             Vector(name="test_vector", joint_1=mock_joint1, joint_2="not_a_joint")
 
@@ -162,7 +160,5 @@ class TestVector:
         mock_joint1.get_coord_tuple.side_effect = Exception("Test error")
 
         # Act & Assert
-        with pytest.raises(
-            VectorError, match="Error obtaining tuple coordinates"
-        ):
+        with pytest.raises(VectorError, match="Error obtaining tuple coordinates"):
             vector.get_coord_tuple()

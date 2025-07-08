@@ -21,15 +21,13 @@ def get_file_paths_in_directory(
     """
     if extension:
         if isinstance(extension, str):
-            file_paths = list(glob.iglob(
-                    directory + f"/**/*.{extension}", recursive=True
-                ))
+            file_paths = list(
+                glob.iglob(directory + f"/**/*.{extension}", recursive=True)
+            )
         elif isinstance(extension, list):
             file_paths = []
             for ext in extension:
-                files = list(glob.iglob(
-                        directory + f"/**/*.{ext}", recursive=True
-                    ))
+                files = list(glob.iglob(directory + f"/**/*.{ext}", recursive=True))
                 file_paths += files
 
     else:

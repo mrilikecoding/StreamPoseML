@@ -41,19 +41,19 @@ class MediaPipeClient:
     ) -> None:
         """Initalize a mediapipe client object.
 
-            Args:
-                video_input_filename: str | None
-                    the name of the file - "some_file.mp4"
-                video_input_path: str
-                    "path/to/file"
-                video_output_prefix: str
-                    "where/to/put/keypoints"
-                id: int
-                    The id for this client - this will be used to set the output
-                    sub-directory
-                dummy_client: bool
-                    If true, no input file is needed. Use this when only calling
-                    static methods
+        Args:
+            video_input_filename: str | None
+                the name of the file - "some_file.mp4"
+            video_input_path: str
+                "path/to/file"
+            video_output_prefix: str
+                "where/to/put/keypoints"
+            id: int
+                The id for this client - this will be used to set the output
+                sub-directory
+            dummy_client: bool
+                If true, no input file is needed. Use this when only calling
+                static methods
 
         """
         if configuration is None:
@@ -106,14 +106,10 @@ class MediaPipeClient:
 
         # set up mediapipe
         mp_pose = mp.solutions.pose
-        pose = mp_pose.Pose(
-            min_detection_confidence=0.5, min_tracking_confidence=0.5
-        )
+        pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
         # start video processing
-        cap = cv2.VideoCapture(
-            f"{self.video_input_path}/{self.video_input_filename}"
-        )  # type: ignore[call-arg]
+        cap = cv2.VideoCapture(f"{self.video_input_path}/{self.video_input_filename}")  # type: ignore[call-arg]
         if not cap.isOpened():
             raise MediaPipeClientError(
                 f"Error opening file: "

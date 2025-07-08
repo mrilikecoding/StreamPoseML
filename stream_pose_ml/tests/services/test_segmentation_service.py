@@ -159,9 +159,9 @@ class TestSegmentationService:
 
         # Each clip should have only 1 frame when using a window size of 1
         for clip in result:
-            assert (
-                len(clip.frames) == 1
-            ), "Each clip should have exactly 1 frame with window size of 1"
+            assert len(clip.frames) == 1, (
+                "Each clip should have exactly 1 frame with window size of 1"
+            )
 
     def test_split_on_label_error(self, mock_dataset):
         """Test error when no segmentation_splitter_label is provided."""

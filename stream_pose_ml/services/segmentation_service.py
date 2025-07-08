@@ -193,7 +193,7 @@ class SegmentationService:
         if self.segmentation_window is None or self.segmentation_window_label is None:
             raise SegmentationServiceError(
                 "Both segmentation window and segmentation window label is required "
-                "for segmentation strategy \"flatten_into_columns\"."
+                'for segmentation strategy "flatten_into_columns".'
             )
         segment_window_size = self.segmentation_window
         segment_window_label = self.segmentation_window_label
@@ -282,7 +282,7 @@ class SegmentationService:
         """
         if self.segmentation_splitter_label is None:
             raise SegmentationServiceError(
-                'segmentation_spliiter_label must be present for segmentation ' \
+                "segmentation_spliiter_label must be present for segmentation "
                 'strategy "split_on_label".'
             )
         labeled_frame_videos = dataset.labeled_frames
@@ -352,7 +352,7 @@ class SegmentationService:
         if self.segmentation_window is None or self.segmentation_window_label is None:
             raise SegmentationServiceError(
                 "Both segmentation window and segmentation window label is required "
-                "for segmentation strategy \"split_on_window\"."
+                'for segmentation strategy "split_on_window".'
             )
         segment_window_size = self.segmentation_window
         segment_window_label = self.segmentation_window_label

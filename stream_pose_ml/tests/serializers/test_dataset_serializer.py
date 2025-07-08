@@ -224,7 +224,6 @@ class TestDatasetSerializer:
             ),
             patch("builtins.sorted", return_value=frame_data),
         ):
-
             # When
             result = serializer.serialize(mock_dataset)
 

@@ -1,5 +1,3 @@
-
-
 class LabeledClip:
     """A collection frames that represent a labeled sequence"""
 
