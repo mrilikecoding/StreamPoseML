@@ -74,13 +74,16 @@ Tests use `pytest`. Run `python setup.py` to set paths correctly before running 
 
 ## Style
 
-Use `black` with defaults for Python code.
+Use `ruff` for Python code formatting and linting.
 
 ```bash
-# Format Python code with Black
+# Check Python code with ruff
 make lint
 
-# Check Python code formatting with Black (without modifying)
+# Format Python code with ruff
+make format
+
+# Check Python code formatting with ruff (without modifying)
 make lint-check
 ```
 
