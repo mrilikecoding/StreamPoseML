@@ -48,25 +48,25 @@ test: test-core test-api
 .PHONY: test-core
 test-core:
 	@echo "Running stream_pose_ml package tests..."
-	@python -m pytest stream_pose_ml/tests
+	@uv run pytest stream_pose_ml/tests
 
 # Test the API
 .PHONY: test-api
 test-api:
 	@echo "Running API tests..."
-	@python -m pytest api/tests -c api_pytest.ini
+	@uv run pytest api/tests -c api_pytest.ini
 
 # Format Python code using Black
 .PHONY: lint
 lint:
 	@echo "Formatting Python code with Black..."
-	@python -m black stream_pose_ml api mlflow
+	@uv run black stream_pose_ml api mlflow
 	
 # Check Python code formatting with Black (without modifying)
 .PHONY: lint-check
 lint-check:
 	@echo "Checking Python code formatting with Black..."
-	@python -m black --check stream_pose_ml api mlflow
+	@uv run black --check stream_pose_ml api mlflow
 
 # Clean target
 .PHONY: clean
@@ -80,14 +80,14 @@ clean:
 # Build the documentation
 docs:
 	@echo "Building Sphinx documentation..."
-	@python -m pip install -q sphinx sphinx-multiversion sphinx-autodoc-typehints tomli
+	@uv add --dev sphinx sphinx-multiversion sphinx-autodoc-typehints tomli
 	@cd docs && sphinx-build -b html source build/html
 	@echo "Documentation built in docs/build/html"
 
 # Build versioned documentation
 docs-versioned:
 	@echo "Building versioned Sphinx documentation..."
-	@python -m pip install -q sphinx sphinx-multiversion sphinx-autodoc-typehints tomli
+	@uv add --dev sphinx sphinx-multiversion sphinx-autodoc-typehints tomli
 	@cd docs && sphinx-multiversion source build/html
 	@echo "Versioned documentation built in docs/build/html"
 

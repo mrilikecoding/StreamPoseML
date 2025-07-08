@@ -9,15 +9,11 @@ To get your environment set up to run StreamPoseML, you'll need Python 3.10 or 3
 ### Installation for Development
 
 ```bash
-# Create and activate a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
 # Install in development mode with dev dependencies
-pip install -e .[dev]
+uv sync --extra dev
 
 # Run setup.py to set paths correctly
-python setup.py
+uv run python setup.py
 ```
 
 ## Workflow

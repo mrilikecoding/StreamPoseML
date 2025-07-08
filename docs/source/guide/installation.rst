@@ -12,11 +12,13 @@ StreamPoseML requires:
 Installing StreamPoseML
 ----------------------
 
-The easiest way to install StreamPoseML is via pip:
+The easiest way to install StreamPoseML is via pip or uv:
 
 .. code-block:: bash
 
    pip install stream-pose-ml
+   # Or with uv (recommended for development)
+   uv add stream-pose-ml
 
 This will automatically install all required dependencies.
 
@@ -42,7 +44,7 @@ For development, you can install the package with development dependencies:
 
    git clone https://github.com/mrilikecoding/StreamPoseML.git
    cd StreamPoseML
-   pip install -e .[dev]
+   uv sync --extra dev
 
 Verifying Installation
 ---------------------

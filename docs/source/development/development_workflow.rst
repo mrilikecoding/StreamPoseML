@@ -20,7 +20,7 @@ Development Setup
 
    .. code-block:: bash
 
-      pip install -e .[dev]
+      uv sync --extra dev
 
    This will install StreamPoseML along with all development dependencies.
 
