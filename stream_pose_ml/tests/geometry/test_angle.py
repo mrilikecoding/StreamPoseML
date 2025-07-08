@@ -187,16 +187,20 @@ class TestAngle:
             def unit_vector(self, vector):
                 try:
                     return vector / np.linalg.norm(vector)
-                except:
-                    raise AngleError("There was an error computing the unit vector")
+                except Exception as err:
+                    raise AngleError(
+                        "There was an error computing the unit vector"
+                    ) from err
 
             def angle_between(self, vector_1, vector_2):
                 try:
                     v1_u = self.unit_vector(vector_1)
                     v2_u = self.unit_vector(vector_2)
                     return np.arccos(np.clip(np.dot(v1_u, v2_u.T), -1.0, 1.0))
-                except:
-                    raise AngleError("There was an error computing the vector angle.")
+                except Exception as err:
+                    raise AngleError(
+                        "There was an error computing the vector angle."
+                    ) from err
 
         # Arrange
         calculator = TestAngleCalculatorWithError()

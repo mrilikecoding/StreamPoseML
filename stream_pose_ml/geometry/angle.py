@@ -42,8 +42,8 @@ class Angle:
             self.angle_3d_radians = self.angle_3d  # alias
             self.angle_2d_degrees = np.degrees(self.angle_2d)
             self.angle_3d_degrees = np.degrees(self.angle_3d)
-        except:
-            raise AngleError("There was a problem instantiating the angle.")
+        except Exception as err:
+            raise AngleError("There was a problem instantiating the angle.") from err
 
     def unit_vector(self, vector: tuple) -> tuple:
         """Determine the directional unit vector of a passed tuple of two points.
@@ -54,7 +54,7 @@ class Angle:
         Args:
             vector: tuple[float, float, float] | tuple[float, float]
                 3D or 2D directional vector - e.g. Vector(...).direction_2d
-                Note - this is not two points but rather the computed vector direction from the points
+                Note - this is not two points but the computed vector direction.
 
         Returns:
             unit_vector: tuple[float, float, float] | tuple[float, float]
@@ -64,8 +64,8 @@ class Angle:
         try:
             vector_array = np.array(vector)
             return tuple(vector_array / np.linalg.norm(vector_array))
-        except:
-            raise AngleError("There was an error computing the unit vector")
+        except Exception as err:
+            raise AngleError("There was an error computing the unit vector") from err
 
     def angle_between(self, vector_1: tuple, vector_2: tuple) -> float:
         """Given two directional vectors (i.e. Vector(..).direction_3d) get the angle.
@@ -98,8 +98,8 @@ class Angle:
             v1_u = self.unit_vector(vector_1)
             v2_u = self.unit_vector(vector_2)
             return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
-        except:
-            raise AngleError("There was an error computing the vector angle.")
+        except Exception as err:
+            raise AngleError("There was an error computing the vector angle.") from err
 
 
 class AngleError(Exception):

@@ -32,8 +32,8 @@ class VideoDataMergeService:
     ) -> None:
         """Upon initialization set data source directories and initialize storage dicts.
 
-        This class then creates an annotation map between the source annotations directory
-        and the video directory or sequence data directory.
+        This class then creates an annotation map between the source annotations
+        directory and the video directory or sequence data directory.
 
         Args:
             annotations_directory: str
@@ -76,7 +76,7 @@ class VideoDataMergeService:
         """
         if self.process_videos and self.video_directory is None:
             raise VideoDataMergeServiceError(
-                "There is no source video directory specified to generate video data from."
+                "No source video directory specified to generate video data from."
             )
 
         annotation_files = path_utility.get_file_paths_in_directory(
@@ -128,8 +128,9 @@ class VideoDataMergeService:
                 if there's a limit passed, only process up to this many annotations
         Returns:
             annotated_data: dict[str, list[dict]]
-                If successful return the merged annotated data from all source videos and annotations
-                {"all_frames": [...], "labeled_frames": [...], "unlabeled_frames": [...]}
+                If successful return the merged annotated data from all source videos
+                and annotations {"all_frames": [...], "labeled_frames": [...],
+                "unlabeled_frames": [...]}
         Raises:
             exception: VideoDataMergeServiceError
 

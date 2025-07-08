@@ -7,9 +7,13 @@ if typing.TYPE_CHECKING:
 
 
 class DatasetSerializer:
-    """This class serializes a timeseries dataset by either outputting rows for each frame (for PCA perhaps) or combines clips (with temmporal pooling)
-    An input dataset should be a list of lists of frame data dictionaries that correspond to some label or labels.
-    Each frame_data list can be of different length or correspond to a window of temporal data where the last frame's label represents the label of the window
+    """This class serializes a timeseries dataset.
+
+    It either outputs rows for each frame (for PCA perhaps) or combines clips
+    (with temporal pooling). An input dataset should be a list of lists of frame
+    data dictionaries that correspond to some label or labels. Each frame_data
+    list can be of different length or correspond to a window of temporal data
+    where the last frame's label represents the label of the window.
     """
 
     pool_rows: bool
@@ -27,10 +31,12 @@ class DatasetSerializer:
 
         Args:
             pool_rows: bool
-                whether to use temporal pooling to aggregate temporal features across all frames for each clip
+                whether to use temporal pooling to aggregate temporal features across
+                all frames for each clip
         Returns:
             dataset: list[dict]
-                a list of data dictionaries either corresponding to a pooled clip data or individual frames
+                a list of data dictionaries either corresponding to a pooled clip data
+                or individual frames
         """
 
         self.pool_rows = pool_rows
@@ -80,7 +86,7 @@ class DatasetSerializer:
         if self.pool_rows:
             return rows
         # if not pooling data, it's helpful to sort by video_id and frame number
-        # then determine the step number relative to the labeled sequence within the video
+        # then determine the step number relative to the labeled sequence.
         else:
             sorted_rows = sorted(rows, key=lambda r: (r["video_id"], r["frame_number"]))
             clip_frame_counter = 1

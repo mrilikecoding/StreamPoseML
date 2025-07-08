@@ -106,7 +106,7 @@ class TestVector:
         """
         # Act & Assert
         with pytest.raises(
-            VectorError, match="There was an issue instantiating the Vector object"
+            VectorError, match="Error instantiating Vector object"
         ):
             # Passing a non-Joint object should cause an error
             Vector(name="test_vector", joint_1=mock_joint1, joint_2="not_a_joint")
@@ -163,6 +163,6 @@ class TestVector:
 
         # Act & Assert
         with pytest.raises(
-            VectorError, match="There was an error obtaining the tuple coordinates"
+            VectorError, match="Error obtaining tuple coordinates"
         ):
             vector.get_coord_tuple()

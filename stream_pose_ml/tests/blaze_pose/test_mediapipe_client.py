@@ -1,11 +1,20 @@
 """Tests for the MediaPipeClient class."""
 
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# ruff: noqa: E402
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 from stream_pose_ml.blaze_pose.mediapipe_client import (
     MediaPipeClient,
@@ -239,7 +248,7 @@ class TestMediaPipeClientProcessing:
         )
 
         # Act
-        result = client.process_video(limit=1)
+        client.process_video(limit=1)
 
         # Assert
         assert client.frame_count == 1  # Only processed 1 frame due to limit
@@ -364,7 +373,7 @@ class TestMediaPipeClientPoseLandmarks:
                     assert len(result) == len(client.joints)
 
                     # Check structure of a serialized joint
-                    for joint_name, joint_data in result.items():
+                    for _joint_name, joint_data in result.items():
                         assert "x" in joint_data
                         assert "y" in joint_data
                         assert "z" in joint_data
@@ -384,7 +393,7 @@ class TestMediaPipeClientPoseLandmarks:
         THEN coordinates are extracted correctly
         """
         # Arrange
-        client = MediaPipeClient(dummy_client=True)
+        MediaPipeClient(dummy_client=True)
 
         # Create a mock landmark
         class MockLandmark:
@@ -415,7 +424,7 @@ class TestMediaPipeClientPoseLandmarks:
         THEN coordinates are extracted correctly
         """
         # Arrange
-        client = MediaPipeClient(dummy_client=True)
+        MediaPipeClient(dummy_client=True)
 
         # Create a mock landmark dictionary
         landmarks = [{"x": 0.1, "y": 0.2}, {"x": 0.3, "y": 0.4}, {"x": 0.5, "y": 0.6}]
@@ -487,16 +496,6 @@ class TestMediaPipeClientPreprocessing:
         assert result.shape == image.shape
 
 
-import sys
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
-
 class TestMediaPipeClientFileOutput:
     """Tests for MediaPipeClient file output methods."""
 
@@ -533,7 +532,7 @@ class TestMediaPipeClientFileOutput:
 
         # Mock the file operations
         mock_file = MagicMock()
-        open_mock = mock_open = MagicMock(return_value=mock_file)
+        open_mock = MagicMock(return_value=mock_file)
 
         # Act
         with patch("builtins.open", open_mock):

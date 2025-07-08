@@ -6,7 +6,7 @@ from .process_video_job import ProcessVideoJob
 class ProcessVideosJob:
     """This class encapsulates processing a batch of videos.
 
-    WIP - the idea here will be to use a job queue via Redis but just getting the basic idea here first
+    WIP - use a job queue via Redis.
     """
 
     @staticmethod
@@ -30,9 +30,9 @@ class ProcessVideosJob:
             limit: int
                 max number of videos from this directory to process - useful for testing
             write_keypoints_to_file: bool
-                whether to write keypoints data to a json file at the output data directory
+                whether to write keypoints data to a json file.
             write_serialized_sequence_to_file: bool
-                whether to write sequence data to a json file at the output data directory
+                whether to write sequence data to a json file.
             output_keypoints_data_path: str
                 the location to store keypoint data
             output_sequence_data_path: str

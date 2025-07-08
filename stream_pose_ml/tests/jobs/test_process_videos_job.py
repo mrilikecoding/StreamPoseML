@@ -9,6 +9,7 @@ project_root = Path(__file__).parents[3]  # Adjust if needed
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# ruff: noqa: E402
 from stream_pose_ml.jobs.process_videos_job import ProcessVideosJob
 
 

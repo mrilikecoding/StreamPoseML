@@ -54,9 +54,9 @@ class StreamPoseClient:
         """
         # Contrast Enhancement
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
+        lightness, a, b = cv2.split(lab)
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-        cl = clahe.apply(l)
+        cl = clahe.apply(lightness)
         enhanced_img = cv2.merge([cl, a, b])  # type: ignore[arg-type]
         enhanced_img = cv2.cvtColor(enhanced_img, cv2.COLOR_LAB2BGR)
 

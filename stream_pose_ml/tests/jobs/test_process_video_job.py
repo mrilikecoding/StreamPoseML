@@ -9,6 +9,7 @@ project_root = Path(__file__).parents[3]  # Adjust if needed
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+# ruff: noqa: E402
 from stream_pose_ml.jobs.process_video_job import ProcessVideoJob, ProcessVideoJobError
 
 
@@ -83,7 +84,8 @@ class TestProcessVideoJob:
         mock_video_data_service.return_value.process_video.assert_not_called()
 
     def test_process_video_no_sequence_path(self, mock_video_data_service):
-        """Test error when write_serialized_sequence_to_file is True but no path is provided."""
+        """Test error when write_serialized_sequence_to_file is True but no path is
+        provided."""
         # Given
         input_filename = "test_video.mp4"
         video_input_path = "/path/to/videos"

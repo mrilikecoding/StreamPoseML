@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -222,7 +232,8 @@ class TestVideoDataService:
     def test_process_video_no_sequence_path_error(
         self, mock_media_pipe_client, mock_blaze_pose_sequence, mock_serializer
     ):
-        """Test error when write_serialized_sequence_to_file is True but no path is provided."""
+        """Test error when write_serialized_sequence_to_file is True but no path is
+        provided."""
         # Given
         service = VideoDataService()
         input_filename = "test_video.mp4"
@@ -267,17 +278,6 @@ class TestVideoDataService:
             configuration=custom_config,
             preprocess_video=False,
         )
-
-
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
     def test_process_video_no_geometry(
         self, mock_media_pipe_client, mock_blaze_pose_sequence, mock_serializer

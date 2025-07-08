@@ -26,3 +26,7 @@ mlflow/models/**/*
 
 # Documentation build directory
 docs/build/
+
+# Python test and linting caches
+.pytest_cache/
+.ruff_cache/

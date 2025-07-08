@@ -1,3 +1,4 @@
+
 from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 
@@ -5,7 +6,8 @@ from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 class BlazePoseSequence:
     """A sequence of BlazePoseFrames.
 
-    It validates they have the right shape and then creates a BlazePoseFrame for each pass frame
+    It validates they have the right shape and then creates a BlazePoseFrame
+    for each pass frame
 
     """
 
@@ -13,14 +15,16 @@ class BlazePoseSequence:
     frames: list[
         BlazePoseFrame
     ]  # a list of BlazePoseFrames representing the sequence data
-    joint_positions: list[str]  # required keys for a non-empty joint position object
-    include_geometry: (
-        bool  # compute angles / distance measure for each frame based on joint data
-    )
+    joint_positions: list[str]  # required keys for a non-empty joint position
+    # object
+    include_geometry: bool  # compute angles / distance measure for each frame
+    # based on joint data
 
     def __init__(
-        self, name: str, sequence: list = [], include_geometry: bool = False
+        self, name: str, sequence: list | None = None, include_geometry: bool = False
     ) -> None:
+        if sequence is None:
+            sequence = []
         self.name = name
         self.joint_positions = [joint.name for joint in BlazePoseJoints]
         for frame in sequence:
@@ -37,7 +41,8 @@ class BlazePoseSequence:
         Args:
 
             frame_data: dict
-                a MediaPipeClient.frame_data_list entry conforming to proper schema
+                a MediaPipeClient.frame_data_list entry conforming to proper
+                schema
 
         Returns:
             valid: bool
@@ -95,10 +100,10 @@ class BlazePoseSequence:
                 )
                 self.frames.append(bpf)
             return self
-        except:
+        except Exception as err:
             raise BlazePoseSequenceError(
                 "There was a problem generating a BlazePoseFrame"
-            )
+            ) from err
 
     def serialize_sequence_data(self):
         """This method returns a list of serialized frame data.
@@ -112,8 +117,8 @@ class BlazePoseSequence:
         """
         try:
             return [frame.serialize_frame_data() for frame in self.frames]
-        except:
-            raise BlazePoseSequenceError("Error serializing frames")
+        except Exception as err:
+            raise BlazePoseSequenceError("Error serializing frames") from err
 
 
 class BlazePoseSequenceError(Exception):

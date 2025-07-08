@@ -3,6 +3,7 @@ import os
 import pickle
 import shutil
 import time
+from typing import Any
 
 import matplotlib.pyplot as plt  # type: ignore[import-untyped]
 import numpy as np
@@ -20,14 +21,14 @@ from sklearn.decomposition import PCA  # type: ignore[import-untyped]
 from sklearn.ensemble import RandomForestClassifier  # type: ignore[import-untyped]
 
 # feature selection
-from sklearn.feature_selection import (
-    RFE,  # type: ignore[import-untyped]
-    RFECV,  # type: ignore[import-untyped]
+from sklearn.feature_selection import (  # type: ignore[import-untyped]
+    RFE,
+    RFECV,
 )
 from sklearn.linear_model import LogisticRegression  # type: ignore[import-untyped]
 
 # Reporting
-from sklearn.metrics import (
+from sklearn.metrics import (  # type: ignore[import-untyped]
     accuracy_score,
     classification_report,
     confusion_matrix,
@@ -37,7 +38,7 @@ from sklearn.metrics import (
     recall_score,
     roc_auc_score,
     roc_curve,
-    silhouette_score,  # type: ignore[import-untyped]
+    silhouette_score,
 )
 from sklearn.model_selection import (  # type: ignore[import-untyped]
     GridSearchCV,  # type: ignore[import-untyped]
@@ -56,7 +57,7 @@ import mlflow
 
 
 class ModelBuilder:
-    """This class is to aid in setting up training data and training various models to compare performance."""
+    """A helper for setting up training data and training various models."""
 
     def __init__(
         self,
@@ -127,7 +128,8 @@ class ModelBuilder:
 
         # Report training balance and drop target value
         print(
-            f"Training Balance for {self.target}:\n{X_train[self.target].value_counts()}"
+            f"Training Balance for {self.target}:\n"
+            f"{X_train[self.target].value_counts()}"
         )
 
         # drop target column
@@ -143,9 +145,9 @@ class ModelBuilder:
         self,
         path: str,
         target: str,
-        value_map: dict = {},
-        drop_list: list = [],
-        column_whitelist: list = [],
+        value_map: dict[Any, Any] | None = None,
+        drop_list: list[Any] | None = None,
+        column_whitelist: list[Any] | None = None,
     ):
         """Load CSV into Pandas dataframe with no index column
 
@@ -155,13 +157,20 @@ class ModelBuilder:
             target: str
                 the target variable we want to predict
             value_map: dict
-                if there are string values in the columns map the categorical values to numbers
-                according to the passed value map
+                if there are string values in the columns map the categorical values to
+                numbers according to the passed value map
             column_whitelist: list
                 only keep these columns in the dataset
             naively_balance_off_target: bool
-                If True, take the target var and subsample the majority class so that the dataset it balanced.
+                If True, take the target var and subsample the majority class so that
+                the dataset it balanced.
         """
+        if column_whitelist is None:
+            column_whitelist = []
+        if drop_list is None:
+            drop_list = []
+        if value_map is None:
+            value_map = {}
         self.data_file = path
         self.target = target
         X = pd.read_csv(path, index_col=0)
@@ -203,14 +212,23 @@ class ModelBuilder:
             filters: dict
                 a filter dictionary with this structure
                     {
-                        "WHITELIST": [any of these substrings within tested string should return True],
-                        "BLACKLIST": [any of these substrings within tested string should return False],
-                        "OR": [if ANY of these substrings are within the string, return True],
-                        "AND": [if ALL of these substrings are within the string, return True]
+                        "WHITELIST": [any of these substrings should return True],
+                        "BLACKLIST": [any of these substrings should return False],
+                        "OR": [
+                            # if ANY of these substrings are within the string,
+                            # return True
+                            True
+                        ],
+                        "AND": [
+                            # if ALL of these substrings are within the string,
+                            # return True
+                            True
+                        ]
                     }
 
         Returns:
-            True if the column name meets the filter criteria within the passed dictionary
+            True if the column name meets the filter criteria within the passed
+            dictionary
 
         """
         whitelist_match = any(item in candidate_string for item in filters["WHITELIST"])
@@ -330,7 +348,9 @@ class ModelBuilder:
         feature_names = np.array(self.X.columns)
         sorted_features = feature_names[sorted_indices]
         output = []
-        for feature, importance in zip(sorted_features, np.sort(importances)[::-1], strict=False):
+        for feature, importance in zip(
+            sorted_features, np.sort(importances)[::-1], strict=False
+        ):
             output.append({feature: f"{importance * 100}%"})
         return output
 
@@ -381,8 +401,8 @@ class ModelBuilder:
     def train_random_forest(
         self,
         use_random_search: bool = False,
-        params: dict = {},
-        param_dist: dict = {},
+        params: dict[Any, Any] | None = None,
+        param_dist: dict[Any, Any] | None = None,
         iterations: int = 10,
         random_state: int = 123,
     ):
@@ -398,9 +418,14 @@ class ModelBuilder:
             iterations: int
                 if we're using a random search, how many iterations should we run?
             random_state: int
-                if we're using a random search, pass in a random see to keep the same randomness across runs
+                if we're using a random search, pass in a random see to keep the same
+                randomness across runs
 
         """
+        if param_dist is None:
+            param_dist = {}
+        if params is None:
+            params = {}
         X_train = self.X_train
         y_train = self.y_train
 
@@ -540,11 +565,14 @@ class ModelBuilder:
         model_path: str = "../../data/trained_models",
     ) -> None:
         """
-        Save the model to MLflow in a format compatible with mlflow models serve and create a zipped version alongside the directory.
+        Save the model to MLflow in a format compatible with mlflow models serve
+        and create a zipped version alongside the directory.
 
         Args:
-            model (Optional[object]): The model to be saved. If not provided, defaults to self.model.
-            model_path (str): The path where the model artifact will be stored. Defaults to "../../data/trained_models".
+            model (Optional[object]): The model to be saved. If not provided, defaults
+            to
+            self.model.
+            model_path (str): The path where the model artifact will be stored.
         """
         import time
 
@@ -753,10 +781,11 @@ class ModelBuilder:
         Args:
             kmeans (KMeans): A trained KMeans classifier.
             X (pd.DataFrame): The original feature matrix.
-            cluster_list (list): A list of cluster numbers you want to include in the subset.
+            cluster_list (list): A list of cluster numbers to include in the subset.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the subset of data for the specified clusters.
+            pd.DataFrame: A DataFrame containing the subset of data for the
+            specified clusters.
         """
         # Get the cluster assignments
         cluster_assignments = kmeans.labels_

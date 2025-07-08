@@ -28,7 +28,8 @@ class SequenceTransformer(ABC):
 
         Returns:
             Tuple containing:
-            - Either a DataFrame or Dict (depending on implementation) with transformed data
+            - Either a DataFrame or Dict (depending on implementation) with
+              transformed data
             - Dict with metadata about the transformation
         """
         pass
@@ -37,11 +38,13 @@ class SequenceTransformer(ABC):
 # TODO create concrete classes for different schemes
 class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
     """This is the first transformer I'm writing here, so maybe a little more
-    hard coded than I'd prefer. Just getting this working to close the interaction loop for now.
+    hard coded than I'd prefer. Just getting this working to close the interaction
+    loop for now.
 
-    TODO ideally there's some sort of schema generated from the dataset generation step
-    that can be used to transform the sequence data back into the right columnnar format.
-    So dataset generation is sequence_data->csv + schema, and then test example is sequence_data+schema->test_example
+    TODO ideally there's some sort of schema generated from the dataset generation
+    step that can be used to transform the sequence data back into the right
+    columnnar format. So dataset generation is sequence_data->csv + schema, and
+    then test example is sequence_data+schema->test_example
 
     """
 
@@ -99,7 +102,7 @@ class MLFlowTransformer(SequenceTransformer):
         flattened: dict[str, Any] = {
             key: value if value is not None else 0.0  # default to 0.0 if value is None
             for key, value in frame_segment[-1].items()
-            if isinstance(value, (str, type(None)))
+            if isinstance(value, str | type(None))
         }
 
         flattened["data"] = defaultdict(dict)
@@ -125,7 +128,8 @@ class MLFlowTransformer(SequenceTransformer):
         # Flatten the data into a DataFrame
         output_flattened = pd.json_normalize(data=output_dict)
 
-        # Create a DataFrame with the specified columns, defaulting missing values to 0.0
+        # Create a DataFrame with the specified columns, defaulting missing
+        # values to 0.0
         output_flattened_filtered = pd.DataFrame(columns=columns)
 
         # Set all columns in output_flattened_filtered to 0.0 initially
@@ -135,14 +139,15 @@ class MLFlowTransformer(SequenceTransformer):
         for col in output_flattened.columns.intersection(columns):
             output_flattened_filtered[col] = output_flattened[col]
 
-        # Ensure the order of columns matches the 'columns' list exacjtly
+        # Ensure the order of columns matches the 'columns' list exactly
         output_flattened_filtered = output_flattened_filtered[columns]
 
         output_flattened_filtered = output_flattened_filtered.replace(
             [np.inf, -np.inf, np.nan], 0.0
         )
 
-        # Convert the DataFrame to a dictionary format required for the JSON payload
+        # Convert the DataFrame to a dictionary format required for the JSON
+        # payload
         json_data_payload = output_flattened_filtered.to_dict(orient="records")[0]
 
         return (json_data_payload, output_meta)

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from typing import Any
 
 import pandas as pd
@@ -11,17 +12,14 @@ class SequenceTransformer(ABC):
         pass
 
 
-from collections import defaultdict
-
-
 # TODO create concrete classes for different schemes
 class TenFrameFlatColumnAngleTransformer(SequenceTransformer):
-    """This is the first transformer I'm writing here, so maybe a little more
-    hard coded than I'd prefer. Just getting this working to close the interaction loop for now.
+    """A transformer for 10-frame flat column angle data.
 
     TODO ideally there's some sort of schema generated from the dataset generation step
-    that can be used to transform the sequence data back into the right columnnar format.
-    So dataset generation is sequence_data->csv + schema, and then test example is sequence_data+schema->test_example
+    that can be used to transform the sequence data back into the right columnnar
+    format. So dataset generation is sequence_data->csv + schema, and then test
+    example is sequence_data+schema->test_example
 
     """
 

@@ -70,8 +70,8 @@ class Vector:
                 self.y1 - self.y2,
                 self.z1 - self.z2,
             )
-        except:
-            raise VectorError("There was an issue instantiating the Vector object")
+        except AttributeError as err:
+            raise VectorError("Error instantiating Vector object") from err
 
     def get_coord_tuple(self, normalized: bool = False):
         """This method returns a tuple representation of the vector points.
@@ -95,8 +95,8 @@ class Vector:
                 self.joint_1.get_coord_tuple(normalized=False),
                 self.joint_2.get_coord_tuple(normalized=False),
             )
-        except:
-            raise VectorError("There was an error obtaining the tuple coordinates")
+        except Exception as err:
+            raise VectorError("Error obtaining tuple coordinates") from err
 
 
 class VectorError(Exception):

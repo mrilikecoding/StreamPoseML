@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -205,11 +215,12 @@ class TestVideoDataMergeService:
         )
 
     def test_create_video_annotation_map_error(self):
-        """Test error when no video directory is specified but process_videos is True."""
+        """Test error when no video directory is specified but process_videos is "
+        "True."""
         # Given/When/Then
         with pytest.raises(
             VideoDataMergeServiceError,
-            match="There is no source video directory specified",
+            match="No source video directory specified to generate video data from.",
         ):
             VideoDataMergeService(
                 annotations_data_directory="/path/to/annotations",
@@ -291,17 +302,6 @@ class TestVideoDataMergeService:
             "unlabeled_frames": [["unlabeled_frame1"]],
         }
 
-
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
     def test_generate_annotated_video_data_with_limit(
         self, mock_path_utility, mock_transformer, mock_open_json
     ):
@@ -318,7 +318,7 @@ if str(project_root) not in sys.path:
         )
 
         # When
-        result = service.generate_annotated_video_data(limit=limit)
+        service.generate_annotated_video_data(limit=limit)
 
         # Then
         # Verify only one sequence was processed

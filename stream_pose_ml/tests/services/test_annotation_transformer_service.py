@@ -1,8 +1,18 @@
 import os
+import sys
+from pathlib import Path
 from unittest.mock import mock_open, patch
 
 import pytest
 
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# ruff: noqa: E402
 from stream_pose_ml.services.annotation_transformer_service import (
     AnnotationTransformerService,
     find_project_root,
@@ -221,17 +231,6 @@ class TestAnnotationTransformerService:
         assert labeled_frame["category2"] == "class2"
         assert labeled_frame["data"]["frame_number"] == 3
         assert labeled_frame["video_id"] == "test_video"
-
-
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
     @patch(
         "stream_pose_ml.services.annotation_transformer_service.AnnotationTransformerService.load_annotation_schema"

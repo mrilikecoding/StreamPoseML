@@ -11,9 +11,10 @@ from stream_pose_ml.blaze_pose.enumerations import BlazePoseJoints
 
 
 class MediaPipeClient:
-    """This class provides an interface to Mediapipe for keypoint extraction, sets I/O paths.
+    """This class provides an interface to Mediapipe for keypoint extraction.
 
-    See https://google.github.io/mediapipe/solutions/pose.html for information about inner workings of MediaPipe
+    See https://google.github.io/mediapipe/solutions/pose.html for information about
+    inner workings of MediaPipe
     """
 
     frame_count: int
@@ -22,7 +23,8 @@ class MediaPipeClient:
     video_input_path: str
     video_output_prefix: str
     id: int
-    joints: list  # an ordered list of joints corresponding to MediaPipe BlazePose model
+    joints: list  # an ordered list of joints corresponding to MediaPipe BlazePose
+    # model
     configuration: dict  # options to pass into mediapipe pose
     preprocess_video: bool  # whether to preprocess the video frame
     dummy_client: bool
@@ -33,24 +35,29 @@ class MediaPipeClient:
         video_input_path: str = ".stream_pose_ml/test_videos",
         video_output_prefix: str = ".tmp/data/keypoints",
         id: int = int(time.time_ns()),
-        configuration: dict = {},
+        configuration: dict | None = None,
         preprocess_video: bool = False,
         dummy_client: bool = False,
     ) -> None:
         """Initalize a mediapipe client object.
 
             Args:
-        video_input_filename: str | None                the name of the file - "some_file.mp4"
+                video_input_filename: str | None
+                    the name of the file - "some_file.mp4"
                 video_input_path: str
                     "path/to/file"
                 video_output_prefix: str
                     "where/to/put/keypoints"
                 id: int
-                    The id for this client - this will be used to set the output sub-directory
+                    The id for this client - this will be used to set the output
+                    sub-directory
                 dummy_client: bool
-                    If true, no input file is needed. Use this when only calling static methods
+                    If true, no input file is needed. Use this when only calling
+                    static methods
 
         """
+        if configuration is None:
+            configuration = {}
         self.configuration = configuration
         self.preprocess_video = preprocess_video
         self.dummy_client = dummy_client
@@ -99,13 +106,18 @@ class MediaPipeClient:
 
         # set up mediapipe
         mp_pose = mp.solutions.pose
-        pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+        pose = mp_pose.Pose(
+            min_detection_confidence=0.5, min_tracking_confidence=0.5
+        )
 
         # start video processing
-        cap = cv2.VideoCapture(f"{self.video_input_path}/{self.video_input_filename}")  # type: ignore[call-arg]
-        if cap.isOpened() == False:
+        cap = cv2.VideoCapture(
+            f"{self.video_input_path}/{self.video_input_filename}"
+        )  # type: ignore[call-arg]
+        if not cap.isOpened():
             raise MediaPipeClientError(
-                f"Error opening file: {self.video_input_path}/{self.video_input_filename}"
+                f"Error opening file: "
+                f"{self.video_input_path}/{self.video_input_filename}"
             )
         while cap.isOpened():
             # TODO refactor this into stages
@@ -160,14 +172,16 @@ class MediaPipeClient:
         try:
             os.makedirs(self.json_output_path)
             for frame_data in self.frame_data_list:
-                file_path = f"{self.json_output_path}/keypoints-{frame_data['frame_number']:04d}.json"
+                file_path = (
+                    f"{self.json_output_path}/keypoints-"
+                    f"{frame_data['frame_number']:04d}.json"
+                )
                 with open(file_path, "w") as f:
                     json.dump(frame_data, f)
-                    # print(
-                    #     f"Successfully wrote keypoints from {self.video_input_filename} to {file_path}"
-                    # )
-        except:
-            raise MediaPipeClientError("There was a problem writing pose data to json")
+        except Exception as err:
+            raise MediaPipeClientError(
+                "There was a problem writing pose data to json"
+            ) from err
 
     @staticmethod
     def run_preprocess_video(image: np.ndarray) -> np.ndarray:
@@ -187,9 +201,9 @@ class MediaPipeClient:
 
         # Contrast Enhancement
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
+        lightness, a, b = cv2.split(lab)
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-        cl = clahe.apply(l)
+        cl = clahe.apply(lightness)
         enhanced_img = cv2.merge([cl, a, b])  # type: ignore[arg-type]
         enhanced_img = cv2.cvtColor(enhanced_img, cv2.COLOR_LAB2BGR)
 
@@ -213,7 +227,7 @@ class MediaPipeClient:
         joint_index = joints.index(reference_joint_name)
         try:
             return [pose_landmarks[joint_index].x, pose_landmarks[joint_index].y]
-        except:
+        except AttributeError:
             return [pose_landmarks[joint_index]["x"], pose_landmarks[joint_index]["y"]]
 
     @staticmethod
@@ -251,10 +265,12 @@ class MediaPipeClient:
     def serialize_pose_landmarks(self, pose_landmarks: list):
         """Get a formatted list of video data coordinates.
 
-        This method take a list of pose landmarks (casted from the mediapipe pose_landmarks.landmark object)
-        and extracts x, y, z data, performs a normalization of reference joints, then stores all the data in a dictionary
+        This method take a list of pose landmarks (casted from the mediapipe
+        pose_landmarks.landmark object) and extracts x, y, z data, performs a
+        normalization of reference joints, then stores all the data in a dictionary
 
-        Note: according to MediaPipe docs "z" uses roughly same scale as x. May not be very accurate.
+        Note: according to MediaPipe docs "z" uses roughly same scale as x.
+        May not be very accurate.
 
         Args:
             pose_landmarks: list
@@ -267,7 +283,8 @@ class MediaPipeClient:
 
         Rerturns
             landmarks: dict
-                dictionary containing x, y, z and x_normalized, y_normalized, z_normalized
+                dictionary containing x, y, z and x_normalized, y_normalized,
+                z_normalized
         """
         landmarks = {}
 
@@ -305,7 +322,7 @@ class MediaPipeClient:
                         "y_normalized": y_normed,
                         "z_normalized": pose_landmarks[i].z,
                     }
-                except:
+                except AttributeError:
                     x_normed = (
                         pose_landmarks[i]["x"] / reference_point_distance
                     ) - reference_point_midpoint["x"]

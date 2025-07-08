@@ -1,3 +1,4 @@
+
 from stream_pose_ml.services.video_data_service import VideoDataService
 
 
@@ -15,10 +16,10 @@ class ProcessVideoJob:
         output_sequence_data_path: str,
         write_keypoints_to_file: bool = False,
         write_serialized_sequence_to_file: bool = False,
-        configuration: dict = {},
+        configuration: dict | None = None,
         preprocess_video: bool = False,
     ) -> dict:
-        """This method is intended to wrap the video data service which sits in front of the MediaPipe client with a queued job
+        """This method wraps the video data service with a queued job.
 
         Args:
             input_filename: str
@@ -37,6 +38,8 @@ class ProcessVideoJob:
 
 
         """
+        if configuration is None:
+            configuration = {}
         if write_keypoints_to_file and output_keypoint_data_path is None:
             raise ProcessVideoJobError(
                 "No output location specified for keypoints files."

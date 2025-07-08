@@ -1,3 +1,12 @@
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from stream_pose_ml.utils.utils import round_nested_dict
 
@@ -46,7 +55,8 @@ class TestRoundNestedDict:
         assert result["nested"]["deeper"]["deepest_value"] == 0.58
 
     def test_round_nested_dict_with_list_values(self):
-        """Test that the function properly handles list values (by not modifying them)."""
+        """Test that the function properly handles list values (by not modifying
+        them)."""
         # Setup
         input_dict = {
             "list_value": [1.23456, 2.34567, 3.45678],
@@ -86,17 +96,6 @@ class TestRoundNestedDict:
         # Verify
         assert result["value1"] == 2  # Rounded up
         assert result["value2"] == 2  # Rounded up
-
-
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
     def test_round_nested_dict_with_non_dict_input(self):
         """Test that the function correctly handles non-dictionary inputs."""

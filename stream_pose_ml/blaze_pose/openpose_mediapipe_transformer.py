@@ -6,20 +6,20 @@ if TYPE_CHECKING:
 
 
 class OpenPoseMediapipeTransformer:
-    """Compute common angle and distance measures, typically used when doing CV with OpenPose .
+    """Compute common angle and distance measures, typically used with OpenPose.
 
     This class is responsible for encapsulating methods to make translation
     between Openpose angle and distance paradigms to equivalent Mediapipe
     representations. Openpose uses the Body 25 model. To represent the plumbline
-    in Openpose, the vector between joints 25 and 26 is specified, the neck and mid_hip.
-    Mediapipe uses BlazePose, so the plumbline can be represented by calculating the
-    midpoint between the shoulders and the midpoint between the hip and representing
-    as a vector.
+    in Openpose, the vector between joints 25 and 26 is specified, the neck and
+    mid_hip. Mediapipe uses BlazePose, so the plumbline can be represented by
+    calculating the midpoint between the shoulders and the midpoint between the
+    hip and representing as a vector.
     """
 
     @staticmethod
     def open_pose_distance_definition_map() -> dict:
-        """A map of OpenPose distance definitions to vector/joint names used in this package.
+        """A map of OpenPose distance definitions to vector/joint names.
 
         This method is responsible for translating Blaze pose joints into
         OpenPose domain joints / vectors and returning a map to vectors
@@ -32,8 +32,8 @@ class OpenPoseMediapipeTransformer:
                 distance calculation
 
 
-        More info - here are the OpenPose distance measurements as they are named in OP docs
-        as well as the tuple of joints / vectors as represented here.
+        More info - here are the OpenPose distance measurements as they are named
+        in OP docs as well as the tuple of joints / vectors as represented here.
 
         "distance_point_0__line_25_26": ("nose", "plumb_line"),
         "distance_point_1__line_25_26": ("neck", "plumb_line"),
@@ -55,10 +55,12 @@ class OpenPoseMediapipeTransformer:
         "distance_point_17__line_25_26": ("right_ear", "plumb_line"),
         "distance_point_18__line_25_26": ("left_ear", "plumb_line"),
         "distance_point_19__line_25_26": ("left_foot_index", "plumb_line"),
-        # "distance_point_20__line_25_26": ("", "plumb_line"), # skipping as there's not a good analog
+        # "distance_point_20__line_25_26": ("", "plumb_line"),
+        # skipping as there's not a good analog
         "distance_point_21__line_25_26": ("left_heel", "plumb_line"),
         "distance_point_22__line_25_26": ("right_foot_index", "plumb_line"),
-        # "distance_point_23__line_25_26": ("", "plumb_line"), #skipping as there's not a good analog
+        # "distance_point_23__line_25_26": ("", "plumb_line"),
+        # skipping as there's not a good analog
         "distance_point_24__line_25_26": ("right_heel", "plumb_line"),
 
         """
@@ -90,7 +92,7 @@ class OpenPoseMediapipeTransformer:
 
     @staticmethod
     def open_pose_angle_definition_map() -> dict:
-        """A map of OpenPose angle definitions to vector/joint names used in this package.
+        """A map of OpenPose angle definitions to vector/joint names.
 
         This method is responsible for translating Mediapipe Blaze pose joints into
         OpenPose domain joints / vectors and returning a map to vectors
@@ -103,8 +105,8 @@ class OpenPoseMediapipeTransformer:
 
         More info:
 
-        More info - here are the OpenPose angle measurements as they are named in OP docs
-        as well as the tuple of joints / vectors as represented here.
+        More info - here are the OpenPose angle measurements as they are named
+        in OP docs as well as the tuple of joints / vectors as represented here.
 
         "line_0_1__line_25_26": ("nose_neck", "plumb_line"),
         "line_1_8__line_25_26": ("neck_mid_hip", "plumb_line"),
@@ -160,7 +162,8 @@ class OpenPoseMediapipeTransformer:
             "right_ankle_right_foot_index",
         ),
         """
-        # create a translation map from openpose angle spec to vector->vector angle
+        # create a translation map from openpose angle spec to vector->vector
+        # angle
         return {
             "nose_neck_to_plumb_line": ("nose_neck", "plumb_line"),
             "neck_mid_hip_to_plumb_line": ("neck_mid_hip", "plumb_line"),
@@ -176,10 +179,6 @@ class OpenPoseMediapipeTransformer:
             ),
             "left_shoulder_left_elbow_to_plumb_line": (
                 "left_shoulder_left_elbow",
-                "plumb_line",
-            ),
-            "right_elbow_right_wrist_to_plumb_line": (
-                "right_elbow_right_wrist",
                 "plumb_line",
             ),
             "mid_hip_right_hip_to_plumb_line": ("mid_hip_right_hip", "plumb_line"),
@@ -230,10 +229,6 @@ class OpenPoseMediapipeTransformer:
             "neck_left_shoulder_to_left_shoulder_left_elbow": (
                 "neck_left_shoulder",
                 "left_shoulder_left_elbow",
-            ),
-            "right_shoulder_right_elbow_to_plumb_line": (
-                "right_shoulder_right_elbow",
-                "plumb_line",
             ),
             "left_shoulder_left_elbow_to_right_elbow_right_wrist": (
                 "left_shoulder_left_elbow",
@@ -390,7 +385,8 @@ class OpenPoseMediapipeTransformer:
             frame.vectors["left_eye_left_ear"] = frame.get_vector(
                 "left_eye_left_ear", "left_eye", "left_ear"
             )
-            # OpenPose 14_19 -- note OpenPose is "Left Big Toe" - here using left foot index from Blaze
+            # OpenPose 14_19 -- note OpenPose is "Left Big Toe" - here using
+            # left foot index from Blaze
             frame.vectors["left_ankle_left_foot_index"] = frame.get_vector(
                 "left_ankle_left_foot_index", "left_ankle", "left_foot_index"
             )
@@ -399,7 +395,8 @@ class OpenPoseMediapipeTransformer:
             frame.vectors["left_ankle_left_heel"] = frame.get_vector(
                 "left_ankle_left_heel", "left_ankle", "left_heel"
             )
-            # OpenPose 11_22 -- note OpenPose is "Right Big Toe" - here using right foot index from Blaze
+            # OpenPose 11_22 -- note OpenPose is "Right Big Toe" - here using
+            # right foot index from Blaze
             frame.vectors["right_ankle_right_foot_index"] = frame.get_vector(
                 "right_ankle_right_foot_index", "right_ankle", "right_foot_index"
             )
@@ -408,8 +405,10 @@ class OpenPoseMediapipeTransformer:
             frame.vectors["right_ankle_right_heel"] = frame.get_vector(
                 "right_ankle_right_heel", "right_ankle", "right_heel"
             )
-        except:
-            raise OpenPoseMediapipeTransformerError("Problem setting joints or vectors")
+        except Exception as err:
+            raise OpenPoseMediapipeTransformerError(
+                "Problem setting joints or vectors"
+            ) from err
 
         return True
 

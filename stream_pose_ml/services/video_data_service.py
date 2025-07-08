@@ -24,16 +24,17 @@ class VideoDataService:
         write_serialized_sequence_to_file: bool = False,
         output_sequence_data_path: str | None = None,
         include_geometry: bool = True,
-        configuration: dict = {},
+        configuration: dict | None = None,
         preprocess_video: bool = False,
         id: int | None = None,
         key_off_frame_number: bool = True,
     ) -> dict:
-        """Process keypoints from video and use them to model sequence and frame objects.
+        """Process keypoints from video and use them to model sequence and frame
+        objects.
 
         The process_video method takes a file name as well as I/O paths,
-        spins up a MediaPipeClient to generate raw keypoints,
-        then loads them into a BlazePoseSequence object which creates a series of frames
+        spins up a MediaPipeClient to generate raw keypoints, then loads them
+        into a BlazePoseSequence object which creates a series of frames
         containing various data
 
         Args:
@@ -57,17 +58,21 @@ class VideoDataService:
             configuration: dict
                 Configuration options to pass into MediapipeClient
             key_off_frame_number: dict
-                When True will key the data dictionary off the frame number - this is handy for extracting specific frames from data
+                When True will key the data dictionary off the frame number - this is
+                handy for extracting specific frames from data
 
         Returns:
             result: dict
-                a serialized BlazePoseSequence dictionary keyed off frame numbers
-                This is useful for plucking out specific frames when merging with annotation data
+                a serialized BlazePoseSequence dictionary keyed off frame numbers.
+                This is useful for plucking out specific frames when merging with
+                annotation data.
 
         Raises:
             exception: VideoDataServiceError
         """
         # Set an identifier
+        if configuration is None:
+            configuration = {}
         if not id:
             id = int(time.time_ns())
         # Load MPClient and process video

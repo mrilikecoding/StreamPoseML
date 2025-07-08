@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -180,7 +190,8 @@ class TestSegmentationService:
         result = service.split_on_window(mock_dataset)
 
         # Then
-        # There should be clips for every frame that's the end of a 2-frame window and has a label
+        # There should be clips for every frame that's the end of a 2-frame window
+        # and has a label
         assert len(result) > 0
 
         # Each clip should have 2 frames (the window size)
@@ -216,7 +227,8 @@ class TestSegmentationService:
         result = service.flatten_into_columns(mock_dataset)
 
         # Then
-        # There should be clips for every frame that's the end of a 2-frame window and has a label
+        # There should be clips for every frame that's the end of a 2-frame window
+        # and has a label
         assert len(result) > 0
 
         # Each clip should have just 1 frame (which is a flattened representation)
@@ -288,7 +300,8 @@ class TestSegmentationService:
         assert result["data"]["angles"]["frame-2-angle1"] == 90
 
     def test_flatten_on_example(self, mock_dataset, mock_labeled_clip):
-        """Test flattening frames based on a label change and then flattening into columns."""
+        """Test flattening frames based on a label change and then flattening into
+        columns."""
         # Given
         service = SegmentationService(
             segmentation_strategy="flatten_on_example",
@@ -378,17 +391,6 @@ class TestSegmentationService:
             # Then
             mock_segment.assert_called_once_with(dataset=mock_dataset)
             assert result.segmented_data == ["clip1", "clip2"]
-
-
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
     def test_segment_dataset_flatten_on_example(self, mock_dataset):
         """Test segmenting a dataset with 'flatten_on_example' strategy."""

@@ -12,7 +12,8 @@ from .openpose_mediapipe_transformer import (
 class BlazePoseFrame:
     """A single video frame's BlazePose joint positions and various frame data.
 
-    It stores meta-data related to the frame and also computes angle measurements if joint positions are present
+    It stores meta-data related to the frame and also computes angle measurements
+    if joint positions are present
     """
 
     joint_positions: list
@@ -51,14 +52,16 @@ class BlazePoseFrame:
                 }
 
             generate_angles: bool
-                Default - False. Create angle measurements based on pose data. These are based
-                on OpenPose body 25 angle measurements. This will result in the creation of some
-                specialized joints and vectors for translating between BlazePose model and OpenPose
+                Default - False. Create angle measurements based on pose data.
+                These are based on OpenPose body 25 angle measurements. This will
+                result in the creation of some specialized joints and vectors for
+                translating between BlazePose model and OpenPose
 
             generate_distances: bool
-                Default - False. Create distance measurements between joints and vectors based on pose data.
-                These are based on OpenPose body 25 distance measurements. This will result in the creation of some
-                specialized joints and vectors for translating between BlazePose model and OpenPose
+                Default - False. Create distance measurements between joints and
+                vectors based on pose data. These are based on OpenPose body 25 distance
+                measurements. This will result in the creation of some specialized
+                joints and vectors for translating between BlazePose model and OpenPose
 
         """
         self.joint_position_names = [joint.name for joint in BlazePoseJoints]
@@ -130,10 +133,10 @@ class BlazePoseFrame:
                 }
                 joint_positions[joint] = Joint(name=joint, joint_data=joint_data)
             return joint_positions
-        except:
+        except Exception as err:
             raise BlazePoseFrameError(
                 "There was an error setting the joint positions for the BlazePoseFrame"
-            )
+            ) from err
 
     def validate_joint_position_data(self, joint_positions: dict) -> bool:
         """Make sure right data is present in joint position.
@@ -182,8 +185,8 @@ class BlazePoseFrame:
 
         Args:
             map: dict[str, tuple[str, str]]
-                map of openpose definitions to their named joint -> vector distance calculation.
-                This is essentially defining the
+                map of openpose definitions to their named joint -> vector distance
+                calculation. This is essentially defining the
 
         Returns:
             distances: dict[str, Distance]
@@ -243,9 +246,11 @@ class BlazePoseFrame:
             name: str
                 The name of this vector for reference
             joint_name_1: str
-                The name of the first joint - this should be an existing key in self.joints
+                The name of the first joint - this should be an existing key in
+                self.joints
             joint_name_2: str
-                The name of the second joint - this should be an existing key in self.joints
+                The name of the second joint - this should be an existing key in
+                self.joints
 
         Returns:
             vector: Vector

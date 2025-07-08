@@ -27,7 +27,8 @@ class BuildAndFormatDatasetJob:
             annotations_data_directory: str
                 location of annotations corresponding to video data json
             sequence_data_directory: str
-                location of serialized sequence data files (this is output of BlazePoseSequenceSerializer written to json)
+                location of serialized sequence data files (this is output of
+                BlazePoseSequenceSerializer written to json)
             limit: int
                 only process data to this limit (useful for testing)
         """
@@ -38,7 +39,8 @@ class BuildAndFormatDatasetJob:
         )
 
         annotated_video_data = vdms.generate_annotated_video_data(limit=limit)
-        # TODO rename these attrs all_frames_raw or something to distinguish from segmented data...
+        # TODO rename these attrs all_frames_raw or something to distinguish from
+        # segmented data...
         dataset = Dataset(
             all_frames=annotated_video_data["all_frames"],
             labeled_frames=annotated_video_data["labeled_frames"],
@@ -52,9 +54,12 @@ class BuildAndFormatDatasetJob:
         video_directory: str,
         limit: int | None = None,
     ):
-        """Builds a dataset while also doing the video processing for all videos within a directory.
+        """Builds a dataset while also doing the video processing for all videos
+        within a
+        directory.
 
-        Use this when you want to go directly from source videos and annotations to a dataset.
+        Use this when you want to go directly from source videos and annotations to a
+        dataset.
 
         Args:
             annotations_directory: str
@@ -101,18 +106,23 @@ class BuildAndFormatDatasetJob:
                 When True, the returned dataset will pool frame data across all frames
                 When False the returned dataset will return each frame as a separate row
             decimal_precision: int | None
-                if decimal precision is specified, round all float values in dataset to this number of places
+                if decimal precision is specified, round all float values in dataset
+                to this number of places
             include_unlabeled_data: bool
-                depending on how the video frame data is segmented into clips it may or may not be useful to have unlabeled frame data
-                using a temporal window, likely you'll want segments that include unlabeled frames as long as the last frame is labeled
+                depending on how the video frame data is segmented into clips it may
+                or may not be useful to have unlabeled frame data
+                using a temporal window, likely you'll want segments that include
+                unlabeled frames as long as the last frame is labeled
             segmentation_strategy: str | None
                 one of "split_on_label", "window", "none"
             segmentation_splitter_label: str | None
-                if segmentation strategy is "split_on_label" this will be the label used to segment data into training examples.
+                if segmentation strategy is "split_on_label" this will be the label
+                used to segment data into training examples.
             segmentation_window: int | None
                 if segmentation strategy is "window" this will be the frame window size
             segmentation_window_label: str | None
-                if segmentation strategy is "window" this will be the label used to segment data into training examples.
+                if segmentation strategy is "window" this will be the label used to
+                segment data into training examples.
 
         """
         segmentation_service = SegmentationService(
@@ -156,7 +166,8 @@ class BuildAndFormatDatasetJob:
             formatted_dataset: list[dict]
                 list of serialized data dicts
             filename: str
-                if a custom filename is desired, pass in here. otherwise this will be a timestamp
+                if a custom filename is desired, pass in here. otherwise this will be
+                a timestamp
         Returns:
             success: bool
                 True if successful

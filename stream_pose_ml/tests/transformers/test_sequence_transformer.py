@@ -1,3 +1,13 @@
+import sys
+from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from unittest.mock import patch
 
 import pandas as pd
@@ -14,7 +24,8 @@ class TestSequenceTransformer:
     """Test the abstract SequenceTransformer class."""
 
     def test_abstract_class(self):
-        """Test that SequenceTransformer is an abstract class that cannot be instantiated directly."""
+        """Test that SequenceTransformer is an abstract class that cannot be
+        instantiated directly."""
         with pytest.raises(
             TypeError, match="Can't instantiate abstract class SequenceTransformer"
         ):
@@ -52,20 +63,6 @@ class TestTenFrameFlatColumnAngleTransformer:
         }
 
         # Create mock flattened data and output for testing
-        mock_flattened_data = {
-            "angles": {
-                "frame-1-elbow.angle_2d_degrees": 90.5,
-                "frame-1-knee.angle_2d_degrees": 178.2,
-                "frame-2-elbow.angle_2d_degrees": 92.1,
-                "frame-2-knee.angle_2d_degrees": 175.8,
-            },
-            "distances": {
-                "frame-1-hand_to_hip.distance_2d": 45.7,
-                "frame-1-hand_to_hip.distance_2d_normalized": 0.2,
-                "frame-2-hand_to_hip.distance_2d": 47.3,
-                "frame-2-hand_to_hip.distance_2d_normalized": 0.22,
-            },
-        }
 
         # Create mock metadata
         mock_meta = {
@@ -310,17 +307,6 @@ class TestMLFlowTransformer:
 
             # Verify our mock was called once with the expected arguments
             mock_transform.assert_called_once_with(frame_data, columns)
-
-
-import sys
-from pathlib import Path
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
     def test_handles_inf_and_nan_with_patch(self):
         """Test that inf and NaN values are replaced with 0.0 using patching."""

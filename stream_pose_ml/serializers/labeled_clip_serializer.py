@@ -27,14 +27,20 @@ class LabeledClipSerializer:
         include_normalized: bool = True,
         include_z_axis: bool = False,
         # TODO angles / distances / joints to include (NOT IMPLEMENTED)
-        angle_whitelist: list = [],
-        distance_whitelist: list = [],
-        joint_whitelist: list = [],
+        angle_whitelist: list[Any] | None = None,
+        distance_whitelist: list[Any] | None = None,
+        joint_whitelist: list[Any] | None = None,
         # pooling options if pooling the temporal data
         pool_avg: bool = True,
         pool_std: bool = True,
         pool_max: bool = True,
     ):
+        if joint_whitelist is None:
+            joint_whitelist = []
+        if distance_whitelist is None:
+            distance_whitelist = []
+        if angle_whitelist is None:
+            angle_whitelist = []
         self.include_joints = include_joints
         self.include_angles = include_angles
         self.include_distances = include_distances
@@ -55,14 +61,16 @@ class LabeledClipSerializer:
 
         Args:
             labeled_clip: LabeledClip
-                a clip of labeled data - note only the last frame in the clip needs the label really
-                this is because sometimes we'll want to include unlabeled frames as part of the entire
-                set of frames, for example when doing temporal pooling over a frame window where the last
-                frame has the label for the preceding x frames in the window. Other times we may want
-                variable length clips. This method doesn't really care.
+                a clip of labeled data - note only the last frame in the clip needs
+                the label really. This is because sometimes we'll want to include
+                unlabeled frames as part of the entire set of frames, for example
+                when doing temporal pooling over a frame window where the last frame
+                has the label for the preceding x frames in the window. Other times
+                we may want variable length clips. This method doesn't really care.
         Returns:
             pooled_clip_data: dict
-                a dictionary of various pooled temporal features if self.pool_frame_data is True
+                a dictionary of various pooled temporal features if
+                self.pool_frame_data is True
             OR
             frame_data_list: list[dict]
                 a list of serialized frame data for every frame in the clip

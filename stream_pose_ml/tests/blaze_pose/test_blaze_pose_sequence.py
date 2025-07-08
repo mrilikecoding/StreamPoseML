@@ -1,10 +1,19 @@
 """Tests for the BlazePoseSequence class."""
 
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# ruff: noqa: E402
 from stream_pose_ml.blaze_pose.blaze_pose_frame import BlazePoseFrame
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import (
     BlazePoseSequence,
@@ -242,7 +251,8 @@ class TestBlazePoseSequenceFrameGeneration:
             sequence.generate_blaze_pose_frames_from_sequence()
 
             # Assert
-            # Check if BlazePoseFrame was initialized with generate_angles=True and generate_distances=True
+            # Check if BlazePoseFrame was initialized with generate_angles=True and
+            # generate_distances=True
             for call_args in mock_frame.call_args_list:
                 args, kwargs = call_args
                 assert kwargs["generate_angles"] is True
@@ -311,16 +321,6 @@ class TestBlazePoseSequenceSerialization:
             sequence.serialize_sequence_data()
 
 
-import sys
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
-
-
 class TestBlazePoseSequenceIntegration:
     """Integration tests for BlazePoseSequence."""
 
@@ -367,7 +367,7 @@ class TestBlazePoseSequenceIntegration:
 
         try:
             shutil.rmtree(output_path)
-        except:
+        except OSError:
             pass
 
     def test_full_sequence_with_real_data(self, real_sequence_data):

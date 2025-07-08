@@ -73,7 +73,8 @@ class Distance:
 
         Returns:
             distance: float
-                The Euclidean distance (L2 Norm) between the joint and the midpoint of the vector.
+                The Euclidean distance (L2 Norm) between the joint and the vector
+                midpoint.
                 Also see:
                 https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html
 

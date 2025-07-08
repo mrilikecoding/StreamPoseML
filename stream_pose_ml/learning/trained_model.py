@@ -4,7 +4,8 @@ from typing import Any
 class TrainedModel:
     """Encapsulates a trained model.
 
-    This instance needs a model and an transformer that shapes data for the model's predict function.
+    This instance needs a model and a transformer that shapes data for the model's
+    predict function.
     """
 
     def __init__(self):
@@ -20,7 +21,8 @@ class TrainedModel:
             return self.data_transformer.transform(data)
         else:
             raise ValueError(
-                "No transformer is set on this model, or the transformer does not have a 'transform' function"
+                "No transformer is set on this model, or the transformer does not "
+                "have a 'transform' function"
             )
 
     def predict(self, data: Any) -> Any:
@@ -36,7 +38,8 @@ class TrainedModel:
             return self.model.predict(data)
         else:
             raise ValueError(
-                "No model is loaded, or the loaded model does not have a 'predict' function"
+                "No model is loaded, or the loaded model does not have a 'predict' "
+                "function"
             )
 
     def set_data_transformer(self, transformer):

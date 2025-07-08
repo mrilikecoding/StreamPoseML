@@ -15,6 +15,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Import with absolute paths from the project root
+# ruff: noqa: E402
 from stream_pose_ml.geometry.distance import Distance
 from stream_pose_ml.geometry.joint import Joint
 from stream_pose_ml.geometry.vector import Vector
@@ -170,7 +171,8 @@ class TestDistance:
         # Arrange
         test_distance = TestDistance()
 
-        # Simple case: joint at origin, vector from (3,0,0) to (3,4,0), midpoint at (3,2,0)
+        # Simple case: joint at origin, vector from (3,0,0) to (3,4,0), midpoint at
+        # (3,2,0)
         # Distance from origin to (3,2,0) is sqrt(13) ≈ 3.606
         joint_coords = (0.0, 0.0, 0.0)
         vector_coords = ((3.0, 0.0, 0.0), (3.0, 4.0, 0.0))

@@ -47,7 +47,7 @@ class Joint:
                 "z_normalized",
                 "image_dimensions",
             ]
-            if not all([key in required_keys for key in joint_data]):
+            if not all(key in required_keys for key in joint_data):
                 raise JointError(
                     "The required data is missing from the joint data dictionary."
                 )
@@ -60,8 +60,8 @@ class Joint:
             self.x_normalized = joint_data["x_normalized"]
             self.y_normalized = joint_data["y_normalized"]
             self.z_normalized = joint_data["z_normalized"]
-        except:
-            raise JointError("There was an error instantiating the Joint object")
+        except KeyError as err:
+            raise JointError("Error instantiating Joint object") from err
 
     def get_coord_tuple(self, normalized=False) -> tuple:
         """Get a tuple representation of the joint.

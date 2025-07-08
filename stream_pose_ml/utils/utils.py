@@ -1,5 +1,6 @@
 def round_nested_dict(item: dict, precision: int = 4):
-    """This method takes a dictionary and recursively rounds float values to the indicated precision
+    """This method takes a dictionary and recursively rounds float values.
+    precision
 
     Args:
         item: dict

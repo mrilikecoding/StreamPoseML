@@ -22,10 +22,12 @@ class MLFlowClient:
         trained_model: type["TrainedModel"] | None = None,
         data_transformer: type["SequenceTransformer"] | None = None,
         predict_fn: typing.Callable | None = None,
-        input_example: dict = {"columns": []},
+        input_example: dict | None = None,
         frame_window: int = 30,
         frame_overlap: int = 5,
     ):
+        if input_example is None:
+            input_example = {"columns": []}
         self.frame_window = frame_window
         self.frame_overlap = frame_overlap
         self.model = trained_model

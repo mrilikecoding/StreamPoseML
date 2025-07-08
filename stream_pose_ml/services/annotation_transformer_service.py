@@ -51,20 +51,24 @@ class AnnotationTransformerService:
     ) -> tuple:
         """Merged video and annotation data.
 
-        This method accepts a dictionary of annotation_data and a serialized video_data dictionary
-        and then extracts the corresponding clip from the video frame data and stores it with the right
+        This method accepts a dictionary of annotation_data and a serialized
+        video_data dictionary
+        and then extracts the corresponding clip from the video frame data and stores
+        it with the right
         annotation label.
 
         Args:
             annotation_data: dict
-                Raw json annotation data matching defined schema corresponding to the passed video data
+                Raw json annotation data matching defined schema corresponding to the
+                passed video data
             video_data: dict
                 Serialized video data for each frame
             schema: dict
                 Annotation schema specifying the structure of annotation_data
         Returns:
             frame_lists: tuple[list, list, list]
-                returns a tuple of lists of all_frames, labeled_frames, unlabeled_frames
+                returns a tuple of lists of all_frames, labeled_frames,
+                unlabeled_frames
         """
         if schema is None:
             schema = AnnotationTransformerService.load_annotation_schema()
@@ -95,7 +99,7 @@ class AnnotationTransformerService:
         all_frames = []
 
         video_name = video_data["name"]
-        for frame, frame_data in video_data["frames"].items():
+        for _frame, frame_data in video_data["frames"].items():
             data = dict.fromkeys(label_columns)
             # For each frame, assign top level column values to their appropriate labels
             for annotation in clip_annotation_map:
@@ -108,7 +112,7 @@ class AnnotationTransformerService:
             data["video_id"] = video_name
 
             all_frames.append(data)
-            if all([data[column] for column in label_columns]):
+            if all(data[column] for column in label_columns):
                 labeled_frames.append(data)
             else:
                 unlabeled_frames.append(data)

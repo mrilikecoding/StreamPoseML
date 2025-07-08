@@ -1,4 +1,13 @@
+import sys
 from pathlib import Path
+
+# Add the project root to the Python path
+project_root = Path(__file__).parents[
+    3
+]  # /Users/nathangreen/Development/stream_pose_ml
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from unittest.mock import mock_open, patch
 
 from stream_pose_ml.utils.path_utility import (
@@ -196,16 +205,6 @@ class TestWriteToJsonFile:
             f"Successfully wrote {file_path}/{file_name}."
         )
         assert result is True
-
-
-import sys
-
-# Add the project root to the Python path
-project_root = Path(__file__).parents[
-    3
-]  # /Users/nathangreen/Development/stream_pose_ml
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
     @patch("stream_pose_ml.utils.path_utility.os.makedirs")
     @patch("stream_pose_ml.utils.path_utility.json.dumps")

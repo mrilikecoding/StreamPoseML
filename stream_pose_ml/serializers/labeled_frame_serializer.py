@@ -76,10 +76,11 @@ class LabeledFrameSerializer:
 
         TODO include options for 2d/3d/normalized
 
-        Note: the data for angles is combined with a "." in the key name to be consistent with
-        the way pandas handles hierarchical column names and nested dictionaries. This is a convention
-        that will make it easier to translate between data serialized here and ultimately output to csv
-        and then read back into a dataframe. TODO - make this a consistent format between the model
+        Note: the data for angles is combined with a "." in the key name to be
+        consistent with the way pandas handles hierarchical column names and nested
+        dictionaries. This is a convention that will make it easier to translate
+        between data serialized here and ultimately output to csv and then read back
+        into a dataframe. TODO - make this a consistent format between the model
         builder, the csv I/O, the way the web app loads in the right columns
 
         Args:
@@ -97,10 +98,11 @@ class LabeledFrameSerializer:
     ):
         """This method serializes a distances object
 
-        Note: the data for distances is combined with a "." in the key name to be consistent with
-        the way pandas handles hierarchical column names and nested dictionaries. This is a convention
-        that will make it easier to translate between data serialized here and ultimately output to csv
-        and then read back into a dataframe.
+        Note: the data for distances is combined with a "." in the key name to be
+        consistent with the way pandas handles hierarchical column names and nested
+        dictionaries. This is a convention that will make it easier to translate
+        between data serialized here and ultimately output to csv and then read back
+        into a dataframe.
 
         Args:
             distances: dict
@@ -136,10 +138,11 @@ class LabeledFrameSerializer:
     ):
         """This method serializes a joint positions object
 
-        Note: the data for joints is combined with a "." in the key name to be consistent with
-        the way pandas handles hierarchical column names and nested dictionaries. This is a convention
-        that will make it easier to translate between data serialized here and ultimately output to csv
-        and then read back into a dataframe.
+        Note: the data for joints is combined with a "." in the key name to be
+        consistent with the way pandas handles hierarchical column names and nested
+        dictionaries. This is a convention that will make it easier to translate
+        between data serialized here and ultimately output to csv and then read back
+        into a dataframe.
 
         Args:
             distances: dict

@@ -24,12 +24,16 @@ class SegmentationService:
     A segment of data should correspond to a training example. This allows
     specifying different strategies for taking a Dataset's frame data, which
     has lists of labeled/unlabeled data for every video, and parsing it out into
-    different training examples that aren't necessarily dependent on the originating video.
+    different training examples that aren't necessarily dependent on the originating
+    video.
 
-    For example, if segmentation strategy is "split_by_label", then the segmented data
-    will look like a list of segments that represent a sequence of frames sharing a label.
+    For example, if segmentation strategy is "split_by_label", then the segmented
+    data
+    will look like a list of segments that represent a sequence of frames sharing a
+    label.
 
-    So a list of list of frames (f1,f2...) from different videos segmented by L/R would go from:
+    So a list of list of frames (f1,f2...) from different videos segmented by L/R
+    would go from:
     video1: [f1-L, f2-L, f3-R, f4-R] video2:[f5-L, f6-R, f7-R]]
     To:
     segmented_data: [[f1-L, f2-L], [f3-R, f4-R], [f5-L], [f6-R, f7-R]]
@@ -56,8 +60,9 @@ class SegmentationService:
                 A string value corresponding to an enumerated SegmentationStrategy type.
                 This will determine how video frames are aggregated.
                     "none" - split every frame into its own segment/clip/example
-                    "split_on_label" - segment frames into examples based on frames grouped by label (in sequence)
-                        i.e. a sequence labeled [[L,L,L,R,R,R,L,L,L]] would result in [[L, L, L], [R, R, R], [L, L, L]]
+                    "split_on_label" - segment frames into examples based on frames
+                    grouped by label (in sequence), e.g., [[L,L,L,R,R,R,L,L,L]]
+                    would result in [[L, L, L], [R, R, R], [L, L, L]]
         """
         # TODO pass this in
         self.segemetation_strategy = SegmentationStrategy(segmentation_strategy)
@@ -70,14 +75,15 @@ class SegmentationService:
     def segment_dataset(self, dataset: "Dataset") -> "Dataset":
         """Segment the data in a dataset into various training examples.
 
-        Using the a specified strategy on the class instance, generate LabeledClips to store on the dataset.
+        Using the specified strategy, generate LabeledClips to store on the dataset.
 
         Args:
             dataset: Dataset
                 a Dataset object with data
         Returns:
             dataset: Dataset
-                a Dataset with segmented data added to it based on user specified strategy / params
+                a Dataset with segmented data added to it based on user specified
+                strategy / params
         """
         if self.segemetation_strategy == SegmentationStrategy.NONE:
             dataset.segmented_data = self.segment_all_frames(dataset=dataset)
@@ -136,12 +142,15 @@ class SegmentationService:
         return flattened
 
     def flatten_on_example(self, dataset: "Dataset") -> list[LabeledClip]:
-        """Segment video frame data based on a fixed window size from the end of a complete labeled example and flatten the data into frame columns
+        """Segment video frame data based on a fixed window size from the end of a
+        complete labeled example and flatten the data into frame columns.
 
-        NOTE you'll likely want to keep the frame window small, otherwise there will be MANY columns of data.
+        NOTE you'll likely want to keep the frame window small, otherwise there will
+        be MANY columns of data.
 
         This is basically a combo of flatten into columns and split on label.
-        The clip is split on label and then based on the window size the frames within the segment are flattened into a single row of frame-based columns
+        The clip is split on label and then based on the window size the frames
+        within the segment are flattened into a single row of frame-based columns.
 
         Args:
             dataset: Dataset
@@ -156,17 +165,20 @@ class SegmentationService:
         return self.split_on_label(dataset=dataset, flatten_into_columns=True)
 
     def flatten_into_columns(self, dataset: "Dataset") -> list[LabeledClip]:
-        """Segment video frame data based on a fixed window size and flatten the data into frame columns
+        """Segment video frame data based on a fixed window size and flatten the data
+        into frame columns.
 
-        NOTE you'll likely want to keep the frame window small, otherwise there will be MANY columns of data.
+        NOTE you'll likely want to keep the frame window small, otherwise there will
+        be MANY columns of data.
 
-        For each video, find a specified number of frames where the last frame has a certain label
-        and use as a training example. Then flatten the frame data into frame specific columns.
-        This is very similar to the frame window, except rather than the list of clips representing
-        all frames, here the "clip" is a single representation where top level data keys like
-        "angles", "joints", and "distances" internally have the metrics keyed off every frame in the
-        segment. This allows for a single high-dimensional representation of the data within a
-        fixed sequence of frames.
+        For each video, find a specified number of frames where the last frame has a
+        certain label and use as a training example. Then flatten the frame data
+        into frame specific columns. This is very similar to the frame window,
+        except rather than the list of clips representing all frames, here the
+        "clip" is a single representation where top level data keys like "angles",
+        "joints", and "distances" internally have the metrics keyed off every frame
+        in the segment. This allows for a single high-dimensional representation of
+        the data within a fixed sequence of frames.
 
         Args:
             dataset: Dataset
@@ -180,7 +192,8 @@ class SegmentationService:
         """
         if self.segmentation_window is None or self.segmentation_window_label is None:
             raise SegmentationServiceError(
-                'Both segmentation window and segmentation window label is required for segmentation strategy "flatten_into_columns".'
+                "Both segmentation window and segmentation window label is required "
+                "for segmentation strategy \"flatten_into_columns\"."
             )
         segment_window_size = self.segmentation_window
         segment_window_label = self.segmentation_window_label
@@ -189,7 +202,7 @@ class SegmentationService:
         for video in all_frame_videos:
             segmented_frames = {}
             segment_counter = 0
-            for i, frame in enumerate(video):
+            for i, _frame in enumerate(video):
                 if i < segment_window_size:
                     continue
                 elif (
@@ -220,12 +233,14 @@ class SegmentationService:
     def segment_all_frames(self, dataset: "Dataset") -> list[LabeledClip]:
         """This method creates a list of where every frame is its own LabeledClip.
 
-        When the segmentation strategy is "none", each frame's data is its own training example.
-        So a "clip" is created corresponding to each frame, so each clip has a frame length of 1.
+        When the segmentation strategy is "none", each frame's data is its own
+        training example. So a "clip" is created corresponding to each frame, so
+        each clip has a frame length of 1.
 
         Args:
             dataset: Dataset
-                a Dataset object instantiated with attributes "all_frames", "labeled_frames", and "unlabeled_frames"
+                a Dataset object instantiated with attributes "all_frames",
+                "labeled_frames", and "unlabeled_frames"
         Returns:
             segmented_data: list[LabeledClip]
                 a list of LabeledClip objects corresponding to every frame
@@ -242,19 +257,23 @@ class SegmentationService:
     def split_on_label(
         self, dataset: "Dataset", flatten_into_columns: bool = False
     ) -> list[LabeledClip]:
-        """Split a Datasets labeled_frame list into a list of lists of dicts representing segments of data.
+        """Split a Datasets labeled_frame list into a list of lists of dicts
+        representing segments of data.
 
-        The Dataset object should have a list of lists of frames where each list is separated by source video.
-        This function will reformat this list into a list of lists of frames sharing the same label (segment_splitter_label).
+        The Dataset object should have a list of lists of frames where each list
+        is separated by source video. This function will reformat this list into
+        a list of lists of frames sharing the same label (segment_splitter_label).
         This translates to list of training example video clips.
 
         Args:
             segment_splitter_label: str
-                start a new segment when there's a change in this label's value from frame to frame
+                start a new segment when there's a change in this label's value
+                from frame to frame
             dataset: Dataset
                 a Dataset object
             flatten_into_columns: bool
-                whether to flatten the frames into a single row of frame-based feature columns
+                whether to flatten the frames into a single row of frame-based
+                feature columns
         Returns:
             labeled_clips: list[LabeledClip]
                 a list of LabelClip objects where each LabeledClip
@@ -263,7 +282,8 @@ class SegmentationService:
         """
         if self.segmentation_splitter_label is None:
             raise SegmentationServiceError(
-                'segmentation_spliiter_label must be present for segmentation strategy "split_on_label".'
+                'segmentation_spliiter_label must be present for segmentation ' \
+                'strategy "split_on_label".'
             )
         labeled_frame_videos = dataset.labeled_frames
         segment_splitter_label = self.segmentation_splitter_label
@@ -294,7 +314,8 @@ class SegmentationService:
                         segmented_frames[segment_counter] = [frame]
 
             segmented_data = list(segmented_frames.values())
-            # if there's a segmentation window, use it to only use the last x frames from each example
+            # if there's a segmentation window, use it to only use the last x frames
+            # from each example
             if self.segmentation_window:
                 segmented_data = [
                     segment[-self.segmentation_window :] for segment in segmented_data
@@ -316,8 +337,8 @@ class SegmentationService:
     def split_on_window(self, dataset: "Dataset") -> list[LabeledClip]:
         """Segment video frame data based on a fixed window size.
 
-        For each video, find a specified number of frames where the last frame has a certain label
-        and use as a training example.
+        For each video, find a specified number of frames where the last frame has
+        a certain label and use as a training example.
 
         Args:
             dataset: Dataset
@@ -330,7 +351,8 @@ class SegmentationService:
         """
         if self.segmentation_window is None or self.segmentation_window_label is None:
             raise SegmentationServiceError(
-                'Both segmentation window and segmentation window label is required for segmentation strategy "split_on_window".'
+                "Both segmentation window and segmentation window label is required "
+                "for segmentation strategy \"split_on_window\"."
             )
         segment_window_size = self.segmentation_window
         segment_window_label = self.segmentation_window_label
@@ -339,7 +361,7 @@ class SegmentationService:
         for video in all_frame_videos:
             segmented_frames = {}
             segment_counter = 0
-            for i, frame in enumerate(video):
+            for i, _frame in enumerate(video):
                 if i < segment_window_size:
                     continue
                 elif (
