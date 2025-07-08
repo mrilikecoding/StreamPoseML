@@ -48,13 +48,13 @@ test: test-core test-api
 .PHONY: test-core
 test-core:
 	@echo "Running stream_pose_ml package tests..."
-	@uv run pytest stream_pose_ml/tests
+	@uv run --active pytest stream_pose_ml/tests
 
 # Test the API
 .PHONY: test-api
 test-api:
 	@echo "Running API tests..."
-	@uv run pytest api/tests -c api_pytest.ini
+	@uv run --active pytest api/tests
 
 # Check Python code with mypy and ruff
 .PHONY: lint
@@ -104,7 +104,7 @@ status:
 
 setup:
 	@echo "Setting up development environment..."
-	@uv sync --extra dev
+	@uv sync --all-groups
 	@echo "✅ Development environment setup complete"
 
 test-watch:

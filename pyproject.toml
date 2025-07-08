@@ -76,10 +76,23 @@ addopts = "--cov=stream_pose_ml --cov-report=term-missing"
 dev = [
     "opencv-stubs>=0.0.12",
     "pandas-stubs>=2.3.0.250703",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+    "pytest-emoji>=0.2.0",
     "python-engineio>=4.12.2",
     "types-flask-cors>=6.0.0.20250520",
     "types-flask-socketio>=5.5.0.20250516",
     "types-pillow>=10.2.0.20240822",
     "types-pyyaml>=6.0.12.20250516",
     "types-requests>=2.32.4.20250611",
+]
+api = [
+    "Flask>=2.2.2",
+    "Flask-Cors>=3.0.10",
+    "Flask-SocketIO>=5.3.3",
+    "Werkzeug>=2.2.2",
+    "eventlet>=0.33.0",
+    "dnspython>=2.2.1",
+    "requests>=2.28.2",
+    "python-engineio>=4.4.0",
 ]
