@@ -70,6 +70,16 @@ stream_pose = StreamPoseMLApp()
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 
+# Web Socket - TODO there is some optimization to be done here - need to look at options
+Payload.max_decode_packets = 2000
+socketio: SocketIO = SocketIO(
+    app,
+    async_mode="eventlet",
+    ping_timeout=30,
+    ping_interval=20,
+    cors_allowed_origins="*",
+)
+
 # Tmp file upload
 UPLOAD_FOLDER = "tmp"
 ALLOWED_EXTENSIONS = {"zip", "tar.gz", "tar", "pickle", "joblib", "model"}
@@ -216,16 +226,6 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 
 
 ### SocketIO Listeners ###
-
-# Web Socket - TODO there is some optimization to be done here - need to look at options
-Payload.max_decode_packets = 2000
-socketio: SocketIO = SocketIO(
-    app,
-    async_mode="eventlet",
-    ping_timeout=30,
-    ping_interval=20,
-    cors_allowed_origins="*",
-)
 
 
 def load_model_in_mlflow(model_path):

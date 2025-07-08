@@ -1,4 +1,4 @@
-from app import app, socketio  # type: ignore[attr-defined]
+from app import app, socketio  # type: ignore[import-untyped, attr-defined]
 
 if __name__ == "__main__":
     print(
