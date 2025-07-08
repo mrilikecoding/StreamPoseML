@@ -1,4 +1,4 @@
-name: Test and Publish to PyPI
+name: Publish to PyPI
 
 on:
   push:
@@ -24,84 +24,20 @@ on:
   workflow_dispatch:  # Enables manual trigger from GitHub UI
 
 jobs:
-  # First job: Test package across all Python versions
-  test-package:
-    name: Test Package on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11"]
-      fail-fast: false
-    
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-    - name: Install dependencies
-      run: uv sync --extra dev
-    
-    - name: Run package tests and lint check
-      run: |
-        uv run -- pytest stream_pose_ml/tests/ -v
-        uv run -- python -m black --check stream_pose_ml mlflow
-        
-  # Second job: Test API on specific Python version
-  test-api:
-    name: Test API on Python 3.11 (Dockerfile version)
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v3
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
-    
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-    - name: Install dependencies
-      run: |
-        uv sync --extra dev
-        uv pip install -r api/requirements.txt
-        uv pip install -r api/requirements-dev.txt
-    
-    - name: Run API tests and lint check
-      run: |
-        cd api/tests
-        uv run -- pytest -v
-        cd ../..
-        uv run -- python -m black --check api
-
-  # Third job: Build and publish (only if tests pass)
+  # Build and publish (only runs after CI passes)
   build-and-publish:
     name: Build and publish package
-    needs: [test-package, test-api]  # This job runs only after both test jobs complete successfully
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     
     steps:
     - name: Check out repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: "3.10"  # Use a stable Python version for building
+        python-version: "3.11"  # Use a stable Python version for building
     
     - name: Install uv
       run: |
@@ -109,10 +45,10 @@ jobs:
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Install dependencies
-      run: uv sync --extra dev
+      run: uv sync --all-groups
 
     - name: Install build and twine
-      run: uv pip install --system build twine
+      run: uv add --group dev build twine
 
     - name: Debug variables
       run: |
