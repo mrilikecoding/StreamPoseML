@@ -6,6 +6,9 @@ __pycache__
 
 .coverage
 
+# Type checking
+.mypy_cache/
+
 dist/* 
 web_ui/dist/*
 
