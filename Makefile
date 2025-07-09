@@ -60,7 +60,7 @@ test-api:
 .PHONY: lint
 lint:
 	@echo "Checking Python code with mypy and ruff..."
-	@PYTHONPATH=api uv run mypy stream_pose_ml api mlflow --ignore-missing-imports
+	@uv run mypy stream_pose_ml api mlflow
 	@uv run ruff check stream_pose_ml api mlflow
 
 # Format Python code using ruff
