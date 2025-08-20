@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "stream_pose_ml"
-version = "0.2.1"
+version = "0.2.2"
 authors = [{ name = "Nate Green", email = "nate@nate.green" }]
 description = "A toolkit for realtime video classification tasks."
 readme = "README.md"
