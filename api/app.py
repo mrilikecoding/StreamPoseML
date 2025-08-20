@@ -69,6 +69,7 @@ stream_pose = StreamPoseMLApp()
 ### Init Flask API ###
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
+app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500MB max file size
 
 # Web Socket - TODO there is some optimization to be done here - need to look at options
 Payload.max_decode_packets = 2000
@@ -80,8 +81,8 @@ socketio: SocketIO = SocketIO(
     cors_allowed_origins="*",
 )
 
-# Tmp file upload
-UPLOAD_FOLDER = "tmp"
+# Tmp file upload - use absolute path to ensure we use the shared volume
+UPLOAD_FOLDER = "/usr/src/app/tmp"
 ALLOWED_EXTENSIONS = {"zip", "tar.gz", "tar", "pickle", "joblib", "model"}
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -91,16 +92,26 @@ Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 # TODO - make env dependent from config
 whitelist = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://web_ui:3000",
     "http://localhost:5001",
+    "http://127.0.0.1:5001",
     "http://stream_pose_ml:5001",
     "https://cdn.jsdelivr.net",
 ]
-CORS(app, origins=whitelist)
+CORS(app,
+     origins=whitelist,
+     supports_credentials=True,
+     expose_headers=["Content-Type", "Authorization"],
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
 # CORS(app, origins="*")
 
 
 def allowed_file(filename):
+    # Special handling for tar.gz files
+    if filename.lower().endswith(".tar.gz"):
+        return "tar.gz" in ALLOWED_EXTENSIONS
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
@@ -109,15 +120,16 @@ def status():
     return "Server Ready"
 
 
+
 ### Application Routes ###
-@app.route("/set_model", methods=["POST"])
+@app.route("/set_model", methods=["POST", "OPTIONS"])
 def set_model():
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        return "", 200
+
     frame_window = request.form.get("frame_window_size", type=int)
     frame_overlap = request.form.get("frame_window_overlap", type=int)
-
-    # Process the data as needed
-    print(f"Frame Window Size: {frame_window}")
-    print(f"Frame Window Overlap: {frame_overlap}")
 
     if "file" not in request.files:
         return jsonify({"result": "No file part"}), 400
@@ -126,27 +138,39 @@ def set_model():
         return jsonify({"result": "No selected file"}), 400
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        model_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        # Ensure we use absolute path
+        upload_folder = os.path.abspath(app.config["UPLOAD_FOLDER"])
+        os.makedirs(upload_folder, exist_ok=True)
+        model_path = os.path.join(upload_folder, filename)
         file.save(model_path)
 
         # Extract the archive
         extract_to = os.path.join(
-            app.config["UPLOAD_FOLDER"], filename.rsplit(".", 1)[0]
+            upload_folder, filename.rsplit(".", 1)[0]
         )
 
         # Handle different archive formats
-        if filename.endswith(".zip"):
-            with zipfile.ZipFile(model_path, "r") as zip_ref:
-                zip_ref.extractall(extract_to)
-            model_path = extract_to
-        elif filename.endswith(".tar.gz") or filename.endswith(".tar"):
-            with tarfile.open(model_path, "r:*") as tar_ref:
-                tar_ref.extractall(extract_to)
-            model_path = extract_to
+        try:
+            if filename.endswith(".zip"):
+                with zipfile.ZipFile(model_path, "r") as zip_ref:
+                    zip_ref.extractall(extract_to)
+                model_path = extract_to
+            elif filename.endswith(".tar.gz") or filename.endswith(".tar"):
+                with tarfile.open(model_path, "r:*") as tar_ref:
+                    tar_ref.extractall(extract_to)
+                model_path = extract_to
+        except (zipfile.BadZipFile, tarfile.ReadError) as e:
+            print(f"[ERROR] Failed to extract archive: {e}")
+            return jsonify({"result": f"Invalid archive file: {str(e)}"}), 400
+        except Exception as e:
+            print(f"[ERROR] Unexpected error extracting file: {e}")
+            return jsonify({"result": f"Error processing file: {str(e)}"}), 500
 
         # Send a request to mlflow to load the model
         mlflow_response = load_model_in_mlflow(model_path)
-        if mlflow_response:
+        
+        # Check if MLFlow loading was successful
+        if mlflow_response is True:
             # Load input_example.json if it exists
             input_example_path = os.path.join(model_path, "input_example.json")
             input_example = None
@@ -163,9 +187,20 @@ def set_model():
                 jsonify({"result": f"MLFlow Ready: classifier set to {filename}."}),
                 200,
             )
-        else:
+        elif mlflow_response is False:
+            # MLFlow service is not available, fall back to StreamPoseML
             set_stream_pose_ml_client()
             logging.info("StreamPoseML Model loaded successfully")
+            return (
+                jsonify(
+                    {"result": f"StreamPoseML Ready: classifier set to {filename}."}
+                ),
+                200,
+            )
+        else:
+            # MLFlow returned an error response, fall back to StreamPoseML
+            set_stream_pose_ml_client()
+            logging.info("Falling back to StreamPoseML after MLFlow error")
             return (
                 jsonify(
                     {"result": f"StreamPoseML Ready: classifier set to {filename}."}
@@ -231,15 +266,19 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 def load_model_in_mlflow(model_path):
     # The path needs to be adjusted for the mlflow container
     # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' -> '/models' in 'mlflow'
-    model_name = os.path.basename(model_path)
-    mlflow_model_path = os.path.join("/models", model_name)
+    
+    # Convert the API container path to MLFlow container path
+    mlflow_model_path = model_path.replace("/usr/src/app/tmp", "/models")
+    
     data = {"model_path": mlflow_model_path}
     try:
         response = requests.post("http://mlflow:5002/load_model", json=data)
-        print(response)
-        return response.status_code == 200
+        if response.status_code != 200:
+            print(f"[ERROR] MLFlow failed to load model: {response.text}")
+            return response  # Return the response object for error handling
+        return True  # Success
     except requests.exceptions.RequestException as e:
-        print(f"Error loading model in mlflow: {e}")
+        print(f"[ERROR] Error loading model in mlflow: {e}")
         return False
 
 

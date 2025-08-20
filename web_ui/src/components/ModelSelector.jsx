@@ -11,20 +11,32 @@ function ModelSelector({ setModel }) {
 
   const handleSubmit = async () => {
     const data = new FormData();
-    data.append("filename", selectedFile.name);
     data.append("file", selectedFile);
     data.append("frame_window_size", frameWindowSize);
     data.append("frame_window_overlap", frameWindowOverlap);
 
-    fetch(import.meta.env.VITE_STREAM_POSE_ML_API_ENDPOINT + "/set_model", {
-      body: data,
-      method: "POST",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setModel(data.result);
-      })
-      .catch((err) => console.error(err));
+    try {
+      const response = await fetch(
+        import.meta.env.VITE_STREAM_POSE_ML_API_ENDPOINT + "/set_model",
+        {
+          body: data,
+          method: "POST",
+        }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error setting model:", errorData);
+        setModel(`Error: ${errorData.result || response.statusText}`);
+        return;
+      }
+      
+      const responseData = await response.json();
+      setModel(responseData.result);
+    } catch (err) {
+      console.error("Network error:", err);
+      setModel(`Network error: ${err.message}`);
+    }
   };
 
   return (

@@ -1,7 +1,8 @@
 services:
   stream_pose_ml_api:
     build:
-      context: ./api
+      context: .
+      dockerfile: api/Dockerfile
       args:
         - env=dev  # Use dev environment for local development
         - flask_debug=True
@@ -10,8 +11,8 @@ services:
     networks:
       - app-tier
     volumes:
-      - ${PWD}/api:/usr/src/app
-      - ${PWD}/stream_pose_ml:/usr/src/stream_pose_ml  # Mount local package for development
+      - ${PWD}/api:/usr/src/app/api
+      - ${PWD}/stream_pose_ml:/usr/src/app/stream_pose_ml  # Mount local package for development
       - ${PWD}/data/trained_models:/usr/src/app/data/trained_models
       - shared_models:/usr/src/app/tmp
     environment:
@@ -19,7 +20,7 @@ services:
       - FLASK_ENV=development
       - PYTHONUNBUFFERED=1
     command: >
-      bash -c "pip install -e /usr/src/stream_pose_ml && python -u run.py"
+      bash -c "python -u run.py"
 
   web_ui:
     build:

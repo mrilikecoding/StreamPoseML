@@ -57,10 +57,10 @@ jobs:
     
     - name: Build package
       run: |
-        python -m build .
+        uv run python -m build .
         echo "Package contents:"
         ls -la dist/
-        twine check dist/*
+        uv run twine check dist/*
       
     - name: Extract version
       id: get_version
@@ -78,7 +78,7 @@ jobs:
           echo "WARNING: PYPI_TEST_API_KEY is empty, skipping TestPyPI upload"
         else
           # Run twine upload with || true to prevent failures from stopping the workflow
-          TESTPYPI_OUTPUT=$(twine upload --repository testpypi dist/* -u "__token__" -p "$PYPI_TEST_API_KEY" --verbose 2>&1) || true
+          TESTPYPI_OUTPUT=$(uv run twine upload --repository testpypi dist/* -u "__token__" -p "$PYPI_TEST_API_KEY" --verbose 2>&1) || true
           
           if echo "$TESTPYPI_OUTPUT" | grep -i "already exists"; then
             echo "Version ${{ steps.get_version.outputs.package_version }} already exists on TestPyPI - skipping upload"
@@ -103,7 +103,7 @@ jobs:
         
         # Run twine upload with || true to prevent failures from stopping the workflow
         # Common failure case is 400 error when version already exists
-        UPLOAD_OUTPUT=$(twine upload dist/* -u "__token__" -p "$PYPI_API_KEY" --verbose 2>&1) || true
+        UPLOAD_OUTPUT=$(uv run twine upload dist/* -u "__token__" -p "$PYPI_API_KEY" --verbose 2>&1) || true
         
         if echo "$UPLOAD_OUTPUT" | grep -i "already exists"; then
           echo "Version ${{ steps.get_version.outputs.package_version }} already exists on PyPI - skipping upload"

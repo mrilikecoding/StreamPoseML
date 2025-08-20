@@ -10,17 +10,21 @@ RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 -y
 
 WORKDIR /usr/src/app
 
-# Copy requirements files
-COPY requirements.txt requirements-dev.txt ./
+# Copy pyproject.toml, LICENSE, README, and stream_pose_ml source
+COPY pyproject.toml LICENSE README.md ./
+COPY stream_pose_ml/ ./stream_pose_ml/
 
-# Install requirements based on environment
+# Install stream_pose_ml with dependencies based on environment
 RUN if [ "$ENV_TYPE" = "dev" ]; then \
-        pip install -r requirements-dev.txt; \
+        pip install .[api,dev]; \
     else \
-        pip install -r requirements.txt; \
+        pip install .[api]; \
     fi
 
 # Copy API code
-COPY . .
+COPY api/ ./api/
+
+# Set working directory to api
+WORKDIR /usr/src/app/api
 
 ENTRYPOINT ["python", "run.py"]

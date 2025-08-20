@@ -25,7 +25,7 @@ dependencies = [
   "imbalanced_learn==0.10.1",
   "kneed==0.8.5",
   "matplotlib==3.7.0",
-  "mediapipe>=0.10.21",
+  "mediapipe>=0.10.18",
   "numpy==1.24.2",
   "opencv_contrib_python==4.8.1.78",
   "pandas==1.5.3",
@@ -51,6 +51,16 @@ dev = [
     "build",
     "twine",
 ]
+api = [
+    "Flask>=2.2.2",
+    "Flask-Cors>=3.0.10",
+    "Flask-SocketIO>=5.3.3",
+    "Werkzeug>=2.2.2",
+    "eventlet>=0.33.0",
+    "dnspython>=2.2.1",
+    "requests>=2.28.2",
+    "python-engineio>=4.4.0",
+]
 
 [project.urls]
 "Homepage" = "https://github.com/mrilikecoding/StreamPoseML"
@@ -66,6 +76,7 @@ target-version = ["py311"]
 [tool.ruff]
 target-version = "py311"
 line-length = 88
+exclude = ["api/tmp/"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4", "UP"]
@@ -108,3 +119,4 @@ api = [
 
 [tool.mypy]
 mypy_path = ["."]
+exclude = ["api/tmp/"]
