@@ -99,12 +99,14 @@ whitelist = [
     "http://stream_pose_ml:5001",
     "https://cdn.jsdelivr.net",
 ]
-CORS(app,
-     origins=whitelist,
-     supports_credentials=True,
-     expose_headers=["Content-Type", "Authorization"],
-     allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"])
+CORS(
+    app,
+    origins=whitelist,
+    supports_credentials=True,
+    expose_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+)
 # CORS(app, origins="*")
 
 
@@ -118,7 +120,6 @@ def allowed_file(filename):
 @app.route("/")
 def status():
     return "Server Ready"
-
 
 
 ### Application Routes ###
@@ -145,9 +146,7 @@ def set_model():
         file.save(model_path)
 
         # Extract the archive
-        extract_to = os.path.join(
-            upload_folder, filename.rsplit(".", 1)[0]
-        )
+        extract_to = os.path.join(upload_folder, filename.rsplit(".", 1)[0])
 
         # Handle different archive formats
         try:
@@ -168,7 +167,7 @@ def set_model():
 
         # Send a request to mlflow to load the model
         mlflow_response = load_model_in_mlflow(model_path)
-        
+
         # Check if MLFlow loading was successful
         if mlflow_response is True:
             # Load input_example.json if it exists
@@ -266,10 +265,10 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 def load_model_in_mlflow(model_path):
     # The path needs to be adjusted for the mlflow container
     # Since '/usr/src/app/tmp' in 'stream_pose_ml_api' -> '/models' in 'mlflow'
-    
+
     # Convert the API container path to MLFlow container path
     mlflow_model_path = model_path.replace("/usr/src/app/tmp", "/models")
-    
+
     data = {"model_path": mlflow_model_path}
     try:
         response = requests.post("http://mlflow:5002/load_model", json=data)
