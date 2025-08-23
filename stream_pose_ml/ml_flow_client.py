@@ -1,8 +1,11 @@
+import logging
 import time
 import typing
 from collections import deque
 
 from stream_pose_ml.blaze_pose.blaze_pose_sequence import BlazePoseSequence
+
+logger = logging.getLogger(__name__)
 
 from .serializers.blaze_pose_sequence_serializer import (
     BlazePoseSequenceSerializer,
@@ -44,13 +47,35 @@ class MLFlowClient:
         self.last_prediction_timestamp = 0
 
     def run_keypoint_pipeline(self, keypoints):
+        # Track when frame arrives
+        frame_arrival_time = time.time()
+        
         current_frames = self.update_frame_data_from_js_client_keypoints(keypoints)
         self.counter += 1
+        
+        # Log frame timing
+        time_since_last = frame_arrival_time - self.last_prediction_timestamp
+        logger.debug(f"Frame {self.counter}/{self.update_frame_frequency}, "
+                    f"time since last prediction: {time_since_last:.3f}s")
+        
         if (
             len(current_frames) == self.frame_window
             and self.counter >= self.update_frame_frequency
         ):
+            # Rate limiting: Don't classify more than once per 0.8 seconds
+            MIN_CLASSIFICATION_INTERVAL = 0.8
+            if time_since_last < MIN_CLASSIFICATION_INTERVAL:
+                logger.debug(f"Skipping classification - too soon ({time_since_last:.3f}s < {MIN_CLASSIFICATION_INTERVAL}s)")
+                # Don't reset counter when rate limited!
+                return False
+            
+            # Log that we're triggering a classification
+            logger.info(f"Triggering classification at counter={self.update_frame_frequency}, "
+                       f"time since last: {time_since_last:.3f}s")
             self.counter = 0
+            
+            # Update timestamp BEFORE doing the inference (not after)
+            self.last_prediction_timestamp = frame_arrival_time
             sequence = BlazePoseSequence(
                 name=f"sequence-{time.time_ns()}",
                 sequence=list(current_frames),
@@ -66,12 +91,40 @@ class MLFlowClient:
 
             # TODO enforce signature of predict_fn, this is brittle
             start_time = time.time()
-            prediction = self.predict_fn(json_data_payload=data)["predictions"][0]
+            logger.debug(f"Starting MLflow inference...")
+            
+            try:
+                response = self.predict_fn(json_data_payload=data)
+                
+                # Handle different response formats
+                if isinstance(response, dict):
+                    if "predictions" in response:
+                        prediction = response["predictions"][0]
+                    elif "prediction" in response:
+                        prediction = response["prediction"]
+                    elif isinstance(response, list):
+                        prediction = response[0]
+                    else:
+                        # Log the response structure for debugging
+                        logger.error(f"Unexpected MLflow response format: {response.keys()}")
+                        prediction = list(response.values())[0]
+                else:
+                    prediction = response[0] if isinstance(response, list) else response
+                    
+            except (KeyError, IndexError, TypeError) as e:
+                logger.error(f"Error parsing MLflow response: {e}")
+                logger.error(f"Response was: {response}")
+                return False
+                
             current_time = time.time()
             speed = current_time - start_time
             self.prediction_processing_time = speed
-            self.last_prediction_timestamp = current_time
+            # Note: last_prediction_timestamp already set BEFORE inference to prevent burst triggers
             self.current_classification = bool(prediction)
+            
+            # Log classification result and timing
+            logger.info(f"Classification complete: {self.current_classification}, "
+                       f"inference time: {speed:.3f}s")
             return True
         return False
 

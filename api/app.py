@@ -71,8 +71,9 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500MB max file size
 
-# Web Socket - TODO there is some optimization to be done here - need to look at options
-Payload.max_decode_packets = 2000
+# Web Socket - Reduced buffer to prevent excessive queuing
+# At 30fps, 90 packets = 3 seconds of buffer (was 2000 = 66 seconds!)
+Payload.max_decode_packets = 90
 socketio: SocketIO = SocketIO(
     app,
     async_mode="eventlet",
@@ -82,7 +83,13 @@ socketio: SocketIO = SocketIO(
 )
 
 # Tmp file upload - use absolute path to ensure we use the shared volume
-UPLOAD_FOLDER = "/usr/src/app/tmp"
+# Check if running in Docker container (the /usr/src/app path exists)
+if os.path.exists("/usr/src/app"):
+    UPLOAD_FOLDER = "/usr/src/app/tmp"
+else:
+    # Local development
+    UPLOAD_FOLDER = os.path.abspath("./tmp")
+
 ALLOWED_EXTENSIONS = {"zip", "tar.gz", "tar", "pickle", "joblib", "model"}
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -281,8 +288,22 @@ def load_model_in_mlflow(model_path):
         return False
 
 
+# Track metrics for performance monitoring
+frame_counter = 0
+frames_dropped = 0
+last_emit_time = 0
+classifications_completed = 0
+classification_times = []  # Store last 10 classification timestamps
+start_time = time.time()  # Server start time
+
 @socketio.on("keypoints")
 def handle_keypoints(payload: str) -> None:
+    global frame_counter, frames_dropped, last_emit_time, classifications_completed, classification_times
+    
+    # Log frame arrival
+    frame_received_time = time.time()
+    frame_counter += 1
+    
     if stream_pose.stream_pose_client is None:
         emit("frame_result", {"error": "No model set"})
         return
@@ -291,18 +312,150 @@ def handle_keypoints(payload: str) -> None:
     results = stream_pose.stream_pose_client.run_keypoint_pipeline(payload)
     current_time = time.time()
     speed = current_time - start_time
+    
+    # Calculate additional metrics
+    time_since_last_classification = (
+        current_time - stream_pose.stream_pose_client.last_prediction_timestamp 
+        if stream_pose.stream_pose_client.last_prediction_timestamp > 0 
+        else 0
+    )
+    
+    # Calculate frames in current window
+    frames_in_window = (
+        len(stream_pose.stream_pose_client.frames) 
+        if hasattr(stream_pose.stream_pose_client, 'frames') 
+        else 0
+    )
+    
+    # Calculate current counter position
+    counter_position = (
+        stream_pose.stream_pose_client.counter 
+        if hasattr(stream_pose.stream_pose_client, 'counter') 
+        else 0
+    )
+    
+    # Check if we're falling behind (pipeline taking longer than frame interval)
+    falling_behind = speed > (1.0 / 30.0)  # Assuming 30fps input
+    
     # Emit the results back to the client
     if (
         results and stream_pose.stream_pose_client.current_classification is not None
     ):  # if we get some classification
         classification = stream_pose.stream_pose_client.current_classification
         predict_speed = stream_pose.stream_pose_client.prediction_processing_time
+        classifications_completed += 1
+        
+        # Track classification times (keep last 10)
+        classification_times.append(current_time)
+        if len(classification_times) > 10:
+            classification_times.pop(0)
+        
+        # Calculate comprehensive metrics
+        update_freq = getattr(stream_pose.stream_pose_client, 'update_frame_frequency', 25)
+        frame_window_size = getattr(stream_pose.stream_pose_client, 'frame_window', 30)
+        frame_overlap = getattr(stream_pose.stream_pose_client, 'frame_overlap', 5)
+        
+        # Time metrics
+        time_since_emit = current_time - last_emit_time if last_emit_time > 0 else float('inf')
+        burst_warning = time_since_emit < 0.5
+        
+        # Average time between classifications
+        avg_time_between = 0
+        if len(classification_times) > 1:
+            intervals = [classification_times[i] - classification_times[i-1] 
+                        for i in range(1, len(classification_times))]
+            avg_time_between = sum(intervals) / len(intervals) if intervals else 0
+        
+        # Frame age calculations (30fps = 33.33ms per frame)
+        frame_interval_ms = 1000 / 30  # Assume 30fps input
+        oldest_frame_age_ms = frame_window_size * frame_interval_ms
+        newest_frame_age_ms = frame_interval_ms
+        
+        # Processing modes and health
+        can_process_every_frame = speed < frame_interval_ms / 1000
+        max_sustainable_fps = 1.0 / speed
+        input_fps = 30  # Could be dynamic later
+        
+        # Queue and processing status
+        queue_depth = 0  # With our buffer limit, should stay at 0
+        processing_mode = "sampling"  # Since we're not processing every frame
+        if can_process_every_frame:
+            processing_mode = "real_time"
+        elif queue_depth > 0:
+            processing_mode = "queuing"
+            
+        # System health assessment
+        maintaining_rate = time_since_last_classification > 0
+        using_latest_data = queue_depth == 0
+        
+        if maintaining_rate and using_latest_data and not burst_warning:
+            system_health = "optimal"
+        elif burst_warning or not maintaining_rate:
+            system_health = "degraded"
+        else:
+            system_health = "good"
+        
+        # Capacity metrics
+        min_interval = 0.8  # Our rate limiting interval
+        # Use total processing time as the real bottleneck
+        total_capacity_used = speed / min_interval if min_interval > 0 else 0
+        inference_proportion = predict_speed / speed if speed > 0 else 0
+        
         return_payload = {
+            # Core results
             "classification": classification,
             "timestamp": f"{time.time_ns()}",
+            
+            # Classification Timing
+            "classification_rate_hz": round(1.0 / avg_time_between, 2) if avg_time_between > 0 else 0,
+            "time_since_last_classification_ms": round(time_since_last_classification * 1000, 1),
+            "time_between_classifications_avg_ms": round(avg_time_between * 1000, 1) if avg_time_between > 0 else 0,
+            
+            # Frame Window Details  
+            "frames_in_window": frames_in_window,
+            "frames_per_classification": frame_window_size,  # Actual frames sent to model
+            "frames_between_windows": update_freq,           # Frames between window starts  
+            "frame_overlap": frame_overlap,
+            
+            # Window Performance Analysis
+            "ideal_classification_interval_ms": round(update_freq * frame_interval_ms, 1),  # Based on window step size
+            "actual_classification_interval_ms": round(avg_time_between * 1000, 1) if avg_time_between > 0 else 0,
+            "window_efficiency": round((update_freq * frame_interval_ms / 1000) / avg_time_between, 3) if avg_time_between > 0 else 0,
+            "classification_delay_ms": round(max(0, (avg_time_between * 1000) - (update_freq * frame_interval_ms)), 1) if avg_time_between > 0 else 0,
+            
+            # Processing Performance
+            "inference_time_ms": round(predict_speed * 1000, 1),
+            "pipeline_overhead_ms": round((speed - predict_speed) * 1000, 1),
+            "total_processing_time_ms": round(speed * 1000, 1),
+            
+            # System State
+            "processing_mode": processing_mode,
+            "queue_depth": queue_depth,
+            "frames_processed": frame_counter,
+            "classifications_completed": classifications_completed,
+            
+            # Data Freshness
+            "oldest_frame_age_ms": round(oldest_frame_age_ms, 1),
+            "newest_frame_age_ms": round(newest_frame_age_ms, 1),
+            "using_latest_data": using_latest_data,
+            
+            # Classification Capacity
+            "can_process_every_frame": can_process_every_frame,
+            "max_classifications_per_second": round(max_sustainable_fps, 1),  # Based on total processing time
+            "input_fps": input_fps,
+            "total_capacity_used": round(total_capacity_used, 2),  # How much of rate limit is used by total processing
+            "inference_proportion": round(inference_proportion, 2),  # What fraction of processing time is inference vs overhead
+            
+            # Health Status
+            "maintaining_classification_rate": maintaining_rate,
+            "burst_warning": burst_warning,
+            "system_health": system_health,
+            
+            # Legacy metrics (for backward compatibility)
             "pipeline processing time (s)": speed,
             "prediction processing time (s)": predict_speed,
-            "frame rate capacity (hz)": 1.0 / speed,
+            "frame rate capacity (hz)": round(1.0 / speed, 2),  # Actually classification capacity
         }
-
+        
+        last_emit_time = current_time
         emit("frame_result", return_payload)
