@@ -268,6 +268,39 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 
 ### SocketIO Listeners ###
 
+def check_connection_health():
+    """Periodic check to detect and recover from stuck connections"""
+    global last_successful_emit, emit_failures, connection_issues_detected
+
+    current_time = time.time()
+    time_since_emit = (
+        current_time - last_successful_emit
+        if last_successful_emit > 0
+        else 0
+    )
+
+    if time_since_emit > 30:  # No successful emit in 30 seconds
+        print(f"[WARNING] No successful emit in {time_since_emit:.1f} seconds")
+
+        # Try to send a recovery signal
+        try:
+            socketio.emit(
+                "connection_check",
+                {"status": "checking", "timestamp": current_time}
+            )
+            print("[INFO] Sent connection check signal")
+        except Exception as e:
+            print(f"[ERROR] Connection check failed: {e}")
+            connection_issues_detected += 1
+
+            # Force clear any stuck buffers by restarting the eventlet server
+            if time_since_emit > 60:
+                print(
+                    "[CRITICAL] Connection dead for 60+ seconds, "
+                    "may need manual restart"
+                )
+                # Could implement auto-restart logic here if needed
+
 
 def load_model_in_mlflow(model_path):
     # The path needs to be adjusted for the mlflow container
@@ -296,14 +329,46 @@ classifications_completed = 0
 classification_times = []  # Store last 10 classification timestamps
 start_time = time.time()  # Server start time
 
+# WebSocket health monitoring
+last_successful_emit = 0
+emit_failures = 0
+connection_issues_detected = 0
+
+@socketio.on("connect")
+def handle_connect():
+    """Handle client connection"""
+    print(f"[INFO] Client connected at {time.time()}")
+    emit("connection_status", {"status": "connected", "timestamp": time.time()})
+
+
+@socketio.on("disconnect")
+def handle_disconnect():
+    """Handle client disconnection"""
+    global connection_issues_detected
+    connection_issues_detected += 1
+    print(f"[WARNING] Client disconnected at {time.time()}")
+
+
+@socketio.on("ping_heartbeat")
+def handle_heartbeat():
+    """Respond to client heartbeat to confirm connection is alive"""
+    global last_successful_emit
+    try:
+        emit("pong_heartbeat", {"timestamp": time.time(), "server_health": "ok"})
+        last_successful_emit = time.time()
+    except Exception as e:
+        print(f"[ERROR] Heartbeat failed: {e}")
+
+
 @socketio.on("keypoints")
 def handle_keypoints(payload: str) -> None:
-    global frame_counter, frames_dropped, last_emit_time, classifications_completed, classification_times
-    
+    global frame_counter, frames_dropped, last_emit_time
+    global classifications_completed, classification_times
+    global last_successful_emit, emit_failures
+
     # Log frame arrival
-    frame_received_time = time.time()
     frame_counter += 1
-    
+
     if stream_pose.stream_pose_client is None:
         emit("frame_result", {"error": "No model set"})
         return
@@ -312,31 +377,30 @@ def handle_keypoints(payload: str) -> None:
     results = stream_pose.stream_pose_client.run_keypoint_pipeline(payload)
     current_time = time.time()
     speed = current_time - start_time
-    
+
     # Calculate additional metrics
     time_since_last_classification = (
-        current_time - stream_pose.stream_pose_client.last_prediction_timestamp 
-        if stream_pose.stream_pose_client.last_prediction_timestamp > 0 
+        current_time - stream_pose.stream_pose_client.last_prediction_timestamp
+        if stream_pose.stream_pose_client.last_prediction_timestamp > 0
         else 0
     )
-    
+
     # Calculate frames in current window
     frames_in_window = (
-        len(stream_pose.stream_pose_client.frames) 
-        if hasattr(stream_pose.stream_pose_client, 'frames') 
+        len(stream_pose.stream_pose_client.frames)
+        if hasattr(stream_pose.stream_pose_client, 'frames')
         else 0
     )
-    
+
     # Calculate current counter position
-    counter_position = (
-        stream_pose.stream_pose_client.counter 
-        if hasattr(stream_pose.stream_pose_client, 'counter') 
+    (
+        stream_pose.stream_pose_client.counter
+        if hasattr(stream_pose.stream_pose_client, 'counter')
         else 0
     )
-    
+
     # Check if we're falling behind (pipeline taking longer than frame interval)
-    falling_behind = speed > (1.0 / 30.0)  # Assuming 30fps input
-    
+
     # Emit the results back to the client
     if (
         results and stream_pose.stream_pose_client.current_classification is not None
@@ -344,38 +408,44 @@ def handle_keypoints(payload: str) -> None:
         classification = stream_pose.stream_pose_client.current_classification
         predict_speed = stream_pose.stream_pose_client.prediction_processing_time
         classifications_completed += 1
-        
+
         # Track classification times (keep last 10)
         classification_times.append(current_time)
         if len(classification_times) > 10:
             classification_times.pop(0)
-        
+
         # Calculate comprehensive metrics
-        update_freq = getattr(stream_pose.stream_pose_client, 'update_frame_frequency', 25)
+        update_freq = getattr(
+            stream_pose.stream_pose_client, 'update_frame_frequency', 25
+        )
         frame_window_size = getattr(stream_pose.stream_pose_client, 'frame_window', 30)
         frame_overlap = getattr(stream_pose.stream_pose_client, 'frame_overlap', 5)
-        
+
         # Time metrics
-        time_since_emit = current_time - last_emit_time if last_emit_time > 0 else float('inf')
+        time_since_emit = (
+            current_time - last_emit_time
+            if last_emit_time > 0
+            else float('inf')
+        )
         burst_warning = time_since_emit < 0.5
-        
+
         # Average time between classifications
         avg_time_between = 0
         if len(classification_times) > 1:
-            intervals = [classification_times[i] - classification_times[i-1] 
+            intervals = [classification_times[i] - classification_times[i-1]
                         for i in range(1, len(classification_times))]
             avg_time_between = sum(intervals) / len(intervals) if intervals else 0
-        
+
         # Frame age calculations (30fps = 33.33ms per frame)
         frame_interval_ms = 1000 / 30  # Assume 30fps input
         oldest_frame_age_ms = frame_window_size * frame_interval_ms
         newest_frame_age_ms = frame_interval_ms
-        
+
         # Processing modes and health
         can_process_every_frame = speed < frame_interval_ms / 1000
         max_sustainable_fps = 1.0 / speed
         input_fps = 30  # Could be dynamic later
-        
+
         # Queue and processing status
         queue_depth = 0  # With our buffer limit, should stay at 0
         processing_mode = "sampling"  # Since we're not processing every frame
@@ -383,79 +453,158 @@ def handle_keypoints(payload: str) -> None:
             processing_mode = "real_time"
         elif queue_depth > 0:
             processing_mode = "queuing"
-            
+
         # System health assessment
         maintaining_rate = time_since_last_classification > 0
         using_latest_data = queue_depth == 0
-        
+
         if maintaining_rate and using_latest_data and not burst_warning:
             system_health = "optimal"
         elif burst_warning or not maintaining_rate:
             system_health = "degraded"
         else:
             system_health = "good"
-        
+
         # Capacity metrics
         min_interval = 0.8  # Our rate limiting interval
         # Use total processing time as the real bottleneck
         total_capacity_used = speed / min_interval if min_interval > 0 else 0
         inference_proportion = predict_speed / speed if speed > 0 else 0
-        
+
+        # Check for connection health issues
+        time_since_last_emit = (
+            current_time - last_successful_emit
+            if last_successful_emit > 0
+            else 0
+        )
+        connection_health = "healthy"
+        if time_since_last_emit > 5:  # No successful emit in 5 seconds
+            connection_health = "degraded"
+        if time_since_last_emit > 10:  # No successful emit in 10 seconds
+            connection_health = "critical"
+
         return_payload = {
             # Core results
             "classification": classification,
             "timestamp": f"{time.time_ns()}",
-            
+
+            # Connection Health
+            "connection_health": connection_health,
+            "time_since_last_emit_ms": round(time_since_last_emit * 1000, 1),
+            "emit_failures": emit_failures,
+            "connection_issues": connection_issues_detected,
+
             # Classification Timing
-            "classification_rate_hz": round(1.0 / avg_time_between, 2) if avg_time_between > 0 else 0,
-            "time_since_last_classification_ms": round(time_since_last_classification * 1000, 1),
-            "time_between_classifications_avg_ms": round(avg_time_between * 1000, 1) if avg_time_between > 0 else 0,
-            
-            # Frame Window Details  
+            "classification_rate_hz": (
+                round(1.0 / avg_time_between, 2)
+                if avg_time_between > 0
+                else 0
+            ),
+            "time_since_last_classification_ms": round(
+                time_since_last_classification * 1000, 1
+            ),
+
+            # Frame Window Details
             "frames_in_window": frames_in_window,
-            "frames_per_classification": frame_window_size,  # Actual frames sent to model
-            "frames_between_windows": update_freq,           # Frames between window starts  
+            "frames_per_classification": frame_window_size,  # Frames sent to model
+            "frames_between_windows": update_freq,  # Frames between starts
             "frame_overlap": frame_overlap,
-            
+
             # Window Performance Analysis
-            "ideal_classification_interval_ms": round(update_freq * frame_interval_ms, 1),  # Based on window step size
-            "actual_classification_interval_ms": round(avg_time_between * 1000, 1) if avg_time_between > 0 else 0,
-            "window_efficiency": round((update_freq * frame_interval_ms / 1000) / avg_time_between, 3) if avg_time_between > 0 else 0,
-            "classification_delay_ms": round(max(0, (avg_time_between * 1000) - (update_freq * frame_interval_ms)), 1) if avg_time_between > 0 else 0,
-            
-            # Processing Performance
-            "inference_time_ms": round(predict_speed * 1000, 1),
-            "pipeline_overhead_ms": round((speed - predict_speed) * 1000, 1),
+            "ideal_classification_interval_ms": round(
+                update_freq * frame_interval_ms, 1
+            ),  # Based on window step size
+            "actual_classification_interval_ms": (
+                round(avg_time_between * 1000, 1)
+                if avg_time_between > 0
+                else 0
+            ),
+
+            # Processing Timeline Breakdown
+            "frame_collection_time_ms": round(
+                getattr(
+                    stream_pose.stream_pose_client, 'frame_collection_time', 0
+                ) * 1000, 1
+            ),
+            "transformation_time_ms": round(
+                getattr(
+                    stream_pose.stream_pose_client, 'transformation_time', 0
+                ) * 1000, 1
+            ),
+            "mlflow_inference_time_ms": round(
+                getattr(
+                    stream_pose.stream_pose_client, 'mlflow_inference_time', 0
+                ) * 1000, 1
+            ),
+
+            # Total processing time already shown above in breakdown
             "total_processing_time_ms": round(speed * 1000, 1),
-            
+
             # System State
             "processing_mode": processing_mode,
             "queue_depth": queue_depth,
             "frames_processed": frame_counter,
             "classifications_completed": classifications_completed,
-            
+
             # Data Freshness
             "oldest_frame_age_ms": round(oldest_frame_age_ms, 1),
             "newest_frame_age_ms": round(newest_frame_age_ms, 1),
             "using_latest_data": using_latest_data,
-            
+
             # Classification Capacity
             "can_process_every_frame": can_process_every_frame,
-            "max_classifications_per_second": round(max_sustainable_fps, 1),  # Based on total processing time
+            "max_classifications_per_second": round(
+                max_sustainable_fps, 1
+            ),  # Based on total processing time
             "input_fps": input_fps,
-            "total_capacity_used": round(total_capacity_used, 2),  # How much of rate limit is used by total processing
-            "inference_proportion": round(inference_proportion, 2),  # What fraction of processing time is inference vs overhead
-            
+            "total_capacity_used": round(
+                total_capacity_used, 2
+            ),  # Rate limit usage by total processing
+            "inference_proportion": round(
+                inference_proportion, 2
+            ),  # Fraction of processing time that is inference vs overhead
+
             # Health Status
             "maintaining_classification_rate": maintaining_rate,
             "burst_warning": burst_warning,
             "system_health": system_health,
-            
-            # Legacy metrics (for backward compatibility)
-            "pipeline processing time (s)": speed,
-            "prediction processing time (s)": predict_speed,
-            "frame rate capacity (hz)": round(1.0 / speed, 2),  # Actually classification capacity
+
         }
-        
-        last_emit_time = current_time
-        emit("frame_result", return_payload)
+
+        # Try to emit with error handling and tracking
+        try:
+            emit("frame_result", return_payload)
+            last_emit_time = current_time
+            last_successful_emit = current_time
+
+            # Log if we recovered from issues
+            if emit_failures > 0:
+                print(f"[INFO] WebSocket recovered after {emit_failures} failures")
+                emit_failures = 0
+
+        except Exception as e:
+            emit_failures += 1
+            print(f"[ERROR] Failed to emit frame_result: {e}")
+            print(f"[ERROR] Emit failures: {emit_failures}")
+
+            # Try to force reconnection if too many failures
+            if emit_failures > 10:
+                print("[CRITICAL] Too many emit failures, attempting recovery")
+
+                # Recovery attempt 1: Send a force_reconnect signal
+                try:
+                    emit(
+                        "force_reconnect",
+                        {"reason": "emit_failures", "count": emit_failures}
+                    )
+                    print("[INFO] Sent force_reconnect signal to client")
+                except Exception:
+                    pass
+
+                # Recovery attempt 2: Try disconnect to force client reconnection
+                if emit_failures > 20:
+                    try:
+                        print("[CRITICAL] Forcing disconnect for reconnection")
+                        socketio.disconnect()  # Force disconnect current session
+                    except Exception:
+                        pass
