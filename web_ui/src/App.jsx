@@ -6,6 +6,7 @@ import VideoLoad from "./components/VideoLoad";
 import PoseCapture from "./components/PoseCapture";
 import ModelSelector from "./components/ModelSelector";
 import WebBluetooth from "./components/WebBluetooth";
+import ConnectionHealth from "./components/ConnectionHealth";
 import React, { useState, useEffect, useRef } from "react";
 
 function App() {
@@ -97,6 +98,12 @@ function App() {
               <VideoStream handlePoseResults={handlePoseResults} />
             }
           />
+          <div className="mt-4">
+            <ConnectionHealth 
+              socket={socketRef.current} 
+              connectionMetrics={results}
+            />
+          </div>
         </div>
       </div>
     </div>
