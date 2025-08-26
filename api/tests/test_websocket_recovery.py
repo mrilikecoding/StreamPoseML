@@ -7,7 +7,7 @@ Simulates connection issues to verify recovery mechanisms work.
 import json
 import time
 
-import socketio
+import socketio  # type: ignore[import-untyped]
 
 # Create a Socket.IO client
 sio = socketio.Client()

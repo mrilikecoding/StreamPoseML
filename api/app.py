@@ -322,13 +322,13 @@ def load_model_in_mlflow(model_path):
 # Track metrics for performance monitoring
 frame_counter = 0
 frames_dropped = 0
-last_emit_time = 0
+last_emit_time: float = 0.0
 classifications_completed = 0
 classification_times = []  # Store last 10 classification timestamps
 start_time = time.time()  # Server start time
 
 # WebSocket health monitoring
-last_successful_emit = 0
+last_successful_emit: float = 0.0
 emit_failures = 0
 connection_issues_detected = 0
 
@@ -427,7 +427,7 @@ def handle_keypoints(payload: str) -> None:
         burst_warning = time_since_emit < 0.5
 
         # Average time between classifications
-        avg_time_between = 0
+        avg_time_between: float = 0.0
         if len(classification_times) > 1:
             intervals = [
                 classification_times[i] - classification_times[i - 1]
@@ -587,6 +587,6 @@ def handle_keypoints(payload: str) -> None:
                 if emit_failures > 20:
                     try:
                         print("[CRITICAL] Forcing disconnect for reconnection")
-                        socketio.disconnect()  # Force disconnect current session
+                        # Skip forced disconnection - let client handle recovery
                     except Exception:
                         pass
