@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """Quick test of WebSocket recovery - non-blocking version"""
 
-import json
-import time
 import requests
 
 # Test the API is running
 print("Testing API connectivity...")
 try:
     response = requests.get("http://localhost:5001/")
-    print(f"✓ API is running on port 5001")
+    print("✓ API is running on port 5001")
 except Exception as e:
     print(f"✗ API not reachable: {e}")
     exit(1)
@@ -19,7 +17,7 @@ import subprocess
 
 print("\nTesting WebSocket endpoint...")
 result = subprocess.run(
-    ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", 
+    ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}",
      "http://localhost:5001/socket.io/?EIO=4&transport=polling"],
     capture_output=True, text=True
 )

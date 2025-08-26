@@ -6,6 +6,7 @@ Simulates connection issues to verify recovery mechanisms work.
 
 import json
 import time
+
 import socketio
 
 # Create a Socket.IO client
@@ -61,7 +62,7 @@ def send_test_keypoints():
         "keypoints": [[0.5, 0.5, 0.9] for _ in range(33)],  # Dummy keypoints
         "timestamp": time.time()
     })
-    
+
     try:
         sio.emit("keypoints", test_keypoints)
         print("[TEST] Sent keypoints")
@@ -74,13 +75,13 @@ def send_test_keypoints():
 def test_normal_operation():
     """Test normal operation with heartbeats"""
     print("\n=== Testing Normal Operation ===")
-    
+
     # Send heartbeats
     for i in range(3):
         sio.emit("ping_heartbeat")
         print(f"[TEST] Sent heartbeat {i+1}")
         time.sleep(2)
-    
+
     # Send some keypoints
     for i in range(5):
         if send_test_keypoints():
@@ -91,12 +92,12 @@ def test_normal_operation():
 def test_connection_degradation():
     """Simulate connection issues"""
     print("\n=== Testing Connection Degradation ===")
-    
+
     # Disconnect to simulate connection loss
     print("[TEST] Simulating connection loss...")
     sio.disconnect()
     time.sleep(5)
-    
+
     # Reconnect
     print("[TEST] Attempting reconnection...")
     try:
@@ -110,7 +111,7 @@ def main():
     """Run WebSocket recovery tests"""
     print("WebSocket Recovery Test Suite")
     print("=" * 40)
-    
+
     # Connect to server
     try:
         print("[TEST] Connecting to server at localhost:5001...")
@@ -119,26 +120,27 @@ def main():
         print(f"[ERROR] Could not connect to server: {e}")
         print("Make sure the API server is running (make run-api)")
         return
-    
+
     # Wait for connection
     time.sleep(2)
-    
+
     if not connection_state["connected"]:
         print("[ERROR] Failed to establish connection")
         return
-    
+
     # Run tests
     test_normal_operation()
     test_connection_degradation()
     test_normal_operation()  # Test recovery
-    
+
     # Summary
     print("\n" + "=" * 40)
     print("Test Summary:")
     print(f"  Health checks received: {connection_state['health_checks']}")
     print(f"  Reconnection attempts: {connection_state['reconnects']}")
-    print(f"  Final connection state: {'Connected' if connection_state['connected'] else 'Disconnected'}")
-    
+    status = 'Connected' if connection_state['connected'] else 'Disconnected'
+    print(f"  Final connection state: {status}")
+
     # Cleanup
     sio.disconnect()
     print("\n[TEST] Test completed")
