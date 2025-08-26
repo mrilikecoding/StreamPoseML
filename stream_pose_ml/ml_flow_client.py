@@ -67,8 +67,10 @@ class MLFlowClient:
 
         # Log frame timing
         time_since_last = frame_arrival_time - self.last_prediction_timestamp
-        logger.debug(f"Frame {self.counter}/{self.update_frame_frequency}, "
-                    f"time since last prediction: {time_since_last:.3f}s")
+        logger.debug(
+            f"Frame {self.counter}/{self.update_frame_frequency}, "
+            f"time since last prediction: {time_since_last:.3f}s"
+        )
 
         if (
             len(current_frames) == self.frame_window
@@ -178,9 +180,11 @@ class MLFlowClient:
             self.last_classification_end_time = current_time
 
             # Log classification result and detailed timing
-            logger.info(f"Classification complete: {self.current_classification}, "
-                       f"MLflow inference: {mlflow_inference_time:.3f}s, "
-                       f"total processing: {speed:.3f}s")
+            logger.info(
+                f"Classification complete: {self.current_classification}, "
+                f"MLflow inference: {mlflow_inference_time:.3f}s, "
+                f"total processing: {speed:.3f}s"
+            )
             return True
         return False
 

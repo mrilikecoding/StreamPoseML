@@ -17,9 +17,17 @@ import subprocess
 
 print("\nTesting WebSocket endpoint...")
 result = subprocess.run(
-    ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code}",
-     "http://localhost:5001/socket.io/?EIO=4&transport=polling"],
-    capture_output=True, text=True
+    [
+        "curl",
+        "-s",
+        "-o",
+        "/dev/null",
+        "-w",
+        "%{http_code}",
+        "http://localhost:5001/socket.io/?EIO=4&transport=polling",
+    ],
+    capture_output=True,
+    text=True,
 )
 
 if result.stdout == "200":

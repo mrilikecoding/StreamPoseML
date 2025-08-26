@@ -58,10 +58,12 @@ def on_pong_heartbeat(data):
 
 def send_test_keypoints():
     """Send test keypoint data to trigger classification"""
-    test_keypoints = json.dumps({
-        "keypoints": [[0.5, 0.5, 0.9] for _ in range(33)],  # Dummy keypoints
-        "timestamp": time.time()
-    })
+    test_keypoints = json.dumps(
+        {
+            "keypoints": [[0.5, 0.5, 0.9] for _ in range(33)],  # Dummy keypoints
+            "timestamp": time.time(),
+        }
+    )
 
     try:
         sio.emit("keypoints", test_keypoints)
@@ -79,13 +81,13 @@ def test_normal_operation():
     # Send heartbeats
     for i in range(3):
         sio.emit("ping_heartbeat")
-        print(f"[TEST] Sent heartbeat {i+1}")
+        print(f"[TEST] Sent heartbeat {i + 1}")
         time.sleep(2)
 
     # Send some keypoints
     for i in range(5):
         if send_test_keypoints():
-            print(f"[TEST] Keypoints batch {i+1} sent")
+            print(f"[TEST] Keypoints batch {i + 1} sent")
         time.sleep(1)
 
 
@@ -138,7 +140,7 @@ def main():
     print("Test Summary:")
     print(f"  Health checks received: {connection_state['health_checks']}")
     print(f"  Reconnection attempts: {connection_state['reconnects']}")
-    status = 'Connected' if connection_state['connected'] else 'Disconnected'
+    status = "Connected" if connection_state["connected"] else "Disconnected"
     print(f"  Final connection state: {status}")
 
     # Cleanup

@@ -268,15 +268,14 @@ def set_ml_flow_client(input_example=None, frame_window=30, frame_overlap=5):
 
 ### SocketIO Listeners ###
 
+
 def check_connection_health():
     """Periodic check to detect and recover from stuck connections"""
     global last_successful_emit, emit_failures, connection_issues_detected
 
     current_time = time.time()
     time_since_emit = (
-        current_time - last_successful_emit
-        if last_successful_emit > 0
-        else 0
+        current_time - last_successful_emit if last_successful_emit > 0 else 0
     )
 
     if time_since_emit > 30:  # No successful emit in 30 seconds
@@ -285,8 +284,7 @@ def check_connection_health():
         # Try to send a recovery signal
         try:
             socketio.emit(
-                "connection_check",
-                {"status": "checking", "timestamp": current_time}
+                "connection_check", {"status": "checking", "timestamp": current_time}
             )
             print("[INFO] Sent connection check signal")
         except Exception as e:
@@ -333,6 +331,7 @@ start_time = time.time()  # Server start time
 last_successful_emit = 0
 emit_failures = 0
 connection_issues_detected = 0
+
 
 @socketio.on("connect")
 def handle_connect():
@@ -388,14 +387,14 @@ def handle_keypoints(payload: str) -> None:
     # Calculate frames in current window
     frames_in_window = (
         len(stream_pose.stream_pose_client.frames)
-        if hasattr(stream_pose.stream_pose_client, 'frames')
+        if hasattr(stream_pose.stream_pose_client, "frames")
         else 0
     )
 
     # Calculate current counter position
     (
         stream_pose.stream_pose_client.counter
-        if hasattr(stream_pose.stream_pose_client, 'counter')
+        if hasattr(stream_pose.stream_pose_client, "counter")
         else 0
     )
 
@@ -416,24 +415,24 @@ def handle_keypoints(payload: str) -> None:
 
         # Calculate comprehensive metrics
         update_freq = getattr(
-            stream_pose.stream_pose_client, 'update_frame_frequency', 25
+            stream_pose.stream_pose_client, "update_frame_frequency", 25
         )
-        frame_window_size = getattr(stream_pose.stream_pose_client, 'frame_window', 30)
-        frame_overlap = getattr(stream_pose.stream_pose_client, 'frame_overlap', 5)
+        frame_window_size = getattr(stream_pose.stream_pose_client, "frame_window", 30)
+        frame_overlap = getattr(stream_pose.stream_pose_client, "frame_overlap", 5)
 
         # Time metrics
         time_since_emit = (
-            current_time - last_emit_time
-            if last_emit_time > 0
-            else float('inf')
+            current_time - last_emit_time if last_emit_time > 0 else float("inf")
         )
         burst_warning = time_since_emit < 0.5
 
         # Average time between classifications
         avg_time_between = 0
         if len(classification_times) > 1:
-            intervals = [classification_times[i] - classification_times[i-1]
-                        for i in range(1, len(classification_times))]
+            intervals = [
+                classification_times[i] - classification_times[i - 1]
+                for i in range(1, len(classification_times))
+            ]
             avg_time_between = sum(intervals) / len(intervals) if intervals else 0
 
         # Frame age calculations (30fps = 33.33ms per frame)
@@ -473,9 +472,7 @@ def handle_keypoints(payload: str) -> None:
 
         # Check for connection health issues
         time_since_last_emit = (
-            current_time - last_successful_emit
-            if last_successful_emit > 0
-            else 0
+            current_time - last_successful_emit if last_successful_emit > 0 else 0
         )
         connection_health = "healthy"
         if time_since_last_emit > 5:  # No successful emit in 5 seconds
@@ -487,70 +484,57 @@ def handle_keypoints(payload: str) -> None:
             # Core results
             "classification": classification,
             "timestamp": f"{time.time_ns()}",
-
             # Connection Health
             "connection_health": connection_health,
             "time_since_last_emit_ms": round(time_since_last_emit * 1000, 1),
             "emit_failures": emit_failures,
             "connection_issues": connection_issues_detected,
-
             # Classification Timing
             "classification_rate_hz": (
-                round(1.0 / avg_time_between, 2)
-                if avg_time_between > 0
-                else 0
+                round(1.0 / avg_time_between, 2) if avg_time_between > 0 else 0
             ),
             "time_since_last_classification_ms": round(
                 time_since_last_classification * 1000, 1
             ),
-
             # Frame Window Details
             "frames_in_window": frames_in_window,
             "frames_per_classification": frame_window_size,  # Frames sent to model
             "frames_between_windows": update_freq,  # Frames between starts
             "frame_overlap": frame_overlap,
-
             # Window Performance Analysis
             "ideal_classification_interval_ms": round(
                 update_freq * frame_interval_ms, 1
             ),  # Based on window step size
             "actual_classification_interval_ms": (
-                round(avg_time_between * 1000, 1)
-                if avg_time_between > 0
-                else 0
+                round(avg_time_between * 1000, 1) if avg_time_between > 0 else 0
             ),
-
             # Processing Timeline Breakdown
             "frame_collection_time_ms": round(
-                getattr(
-                    stream_pose.stream_pose_client, 'frame_collection_time', 0
-                ) * 1000, 1
+                getattr(stream_pose.stream_pose_client, "frame_collection_time", 0)
+                * 1000,
+                1,
             ),
             "transformation_time_ms": round(
-                getattr(
-                    stream_pose.stream_pose_client, 'transformation_time', 0
-                ) * 1000, 1
+                getattr(stream_pose.stream_pose_client, "transformation_time", 0)
+                * 1000,
+                1,
             ),
             "mlflow_inference_time_ms": round(
-                getattr(
-                    stream_pose.stream_pose_client, 'mlflow_inference_time', 0
-                ) * 1000, 1
+                getattr(stream_pose.stream_pose_client, "mlflow_inference_time", 0)
+                * 1000,
+                1,
             ),
-
             # Total processing time already shown above in breakdown
             "total_processing_time_ms": round(speed * 1000, 1),
-
             # System State
             "processing_mode": processing_mode,
             "queue_depth": queue_depth,
             "frames_processed": frame_counter,
             "classifications_completed": classifications_completed,
-
             # Data Freshness
             "oldest_frame_age_ms": round(oldest_frame_age_ms, 1),
             "newest_frame_age_ms": round(newest_frame_age_ms, 1),
             "using_latest_data": using_latest_data,
-
             # Classification Capacity
             "can_process_every_frame": can_process_every_frame,
             "max_classifications_per_second": round(
@@ -563,12 +547,10 @@ def handle_keypoints(payload: str) -> None:
             "inference_proportion": round(
                 inference_proportion, 2
             ),  # Fraction of processing time that is inference vs overhead
-
             # Health Status
             "maintaining_classification_rate": maintaining_rate,
             "burst_warning": burst_warning,
             "system_health": system_health,
-
         }
 
         # Try to emit with error handling and tracking
@@ -595,7 +577,7 @@ def handle_keypoints(payload: str) -> None:
                 try:
                     emit(
                         "force_reconnect",
-                        {"reason": "emit_failures", "count": emit_failures}
+                        {"reason": "emit_failures", "count": emit_failures},
                     )
                     print("[INFO] Sent force_reconnect signal to client")
                 except Exception:
