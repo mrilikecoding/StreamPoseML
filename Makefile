@@ -60,7 +60,7 @@ test-core:
 .PHONY: test-api
 test-api:
 	@echo "Running API tests..."
-	@uv run --active pytest api/tests
+	@uv run --active pytest tests
 
 # Check Python code with mypy and ruff
 .PHONY: lint
