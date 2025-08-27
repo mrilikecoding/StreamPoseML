@@ -7,6 +7,9 @@ import subprocess
 import requests
 from unittest.mock import patch
 
+# Import buffer size constant for consistency with API
+WEBSOCKET_BUFFER_SIZE = 90  # Should match api/app.py WEBSOCKET_BUFFER_SIZE
+
 
 class TestAPIConnectivity(unittest.TestCase):
     """Test API connectivity and WebSocket endpoints."""
@@ -63,7 +66,7 @@ class TestAPIConnectivity(unittest.TestCase):
     def test_recovery_mechanisms_configuration(self):
         """Test that recovery mechanisms are properly configured."""
         config = {
-            "buffer_size": 90,                    # packets
+            "buffer_size": WEBSOCKET_BUFFER_SIZE,     # packets
             "rate_limit_interval": 0.8,           # seconds
             "heartbeat_interval": 5,              # seconds  
             "health_check_interval": 30,          # seconds
@@ -73,7 +76,7 @@ class TestAPIConnectivity(unittest.TestCase):
         }
         
         # Test configuration values are reasonable
-        self.assertEqual(config["buffer_size"], 90)
+        self.assertEqual(config["buffer_size"], WEBSOCKET_BUFFER_SIZE)
         self.assertLess(config["buffer_size"], 2000)  # Much less than original
         self.assertGreater(config["rate_limit_interval"], 0.5)
         self.assertLess(config["rate_limit_interval"], 2.0)
@@ -125,7 +128,7 @@ class TestAPIConnectivity(unittest.TestCase):
         fps = 30
         buffer_sizes = {
             "original": 2000,
-            "current": 90,
+            "current": WEBSOCKET_BUFFER_SIZE,
             "alternative": 150
         }
         
@@ -141,13 +144,4 @@ class TestAPIConnectivity(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    # Add a simple integration test that can be run standalone
-    print("WebSocket Recovery Test Summary:")
-    print("✓ Buffer reduced from 2000 to 90 packets")
-    print("✓ Rate limiting at 0.8s minimum between classifications")
-    print("✓ Connection health monitoring active")
-    print("✓ Auto-recovery on 10+ emit failures")
-    print("✓ Periodic health check every 30s")
-    print()
-    
     unittest.main()

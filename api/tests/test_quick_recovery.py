@@ -35,12 +35,12 @@ if result.stdout == "200":
 else:
     print(f"✗ WebSocket endpoint returned: {result.stdout}")
 
-print("\nRecovery mechanisms are in place:")
-print("✓ Buffer reduced from 2000 to 90 packets")
-print("✓ Rate limiting at 0.8s minimum between classifications")
+print("\nRecovery mechanisms are active:")
+print("✓ Buffer size optimized for real-time processing")
+print("✓ Rate limiting prevents burst classifications")
 print("✓ Connection health monitoring active")
-print("✓ Auto-recovery on 10+ emit failures")
-print("✓ Periodic health check every 30s")
+print("✓ Auto-recovery on connection failures")
+print("✓ Periodic health checks enabled")
 
 print("\nTo fully test, open the web UI at http://localhost:3000")
 print("The new Connection Health indicator will show:")

@@ -71,9 +71,10 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "secret!"
 app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024  # 500MB max file size
 
-# Web Socket - Reduced buffer to prevent excessive queuing
-# At 30fps, 90 packets = 3 seconds of buffer (was 2000 = 66 seconds!)
-Payload.max_decode_packets = 90
+# WebSocket configuration - Reduced buffer to prevent excessive queuing
+# At 30fps, 90 packets = 3 seconds of buffer
+WEBSOCKET_BUFFER_SIZE = 90
+Payload.max_decode_packets = WEBSOCKET_BUFFER_SIZE
 socketio: SocketIO = SocketIO(
     app,
     async_mode="eventlet",
