@@ -10,16 +10,20 @@ function PoseCapture({ handleVideoToggle, videoStreamer, videoLoader, connection
     }
 
     return (
-        <div className='content-center p-4'>
+        <div className='content-center p-4 h-full flex flex-col'>
             {connectionHealth && (
-                <div className='mb-4'>
+                <div className='mb-4 flex-shrink-0'>
                     {connectionHealth}
                 </div>
             )}
-            <button className='btn btn-primary w-full' onClick={toggleVideoStream}>
+            <button className='btn btn-primary w-full mb-4 flex-shrink-0' onClick={toggleVideoStream}>
                 {isVideoStreamOn ? 'Stop streaming' : 'Classify from webcam stream'}
             </button>
-            {isVideoStreamOn ? videoStreamer : null}
+            {isVideoStreamOn && (
+                <div className='flex-grow min-h-0'>
+                    {videoStreamer}
+                </div>
+            )}
         </div>
     )
 }

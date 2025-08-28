@@ -89,7 +89,7 @@ function App() {
         </div>
         <WebBluetooth classifierResult={classifierResult} />
       </div>
-      <div className="col-span-2">
+      <div className="col-span-2 sticky top-6 h-screen overflow-y-auto">
         <PoseCapture
           handleVideoToggle={handleVideoToggle}
           videoLoader={<VideoLoad />}

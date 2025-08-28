@@ -145,7 +145,11 @@ class MLFlowClient:
             # Parse response (not counted in inference time)
             try:
                 if isinstance(response, dict):
-                    if "predictions" in response:
+                    # Check for error response from MLflow predict function
+                    if "status" in response and response["status"] == "error":
+                        logger.error(f"MLflow prediction failed: {response.get('message', 'Unknown error')}")
+                        return False
+                    elif "predictions" in response:
                         prediction = response["predictions"][0]
                     elif "prediction" in response:
                         prediction = response["prediction"]
