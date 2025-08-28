@@ -90,21 +90,19 @@ function App() {
         <WebBluetooth classifierResult={classifierResult} />
       </div>
       <div className="col-span-2">
-        <div className="fixed w-1/2">
-          <PoseCapture
-            handleVideoToggle={handleVideoToggle}
-            videoLoader={<VideoLoad />}
-            videoStreamer={
-              <VideoStream handlePoseResults={handlePoseResults} />
-            }
-          />
-          <div className="mt-4">
+        <PoseCapture
+          handleVideoToggle={handleVideoToggle}
+          videoLoader={<VideoLoad />}
+          videoStreamer={
+            <VideoStream handlePoseResults={handlePoseResults} />
+          }
+          connectionHealth={
             <ConnectionHealth 
               socket={socketRef.current} 
               connectionMetrics={results}
             />
-          </div>
-        </div>
+          }
+        />
       </div>
     </div>
   );

@@ -136,7 +136,7 @@ const VideoStream = ({ handlePoseResults }) => {
 
 
     return (
-        <div className='grid grid-cols-1 top-0'>
+        <div className='grid grid-cols-1'>
             <div className='col-span-full' id="videoContainer">
                 <video id="localVideo" ref={videoRef} autoPlay muted></video>
                 <canvas id="videoStreamCanvas" ref={canvasRef} ></canvas>
