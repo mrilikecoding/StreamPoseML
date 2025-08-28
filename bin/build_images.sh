@@ -26,10 +26,22 @@ else
   PLATFORMS="linux/amd64,linux/arm64"
 fi
 
-# Define image tags
-API_IMAGE="mrilikecoding/stream_pose_ml_api:latest"
-WEB_UI_IMAGE="mrilikecoding/stream_pose_ml_web_ui:latest"
-MLFLOW_IMAGE="mrilikecoding/stream_pose_ml_mlflow:latest"
+# Extract version from pyproject.toml
+VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+if [[ -z "$VERSION" ]]; then
+  echo "Error: Could not extract version from pyproject.toml"
+  exit 1
+fi
+echo "Building images for version: $VERSION"
+
+# Define image tags (both latest and version)
+API_IMAGE_BASE="mrilikecoding/stream_pose_ml_api"
+WEB_UI_IMAGE_BASE="mrilikecoding/stream_pose_ml_web_ui"
+MLFLOW_IMAGE_BASE="mrilikecoding/stream_pose_ml_mlflow"
+
+API_TAGS="$API_IMAGE_BASE:latest $API_IMAGE_BASE:v$VERSION"
+WEB_UI_TAGS="$WEB_UI_IMAGE_BASE:latest $WEB_UI_IMAGE_BASE:v$VERSION"
+MLFLOW_TAGS="$MLFLOW_IMAGE_BASE:latest $MLFLOW_IMAGE_BASE:v$VERSION"
 
 # Define build contexts and Dockerfiles (fixed paths)
 API_CONTEXT="."
@@ -39,17 +51,26 @@ WEB_UI_DOCKERFILE="./web_ui/Dockerfile"
 MLFLOW_CONTEXT="./mlflow"
 MLFLOW_DOCKERFILE="./mlflow/Dockerfile"
 
-# Function to build and push an image
+# Function to build and push an image with multiple tags
 build_and_push() {
-  local image=$1
+  local tags=$1
   local context=$2
   local dockerfile=$3
-  echo "Building and pushing $image for platforms $PLATFORMS..."
+  local image_name=$(echo $tags | cut -d' ' -f1 | cut -d':' -f1)
+  echo "Building and pushing $image_name for platforms $PLATFORMS..."
+  echo "Tags: $tags"
+  
+  # Build tag arguments
+  local tag_args=""
+  for tag in $tags; do
+    tag_args="$tag_args -t $tag"
+  done
+  
   docker buildx build \
     --platform $PLATFORMS \
     --push \
     $USE_CACHE \
-    -t $image \
+    $tag_args \
     -f $dockerfile \
     $context
 }
@@ -62,16 +83,20 @@ echo "Starting Docker image builds..."
 echo "================================"
 
 echo "1/3: Building API image..."
-build_and_push $API_IMAGE $API_CONTEXT $API_DOCKERFILE
+build_and_push "$API_TAGS" $API_CONTEXT $API_DOCKERFILE
 
 echo "2/3: Building Web UI image..."
-build_and_push $WEB_UI_IMAGE $WEB_UI_CONTEXT $WEB_UI_DOCKERFILE
+build_and_push "$WEB_UI_TAGS" $WEB_UI_CONTEXT $WEB_UI_DOCKERFILE
 
 echo "3/3: Building MLflow image..."
-build_and_push $MLFLOW_IMAGE $MLFLOW_CONTEXT $MLFLOW_DOCKERFILE
+build_and_push "$MLFLOW_TAGS" $MLFLOW_CONTEXT $MLFLOW_DOCKERFILE
 
 echo "================================"
 echo "All images built and pushed successfully!"
 echo ""
-echo "Note: Images pushed to DockerHub with :latest tag"
-echo "To use these images, run: make start"
+echo "Images pushed to DockerHub with tags:"
+echo "  :latest (for make start)"  
+echo "  :v$VERSION (for version pinning)"
+echo ""
+echo "To use latest images: make start"
+echo "To use specific version: docker pull mrilikecoding/stream_pose_ml_api:v$VERSION"
