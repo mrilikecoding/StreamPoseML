@@ -99,11 +99,30 @@ make build_images
 ```
 
 This command will:
-- Build multi-platform images (linux/amd64, linux/arm64)
-- Push to DockerHub with `:latest` tags:
-  - `mrilikecoding/stream_pose_ml_api:latest`
-  - `mrilikecoding/stream_pose_ml_web_ui:latest`
-  - `mrilikecoding/stream_pose_ml_mlflow:latest`
+- Extract version from `pyproject.toml` automatically
+- Build multi-platform images (linux/amd64, linux/arm64) using `--no-cache` for fresh builds
+- Create and push both `:latest` and `:vX.X.X` version tags:
+  - `mrilikecoding/stream_pose_ml_api:latest` and `mrilikecoding/stream_pose_ml_api:v[VERSION]`
+  - `mrilikecoding/stream_pose_ml_web_ui:latest` and `mrilikecoding/stream_pose_ml_web_ui:v[VERSION]`
+  - `mrilikecoding/stream_pose_ml_mlflow:latest` and `mrilikecoding/stream_pose_ml_mlflow:v[VERSION]`
+
+**Important**: After the build completes, verify that both tag types are available:
+```bash
+# Check locally created tags
+docker images | grep stream_pose_ml
+
+# Verify DockerHub availability (may take a few minutes for propagation)
+docker pull mrilikecoding/stream_pose_ml_api:v[VERSION]
+docker pull mrilikecoding/stream_pose_ml_web_ui:v[VERSION]
+docker pull mrilikecoding/stream_pose_ml_mlflow:v[VERSION]
+```
+
+If version tags are not immediately available on DockerHub, wait a few minutes for manifest propagation, or manually push if needed:
+```bash
+docker push mrilikecoding/stream_pose_ml_api:v[VERSION]
+docker push mrilikecoding/stream_pose_ml_web_ui:v[VERSION]
+docker push mrilikecoding/stream_pose_ml_mlflow:v[VERSION]
+```
 
 #### 6. Create and Push Git Tag
 
@@ -165,7 +184,7 @@ Verify the release was successful:
 1. **Check PyPI**: Visit https://pypi.org/project/stream-pose-ml/
 2. **Test installation**:
    ```bash
-   pip install stream-pose-ml==0.2.3
+   pip install stream-pose-ml==[VERSION]
    ```
 3. **Verify Docker images**:
    ```bash
@@ -176,28 +195,36 @@ Verify the release was successful:
 
 #### 10. Post-Release Cleanup
 
-After workflows complete, there may be lock file updates:
+**IMPORTANT**: After CI workflows complete, check for lock file updates from automated workflows:
 ```bash
-# Check for any changes from CI workflows
+# Check for any changes from CI workflows (especially uv.lock)
 git pull origin main
 
 # If uv.lock was updated by workflows, commit it
 git add uv.lock
-git commit -m "chore: update uv.lock for version 0.2.3 release"
+git commit -m "chore: update uv.lock for version [VERSION] release"
 git push origin main
 ```
+
+**Note**: The PyPI publishing workflow may update `uv.lock` with the newly published version. Always check for and commit these changes as part of the release process.
 
 ## Docker Image Versioning Strategy
 
 ### Current Approach
-- All images use `:latest` tag
-- Images are rebuilt and pushed for each release
+- Dual tagging: `:latest` and `:vX.X.X` version tags
+- Version extracted automatically from `pyproject.toml`
+- Images are rebuilt with `--no-cache` for each release to ensure fresh builds
 - Multi-platform support (linux/amd64, linux/arm64)
+- Manual verification step to ensure tag propagation
+
+### Tag Strategy
+- **`:latest`** - Always points to most recent release, used by `make start`
+- **`:vX.X.X`** - Specific version tags for rollback scenarios (e.g., `:v0.2.3`)
 
 ### Future Improvements (Planned)
-- Version-specific tags (e.g., `:v0.2.3`, `:0.2`, `:0`)
 - Automated Docker builds via GitHub Actions
 - Registry scanning and security updates
+- Additional semantic version tags (e.g., `:0.3`, `:0`)
 
 ## Version Strategy
 
@@ -266,6 +293,7 @@ gh release delete v0.2.3  # Delete GitHub release
 ### Release
 - [ ] Changes committed and pushed to main
 - [ ] Docker images built and pushed (`make build_images`)
+- [ ] Version tags verified on DockerHub (both `:latest` and `:vX.X.X`)
 - [ ] Git tag created and pushed
 - [ ] GitHub release created with detailed notes
 - [ ] CI workflows monitored and successful
@@ -275,7 +303,7 @@ gh release delete v0.2.3  # Delete GitHub release
 - [ ] PyPI package installation tested
 - [ ] Docker images pulled and tested
 - [ ] Web application functionality verified
-- [ ] Lock files updated if needed
+- [ ] **Lock files updated and committed** (`git pull` and check for `uv.lock` changes)
 - [ ] Release announcement (if applicable)
 
 ### Verification
@@ -290,19 +318,26 @@ gh release delete v0.2.3  # Delete GitHub release
 If a release has critical issues:
 
 1. **Identify the issue severity**
-2. **For critical bugs**:
+2. **For critical bugs requiring immediate rollback**:
    ```bash
-   # Create hotfix patch release immediately
-   git checkout v0.2.2  # Last known good version
-   git checkout -b hotfix/0.2.4
+   # Users can immediately switch to previous version
+   docker pull mrilikecoding/stream_pose_ml_api:v[PREVIOUS_VERSION]
+   docker pull mrilikecoding/stream_pose_ml_web_ui:v[PREVIOUS_VERSION]  
+   docker pull mrilikecoding/stream_pose_ml_mlflow:v[PREVIOUS_VERSION]
+   
+   # Or create hotfix patch release
+   git checkout v[PREVIOUS_VERSION]  # Last known good version
+   git checkout -b hotfix/[PATCH_VERSION]
    # Apply minimal fix
-   # Follow release process for v0.2.4
+   # Follow release process for v[PATCH_VERSION]
    ```
 
 3. **For non-critical issues**:
    - Document in GitHub issues
    - Plan fix for next regular release
    - Update documentation if needed
+
+**Note**: Version-specific Docker tags enable immediate rollback without rebuilding images.
 
 ## Benefits of This Process
 
