@@ -151,7 +151,7 @@ docs-clean:
 help:
 	@echo "StreamPoseML Makefile targets:"
 	@echo "  all             - Run the default target (build_images)"
-	@echo "  build_images    - Build and push Docker images"
+	@echo "  build_images    - Build and push Docker images (--no-cache by default)"
 	@echo "  start           - Start the application using pre-built DockerHub images"
 	@echo "  start-debug     - Start the application with pre-built images and debug output"
 	@echo "  start-dev       - Start the application with local code using cached images (development mode)"

@@ -3,6 +3,18 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Always use --no-cache for release builds to ensure fresh images
+echo "Building with --no-cache to ensure fresh builds..."
+
+# Parse command line arguments for optional cache usage (development only)
+USE_CACHE=""
+if [[ "$1" == "--use-cache" ]]; then
+  USE_CACHE="true"
+  echo "Warning: Using cache for builds (development mode)"
+else
+  USE_CACHE="--no-cache"
+fi
+
 # Detect host architecture
 HOST_ARCH=$(uname -m)
 
@@ -19,10 +31,13 @@ API_IMAGE="mrilikecoding/stream_pose_ml_api:latest"
 WEB_UI_IMAGE="mrilikecoding/stream_pose_ml_web_ui:latest"
 MLFLOW_IMAGE="mrilikecoding/stream_pose_ml_mlflow:latest"
 
-# Define build contexts
+# Define build contexts and Dockerfiles (fixed paths)
 API_CONTEXT="."
+API_DOCKERFILE="./api/Dockerfile"
 WEB_UI_CONTEXT="./web_ui"
+WEB_UI_DOCKERFILE="./web_ui/Dockerfile"
 MLFLOW_CONTEXT="./mlflow"
+MLFLOW_DOCKERFILE="./mlflow/Dockerfile"
 
 # Function to build and push an image
 build_and_push() {
@@ -33,14 +48,30 @@ build_and_push() {
   docker buildx build \
     --platform $PLATFORMS \
     --push \
+    $USE_CACHE \
     -t $image \
     -f $dockerfile \
     $context
 }
 
-# Build and push images
-build_and_push $API_IMAGE $API_CONTEXT "./api/Dockerfile"
-build_and_push $WEB_UI_IMAGE $WEB_UI_CONTEXT "Dockerfile"
-build_and_push $MLFLOW_IMAGE $MLFLOW_CONTEXT "Dockerfile"
+# Ensure we're using buildx
+docker buildx use default 2>/dev/null || docker buildx create --use
 
+# Build and push images
+echo "Starting Docker image builds..."
+echo "================================"
+
+echo "1/3: Building API image..."
+build_and_push $API_IMAGE $API_CONTEXT $API_DOCKERFILE
+
+echo "2/3: Building Web UI image..."
+build_and_push $WEB_UI_IMAGE $WEB_UI_CONTEXT $WEB_UI_DOCKERFILE
+
+echo "3/3: Building MLflow image..."
+build_and_push $MLFLOW_IMAGE $MLFLOW_CONTEXT $MLFLOW_DOCKERFILE
+
+echo "================================"
 echo "All images built and pushed successfully!"
+echo ""
+echo "Note: Images pushed to DockerHub with :latest tag"
+echo "To use these images, run: make start"
