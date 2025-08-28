@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-08-28
+
+### Fixed
+- **Video panel UX improvements**
+  - Video stream and connection health now remain visible while scrolling through classification stats
+  - Fixed keypoint overlay alignment with video after size constraint changes
+  - Repositioned keypoint processing speed overlay to prevent layout blocking
+- **MLflow error handling**
+  - Fixed bug where classification showed "true" when MLflow returned 500 errors
+  - Added proper error response detection to prevent false positive classifications
+- **Docker compose management**
+  - Improved stop script to handle both local and build compose configurations
+
 ## [0.3.0] - 2025-08-28
 
 ### Added
