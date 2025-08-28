@@ -7,12 +7,12 @@ set -e
 echo "Building with --no-cache to ensure fresh builds..."
 
 # Parse command line arguments for optional cache usage (development only)
-USE_CACHE=""
+NO_CACHE_ARG="--no-cache"
 if [[ "$1" == "--use-cache" ]]; then
-  USE_CACHE="true"
+  NO_CACHE_ARG=""
   echo "Warning: Using cache for builds (development mode)"
 else
-  USE_CACHE="--no-cache"
+  echo "Using --no-cache for fresh builds"
 fi
 
 # Detect host architecture
@@ -69,7 +69,7 @@ build_and_push() {
   docker buildx build \
     --platform $PLATFORMS \
     --push \
-    $USE_CACHE \
+    $NO_CACHE_ARG \
     $tag_args \
     -f $dockerfile \
     $context
