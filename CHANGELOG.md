@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-08-28
+
+### Added
+- **WebSocket recovery mechanisms** for improved connection stability
+  - Automatic reconnection with exponential backoff
+  - Connection health monitoring with heartbeat system
+  - Force reconnection signals for critical issues
+  - Emit failure tracking and recovery attempts
+- **Connection Health UI component** showing real-time model server status
+  - Visual indicators (green/yellow/red) for connection states
+  - Detailed connection metrics and error logging
+  - Positioned above stream controls for better UX
+- **Comprehensive performance metrics** in API
+  - Frame collection timing measurements
+  - MLflow inference timing isolation
+  - Processing capacity calculations
+  - Burst warning detection
+- **Rate limiting** (0.8s minimum between classifications) to prevent burst triggers
+- **Improved development workflow**
+  - `make start-dev` for cached Docker images (fast)
+  - `make start-dev-build` for rebuilding images (when needed)
+- **Extensive test coverage** for new features
+  - WebSocket recovery tests
+  - MLflow timing tests  
+  - API connectivity tests
+
+### Fixed
+- **Critical burst trigger issue** where multiple Bluetooth stimulations fired rapidly
+  - Reduced WebSocket buffer from 2000 to 90 packets (66s → 3s at 30fps)
+  - Prevents excessive frame queuing during slow inference
+- **CI pipeline test paths** - corrected to use `tests/` instead of non-existent `api/tests/`
+- **ConnectionHealth component positioning** - no longer overlays video stream
+
+### Changed
+- **WebSocket buffer configuration** extracted as `WEBSOCKET_BUFFER_SIZE` constant
+- **MLFlowClient timing** separated into distinct measurement phases
+- **API frame processing** now includes comprehensive health monitoring
+- **Error handling** improved with better logging and recovery mechanisms
+
+### Infrastructure
+- All tests passing (220 package tests, 30 API tests)
+- CI/CD pipeline fully operational with correct test paths
+- Code formatting and type checking enforced
+
 ## [0.2.2] - 2025-08-20
 
 ### Fixed
