@@ -35,7 +35,7 @@ jobs:
     - name: Run tests
       run: |
         uv run pytest stream_pose_ml/tests/ -v
-        uv run pytest api/tests/ -v
+        uv run pytest tests/ -v
     
     - name: Run linting
       run: |

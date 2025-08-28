@@ -6,6 +6,7 @@ import VideoLoad from "./components/VideoLoad";
 import PoseCapture from "./components/PoseCapture";
 import ModelSelector from "./components/ModelSelector";
 import WebBluetooth from "./components/WebBluetooth";
+import ConnectionHealth from "./components/ConnectionHealth";
 import React, { useState, useEffect, useRef } from "react";
 
 function App() {
@@ -89,15 +90,19 @@ function App() {
         <WebBluetooth classifierResult={classifierResult} />
       </div>
       <div className="col-span-2">
-        <div className="fixed w-1/2">
-          <PoseCapture
-            handleVideoToggle={handleVideoToggle}
-            videoLoader={<VideoLoad />}
-            videoStreamer={
-              <VideoStream handlePoseResults={handlePoseResults} />
-            }
-          />
-        </div>
+        <PoseCapture
+          handleVideoToggle={handleVideoToggle}
+          videoLoader={<VideoLoad />}
+          videoStreamer={
+            <VideoStream handlePoseResults={handlePoseResults} />
+          }
+          connectionHealth={
+            <ConnectionHealth 
+              socket={socketRef.current} 
+              connectionMetrics={results}
+            />
+          }
+        />
       </div>
     </div>
   );

@@ -33,3 +33,4 @@ docs/build/
 
 # Uploaded model files
 api/tmp/
+tmp/*

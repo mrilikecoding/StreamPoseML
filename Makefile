@@ -27,10 +27,16 @@ start-debug:
 	@echo "Starting StreamPoseML application in debug mode..."
 	@bash $(START_SCRIPT) --debug
 
-# Start application with local code (development mode)
+# Start application with local code (development mode) - cached images
 .PHONY: start-dev
 start-dev:
 	@echo "Starting StreamPoseML application with local code (development mode)..."
+	docker compose -f docker-compose.local.yml up
+
+# Start application with local code (development mode) - force rebuild
+.PHONY: start-dev-build
+start-dev-build:
+	@echo "Starting StreamPoseML application with local code (development mode) - rebuilding images..."
 	docker compose -f docker-compose.local.yml up --build
 
 # Stop application
@@ -54,7 +60,7 @@ test-core:
 .PHONY: test-api
 test-api:
 	@echo "Running API tests..."
-	@uv run --active pytest api/tests
+	@uv run --active pytest tests
 
 # Check Python code with mypy and ruff
 .PHONY: lint
@@ -148,7 +154,8 @@ help:
 	@echo "  build_images    - Build and push Docker images"
 	@echo "  start           - Start the application using pre-built DockerHub images"
 	@echo "  start-debug     - Start the application with pre-built images and debug output"
-	@echo "  start-dev       - Start the application by building from local source code (development mode)"
+	@echo "  start-dev       - Start the application with local code using cached images (development mode)"
+	@echo "  start-dev-build - Start the application with local code rebuilding images (slow)"
 	@echo "  stop            - Stop the application containers"
 	@echo "  test            - Run all tests"
 	@echo "  test-core       - Run tests for the stream_pose_ml package"
