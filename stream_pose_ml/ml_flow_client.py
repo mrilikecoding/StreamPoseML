@@ -147,7 +147,7 @@ class MLFlowClient:
                 if isinstance(response, dict):
                     # Check for error response from MLflow predict function
                     if "status" in response and response["status"] == "error":
-                        error_msg = response.get('message', 'Unknown error')
+                        error_msg = response.get("message", "Unknown error")
                         logger.error(f"MLflow prediction failed: {error_msg}")
                         return False
                     elif "predictions" in response:
