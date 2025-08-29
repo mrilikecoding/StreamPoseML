@@ -4,6 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 ![Supported Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-green)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/stream-pose-ml)](https://pypi.org/project/stream-pose-ml/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14298482.svg)](https://doi.org/10.5281/zenodo.14298482)
 [![Documentation Status](https://readthedocs.org/projects/streamposeml/badge/?version=latest)](https://streamposeml.readthedocs.io/en/latest/?badge=latest)
 
