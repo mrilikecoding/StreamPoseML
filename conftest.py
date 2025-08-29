@@ -2,7 +2,6 @@
 Root conftest.py to configure pytest for both API and module tests.
 """
 import sys
-import os
 from pathlib import Path
 
 # Add the project root to sys.path for proper import resolution

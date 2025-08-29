@@ -1,11 +1,11 @@
 import os
 import sys
-import re
+
 import tomli
 
 # These modules will be mocked by autodoc_mock_imports
 MOCK_MODULES = [
-    'cv2', 'opencv_contrib_python', 'mediapipe', 'matplotlib', 'numpy', 'pandas', 
+    'cv2', 'opencv_contrib_python', 'mediapipe', 'matplotlib', 'numpy', 'pandas',
     'scikit_learn', 'scipy', 'xgboost', 'mlflow', 'PyWavelets', 'tslearn',
     'imbalanced_learn', 'kneed', 'tqdm', 'seaborn'
 ]
