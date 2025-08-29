@@ -83,15 +83,40 @@ make start-dev
 make stop
 ```
 
-#### 4. Commit Changes
+#### 4. Commit and Push Changes
 
 Commit the version bump and changelog updates:
 ```bash
 git add pyproject.toml CHANGELOG.md
 git commit -m "chore: Bump version to 0.2.3 and update changelog"
+git push origin main
 ```
 
-#### 5. Build and Push Docker Images
+#### 5. Wait for CI to Pass
+
+Before building Docker images, ensure all CI workflows complete successfully:
+```bash
+# Monitor CI workflows
+gh run watch --exit-status
+
+# Or check status manually
+gh run list --limit 3
+```
+
+**Important**: Only proceed to Docker builds after confirming:
+- ✅ All test jobs pass (Ubuntu, macOS, Python 3.10/3.11)
+- ✅ Linting and type checking pass  
+- ✅ Security checks pass
+
+If CI fails, fix the issues, commit, push, and wait for CI to pass before continuing.
+
+**Why wait for CI?**
+- Prevents building and pushing Docker images with broken code
+- Saves time and resources (multi-platform builds take 5-10 minutes)
+- Ensures Docker images only contain tested, working code
+- Follows best practice of never releasing untested code
+
+#### 6. Build and Push Docker Images
 
 Build and push all Docker images to DockerHub:
 ```bash
@@ -124,16 +149,15 @@ docker push mrilikecoding/stream_pose_ml_web_ui:v[VERSION]
 docker push mrilikecoding/stream_pose_ml_mlflow:v[VERSION]
 ```
 
-#### 6. Create and Push Git Tag
+#### 7. Create and Push Git Tag
 
-Create a git tag and push everything:
+Create a git tag and push it to the remote repository:
 ```bash
 git tag -a v0.2.3 -m "Release v0.2.3: Brief description of changes"
-git push origin main
 git push origin v0.2.3
 ```
 
-#### 7. Create GitHub Release
+#### 8. Create GitHub Release
 
 Create the GitHub release with detailed notes:
 ```bash
@@ -164,7 +188,7 @@ EOF
 )"
 ```
 
-#### 8. Monitor CI/CD Workflows
+#### 9. Monitor CI/CD Workflows
 
 After pushing, monitor the automated workflows:
 ```bash
@@ -177,7 +201,7 @@ gh run list --limit 5
 
 Ensure both CI and PyPI publishing workflows complete successfully.
 
-#### 9. Verify Release
+#### 10. Verify Release
 
 Verify the release was successful:
 
@@ -193,7 +217,7 @@ Verify the release was successful:
    ```
 4. **Test web application**: Navigate to http://localhost:3000
 
-#### 10. Post-Release Cleanup
+#### 11. Post-Release Cleanup
 
 **IMPORTANT**: After CI workflows complete, check for lock file updates from automated workflows:
 ```bash
@@ -292,11 +316,12 @@ gh release delete v0.2.3  # Delete GitHub release
 
 ### Release
 - [ ] Changes committed and pushed to main
-- [ ] Docker images built and pushed (`make build_images`)
+- [ ] **CI workflows pass completely** (all tests, linting, security)
+- [ ] Docker images built and pushed (`make build_images`) **only after CI passes**
 - [ ] Version tags verified on DockerHub (both `:latest` and `:vX.X.X`)
 - [ ] Git tag created and pushed
 - [ ] GitHub release created with detailed notes
-- [ ] CI workflows monitored and successful
+- [ ] Additional CI workflows monitored (PyPI publishing)
 - [ ] PyPI publishing verified
 
 ### Post-Release
